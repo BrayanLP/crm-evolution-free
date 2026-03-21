@@ -7,21 +7,6 @@ import type { Lead, StageId } from './types';
 const STORAGE_KEY = 'leadflow_leads';
 const SETTINGS_KEY = 'leadflow_settings';
 
-const INITIAL_LEADS: Lead[] = [
-  {
-    id: '1',
-    name: 'TechCorp Solutions',
-    contactName: 'Juan Pérez',
-    email: 'juan@techcorp.com',
-    phone: '51975521788',
-    company: 'TechCorp',
-    stage: 'new',
-    notes: 'Interesado en nuestro plan enterprise. Necesita una demostración para el próximo martes.',
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
-  }
-];
-
 export function useLeads() {
   const [leads, setLeads] = useState<Lead[]>([]);
   const [webhookUrl, setWebhookUrl] = useState<string>('');
@@ -29,24 +14,15 @@ export function useLeads() {
   const [isLoaded, setIsLoaded] = useState(false);
   const [isSyncing, setIsSyncing] = useState(false);
 
+  // Cargar configuración inicial
   useEffect(() => {
-    const savedLeads = localStorage.getItem(STORAGE_KEY);
-    if (savedLeads) {
-      try {
-        const parsed = JSON.parse(savedLeads);
-        setLeads(parsed.length > 0 ? parsed : INITIAL_LEADS);
-      } catch (e) {
-        setLeads(INITIAL_LEADS);
-      }
-    } else {
-      setLeads(INITIAL_LEADS);
-    }
-
     const savedSettings = localStorage.getItem(SETTINGS_KEY);
+    let currentUrl = '';
     if (savedSettings) {
       try {
         const { webhookUrl: url, instanceName: inst } = JSON.parse(savedSettings);
-        setWebhookUrl(url || '');
+        currentUrl = url || '';
+        setWebhookUrl(currentUrl);
         setInstanceName(inst || 'HALCONDIGITAL');
       } catch (e) {
         setWebhookUrl('');
@@ -54,20 +30,29 @@ export function useLeads() {
       }
     }
 
+    const savedLeads = localStorage.getItem(STORAGE_KEY);
+    if (savedLeads) {
+      try {
+        setLeads(JSON.parse(savedLeads));
+      } catch (e) {
+        setLeads([]);
+      }
+    }
+
     setIsLoaded(true);
+
+    // Intentar sincronización inicial si hay URL
+    if (currentUrl) {
+      initialSync(currentUrl);
+    }
   }, []);
 
+  // Persistir leads localmente cuando cambien
   useEffect(() => {
     if (isLoaded) {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(leads));
     }
   }, [leads, isLoaded]);
-
-  const updateSettings = (url: string, inst: string) => {
-    setWebhookUrl(url);
-    setInstanceName(inst);
-    localStorage.setItem(SETTINGS_KEY, JSON.stringify({ webhookUrl: url, instanceName: inst }));
-  };
 
   const processIncomingData = useCallback((payload: any[]) => {
     if (!Array.isArray(payload)) return;
@@ -86,17 +71,32 @@ export function useLeads() {
     }));
 
     setLeads(prev => {
+      // Evitar duplicados basados en ID o teléfono+mensaje
       const existingIds = new Set(prev.map(l => l.id));
       const filteredNew = newLeadsFromWebhook.filter(l => !existingIds.has(l.id));
       return [...filteredNew, ...prev];
     });
   }, [instanceName]);
 
+  const initialSync = async (url: string) => {
+    setIsSyncing(true);
+    try {
+      const response = await fetch(url);
+      if (response.ok) {
+        const data = await response.json();
+        processIncomingData(data);
+      }
+    } catch (err) {
+      console.error('Error en sincronización inicial:', err);
+    } finally {
+      setIsSyncing(false);
+    }
+  };
+
   const syncLeads = async () => {
     if (!webhookUrl) return;
     setIsSyncing(true);
     try {
-      // Intentamos obtener la data real del servicio
       const response = await fetch(webhookUrl);
       if (response.ok) {
         const data = await response.json();
@@ -109,34 +109,12 @@ export function useLeads() {
     }
   };
 
-  const sendWebhook = async (lead: Lead) => {
-    if (!webhookUrl) return;
-    
-    const cleanPhone = lead.phone.replace(/\D/g, '');
-    const payload = [{
-      "INSTANCE": instanceName,
-      "REMOTEJID": `${cleanPhone}@s.whatsapp.net`,
-      "REMOTEJIDALT": `${cleanPhone}@s.whatsapp.net`,
-      "PUSHNAME": lead.contactName || lead.name,
-      "MESSAGE": lead.notes || "Nuevo lead",
-      "TYPO_MESSAGE": "conversation",
-      "WHATSAPP": parseInt(cleanPhone) || 0,
-      "ESTADO_RESPUESTA": "LISTO",
-      "ESTADO_BOT": true,
-      "id": lead.id,
-      "createdAt": lead.createdAt,
-      "updatedAt": lead.updatedAt
-    }];
-
-    try {
-      await fetch(webhookUrl, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload),
-      });
-    } catch (err) {
-      console.error('Error enviando a webhook:', err);
-    }
+  const updateSettings = (url: string, inst: string) => {
+    setWebhookUrl(url);
+    setInstanceName(inst);
+    localStorage.setItem(SETTINGS_KEY, JSON.stringify({ webhookUrl: url, instanceName: inst }));
+    // Sincronizar inmediatamente al guardar nueva URL
+    if (url) initialSync(url);
   };
 
   const addLead = (leadData: Omit<Lead, 'id' | 'createdAt' | 'updatedAt'>) => {
@@ -147,16 +125,40 @@ export function useLeads() {
       updatedAt: new Date().toISOString(),
     };
     
-    setLeads(prev => [...prev, newLead]);
-    sendWebhook(newLead);
+    setLeads(prev => [newLead, ...prev]);
+    
+    // Enviar al webhook si existe
+    if (webhookUrl) {
+      const cleanPhone = newLead.phone.replace(/\D/g, '');
+      const payload = [{
+        "INSTANCE": instanceName,
+        "REMOTEJID": `${cleanPhone}@s.whatsapp.net`,
+        "REMOTEJIDALT": `${cleanPhone}@s.whatsapp.net`,
+        "PUSHNAME": newLead.contactName || newLead.name,
+        "MESSAGE": newLead.notes || "Nuevo lead",
+        "TYPO_MESSAGE": "conversation",
+        "WHATSAPP": parseInt(cleanPhone) || 0,
+        "ESTADO_RESPUESTA": "LISTO",
+        "ESTADO_BOT": true,
+        "id": newLead.id,
+        "createdAt": newLead.createdAt,
+        "updatedAt": newLead.updatedAt
+      }];
+
+      fetch(webhookUrl, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      }).catch(e => console.error("Error enviando lead al webhook:", e));
+    }
   };
 
   const updateLead = (id: string, updates: Partial<Lead>) => {
-    setLeads(leads.map(l => l.id === id ? { ...l, ...updates, updatedAt: new Date().toISOString() } : l));
+    setLeads(prev => prev.map(l => l.id === id ? { ...l, ...updates, updatedAt: new Date().toISOString() } : l));
   };
 
   const deleteLead = (id: string) => {
-    setLeads(leads.filter(l => l.id !== id));
+    setLeads(prev => prev.filter(l => l.id !== id));
   };
 
   const moveLead = (id: string, newStage: StageId) => {

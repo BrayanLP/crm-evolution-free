@@ -6,14 +6,15 @@ import { useState } from 'react';
 import { useLeads } from '@/lib/store';
 import { STAGES, Lead, StageId } from '@/lib/types';
 import { LeadDialog } from './LeadDialog';
-import { Plus, Building2, User, Mail, Phone, RefreshCw } from 'lucide-react';
+import { Plus, Building2, User, Mail, Phone, RefreshCw, AlertCircle } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 
 export function KanbanBoard() {
-  const { leads, addLead, updateLead, deleteLead, moveLead, syncLeads, isSyncing, isLoaded } = useLeads();
+  const { leads, addLead, updateLead, deleteLead, moveLead, syncLeads, isSyncing, isLoaded, webhookUrl } = useLeads();
   const [selectedLead, setSelectedLead] = useState<Lead | undefined>(undefined);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [draggingLeadId, setDraggingLeadId] = useState<string | null>(null);
@@ -55,17 +56,17 @@ export function KanbanBoard() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold font-headline text-primary">Leads</h1>
-          <p className="text-muted-foreground">Gestiona tu proceso de ventas y prospectos de forma efectiva.</p>
+          <p className="text-muted-foreground">Gestiona tus prospectos reales desde WhatsApp.</p>
         </div>
         <div className="flex gap-2">
           <Button 
             variant="outline" 
             onClick={syncLeads} 
-            disabled={isSyncing}
+            disabled={isSyncing || !webhookUrl}
             className="gap-2"
           >
             <RefreshCw className={cn("h-4 w-4", isSyncing && "animate-spin")} />
-            Sincronizar
+            Sincronizar Webhook
           </Button>
           <Button onClick={openCreateDialog} className="bg-primary hover:bg-primary/90 gap-2">
             <Plus className="h-4 w-4" />
@@ -73,6 +74,16 @@ export function KanbanBoard() {
           </Button>
         </div>
       </div>
+
+      {!webhookUrl && (
+        <Alert variant="destructive" className="bg-amber-50 border-amber-200 text-amber-800">
+          <AlertCircle className="h-4 w-4" />
+          <AlertTitle>Configuración pendiente</AlertTitle>
+          <AlertDescription>
+            No se ha configurado una URL de webhook. Ve a "Configuración" para conectar tu servicio de WhatsApp.
+          </AlertDescription>
+        </Alert>
+      )}
 
       <div className="flex-1 overflow-x-auto pb-4">
         <div className="flex h-full gap-4 min-w-max">
@@ -129,17 +140,10 @@ export function KanbanBoard() {
                             <User className="h-3 w-3" />
                             <span className="truncate">{lead.contactName}</span>
                           </div>
-                        </div>
-
-                        <div className="pt-2 flex flex-wrap gap-1.5">
-                          {lead.email && (
-                            <div className="bg-slate-100 p-1 rounded-sm text-slate-500" title={lead.email}>
-                              <Mail className="h-3 w-3" />
-                            </div>
-                          )}
                           {lead.phone && (
-                            <div className="bg-slate-100 p-1 rounded-sm text-slate-500" title={lead.phone}>
+                            <div className="flex items-center gap-2 text-xs text-muted-foreground">
                               <Phone className="h-3 w-3" />
+                              <span className="truncate">{lead.phone}</span>
                             </div>
                           )}
                         </div>
@@ -161,7 +165,7 @@ export function KanbanBoard() {
                   {stageLeads.length === 0 && (
                     <div className="flex flex-col items-center justify-center py-10 opacity-40">
                       <div className="w-10 h-10 rounded-full border-2 border-dashed border-slate-400 mb-2" />
-                      <p className="text-xs text-slate-500">No hay leads aquí</p>
+                      <p className="text-xs text-slate-500">No hay leads en esta etapa</p>
                     </div>
                   )}
                 </div>
