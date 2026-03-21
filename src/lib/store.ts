@@ -102,10 +102,10 @@ export function useLeads() {
         const data = await response.json();
         return (Array.isArray(data) ? data : []).map((msg: any) => ({
           id: msg.id?.toString() || Math.random().toString(36).substr(2, 9),
-          message: msg.MESSAGE || msg.message || "",
-          fromMe: msg.fromMe ?? false,
-          timestamp: msg.createdAt || msg.timestamp || new Date().toISOString(),
-          pushName: msg.PUSHNAME || msg.pushName
+          message: msg.MENSAJE || "",
+          fromMe: msg.DE_MI === "1",
+          timestamp: msg.createdAt || new Date().toISOString(),
+          pushName: "" // No disponible en esta estructura
         }));
       }
     } catch (err) {
