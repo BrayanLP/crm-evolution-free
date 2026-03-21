@@ -1,7 +1,9 @@
 
 "use client"
 
+import { useState } from 'react';
 import { KanbanBoard } from '@/components/KanbanBoard';
+import { SettingsDialog } from '@/components/SettingsDialog';
 import { LayoutGrid, Users, Settings, PieChart, Bell, Search } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -10,6 +12,8 @@ import { Toaster } from '@/components/ui/toaster';
 import { cn } from '@/lib/utils';
 
 export default function Home() {
+  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+
   return (
     <div className="flex h-screen bg-background overflow-hidden">
       {/* Sidebar - Desktop */}
@@ -31,7 +35,11 @@ export default function Home() {
         </div>
 
         <div className="mt-auto p-6 border-t">
-          <NavItem icon={<Settings className="h-5 w-5" />} label="Configuración" />
+          <NavItem 
+            icon={<Settings className="h-5 w-5" />} 
+            label="Configuración" 
+            onClick={() => setIsSettingsOpen(true)}
+          />
           <div className="mt-4 flex items-center gap-3 px-3 py-2 rounded-lg bg-slate-50">
             <Avatar className="h-8 w-8">
               <AvatarImage src="https://picsum.photos/seed/admin/100/100" />
@@ -75,15 +83,28 @@ export default function Home() {
           <KanbanBoard />
         </div>
       </main>
+      
+      <SettingsDialog isOpen={isSettingsOpen} onClose={() => setIsSettingsOpen(false)} />
       <Toaster />
     </div>
   );
 }
 
-function NavItem({ icon, label, active = false }: { icon: React.ReactNode, label: string, active?: boolean }) {
+function NavItem({ 
+  icon, 
+  label, 
+  active = false, 
+  onClick 
+}: { 
+  icon: React.ReactNode, 
+  label: string, 
+  active?: boolean,
+  onClick?: () => void
+}) {
   return (
     <Button
       variant={active ? 'secondary' : 'ghost'}
+      onClick={onClick}
       className={cn(
         "w-full justify-start gap-3 px-4 py-6 text-base font-medium transition-all duration-200",
         active ? "bg-primary/5 text-primary shadow-sm hover:bg-primary/10" : "text-slate-500 hover:text-primary hover:bg-primary/5"

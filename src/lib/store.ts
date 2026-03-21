@@ -5,6 +5,7 @@ import { useState, useEffect } from 'react';
 import type { Lead, StageId } from './types';
 
 const STORAGE_KEY = 'leadflow_leads';
+const SETTINGS_KEY = 'leadflow_settings';
 
 const INITIAL_LEADS: Lead[] = [
   {
@@ -35,19 +36,31 @@ const INITIAL_LEADS: Lead[] = [
 
 export function useLeads() {
   const [leads, setLeads] = useState<Lead[]>([]);
+  const [webhookUrl, setWebhookUrl] = useState<string>('');
   const [isLoaded, setIsLoaded] = useState(false);
 
   useEffect(() => {
-    const saved = localStorage.getItem(STORAGE_KEY);
-    if (saved) {
+    const savedLeads = localStorage.getItem(STORAGE_KEY);
+    if (savedLeads) {
       try {
-        setLeads(JSON.parse(saved));
+        setLeads(JSON.parse(savedLeads));
       } catch (e) {
         setLeads(INITIAL_LEADS);
       }
     } else {
       setLeads(INITIAL_LEADS);
     }
+
+    const savedSettings = localStorage.getItem(SETTINGS_KEY);
+    if (savedSettings) {
+      try {
+        const { webhookUrl: url } = JSON.parse(savedSettings);
+        setWebhookUrl(url || '');
+      } catch (e) {
+        setWebhookUrl('');
+      }
+    }
+
     setIsLoaded(true);
   }, []);
 
@@ -57,6 +70,11 @@ export function useLeads() {
     }
   }, [leads, isLoaded]);
 
+  const updateSettings = (url: string) => {
+    setWebhookUrl(url);
+    localStorage.setItem(SETTINGS_KEY, JSON.stringify({ webhookUrl: url }));
+  };
+
   const addLead = (lead: Omit<Lead, 'id' | 'createdAt' | 'updatedAt'>) => {
     const newLead: Lead = {
       ...lead,
@@ -64,7 +82,21 @@ export function useLeads() {
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
     };
+    
     setLeads([...leads, newLead]);
+
+    // Llamada al Webhook si está configurado
+    if (webhookUrl) {
+      fetch(webhookUrl, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          event: 'lead.created',
+          data: newLead,
+          timestamp: new Date().toISOString()
+        }),
+      }).catch(err => console.error('Error enviando webhook:', err));
+    }
   };
 
   const updateLead = (id: string, updates: Partial<Lead>) => {
@@ -79,5 +111,14 @@ export function useLeads() {
     updateLead(id, { stage: newStage });
   };
 
-  return { leads, addLead, updateLead, deleteLead, moveLead, isLoaded };
+  return { 
+    leads, 
+    webhookUrl, 
+    addLead, 
+    updateLead, 
+    deleteLead, 
+    moveLead, 
+    updateSettings, 
+    isLoaded 
+  };
 }
