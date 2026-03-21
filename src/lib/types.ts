@@ -10,8 +10,17 @@ export interface Lead {
   company: string;
   stage: StageId;
   notes: string;
+  remoteJid?: string;
   createdAt: string;
   updatedAt: string;
+}
+
+export interface ChatMessage {
+  id: string;
+  message: string;
+  fromMe: boolean;
+  timestamp: string;
+  pushName?: string;
 }
 
 export interface Stage {

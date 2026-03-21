@@ -10,9 +10,12 @@ import { Input } from '@/components/ui/input';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Toaster } from '@/components/ui/toaster';
 import { cn } from '@/lib/utils';
+import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 
 export default function Home() {
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+  const pathname = usePathname();
 
   return (
     <div className="flex h-screen bg-background overflow-hidden">
@@ -27,10 +30,10 @@ export default function Home() {
           </div>
 
           <nav className="space-y-1">
-            <NavItem icon={<PieChart className="h-5 w-5" />} label="Panel de Control" />
-            <NavItem icon={<LayoutGrid className="h-5 w-5" />} label="Leads" active />
-            <NavItem icon={<Users className="h-5 w-5" />} label="Contactos" />
-            <NavItem icon={<Bell className="h-5 w-5" />} label="Actividades" />
+            <NavItem icon={<PieChart className="h-5 w-5" />} label="Panel" href="/" active={pathname === "/dashboard"} />
+            <NavItem icon={<LayoutGrid className="h-5 w-5" />} label="Leads" href="/" active={pathname === "/"} />
+            <NavItem icon={<Users className="h-5 w-5" />} label="Contactos" href="/contacts" active={pathname === "/contacts"} />
+            <NavItem icon={<Bell className="h-5 w-5" />} label="Actividades" href="/" active={pathname === "/activities"} />
           </nav>
         </div>
 
@@ -93,26 +96,42 @@ export default function Home() {
 function NavItem({ 
   icon, 
   label, 
+  href,
   active = false, 
   onClick 
 }: { 
   icon: React.ReactNode, 
   label: string, 
+  href?: string,
   active?: boolean,
   onClick?: () => void
 }) {
-  return (
-    <Button
-      variant={active ? 'secondary' : 'ghost'}
-      onClick={onClick}
-      className={cn(
-        "w-full justify-start gap-3 px-4 py-6 text-base font-medium transition-all duration-200",
-        active ? "bg-primary/5 text-primary shadow-sm hover:bg-primary/10" : "text-slate-500 hover:text-primary hover:bg-primary/5"
-      )}
-    >
+  const content = (
+    <>
       {icon}
       {label}
       {active && <div className="ml-auto w-1 h-5 bg-primary rounded-full" />}
+    </>
+  );
+
+  const className = cn(
+    "w-full justify-start gap-3 px-4 py-6 text-base font-medium transition-all duration-200",
+    active ? "bg-primary/5 text-primary shadow-sm hover:bg-primary/10" : "text-slate-500 hover:text-primary hover:bg-primary/5"
+  );
+
+  if (href) {
+    return (
+      <Link href={href} className={className}>
+        <div className="flex items-center gap-3 w-full">
+          {content}
+        </div>
+      </Link>
+    );
+  }
+
+  return (
+    <Button variant="ghost" onClick={onClick} className={className}>
+      {content}
     </Button>
   );
 }
