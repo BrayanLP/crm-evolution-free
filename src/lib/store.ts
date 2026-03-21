@@ -13,22 +13,10 @@ const INITIAL_LEADS: Lead[] = [
     name: 'TechCorp Solutions',
     contactName: 'Juan Pérez',
     email: 'juan@techcorp.com',
-    phone: '555-0101',
+    phone: '51975521788',
     company: 'TechCorp',
     stage: 'new',
     notes: 'Interesado en nuestro plan enterprise. Necesita una demostración para el próximo martes.',
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
-  },
-  {
-    id: '2',
-    name: 'Innovation Labs',
-    contactName: 'Ana Smith',
-    email: 'ana@innolabs.io',
-    phone: '555-0102',
-    company: 'Innovation Labs',
-    stage: 'contacted',
-    notes: 'Seguimiento por correo. Esperando respuesta sobre precios.',
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
   },
@@ -37,6 +25,7 @@ const INITIAL_LEADS: Lead[] = [
 export function useLeads() {
   const [leads, setLeads] = useState<Lead[]>([]);
   const [webhookUrl, setWebhookUrl] = useState<string>('');
+  const [instanceName, setInstanceName] = useState<string>('HALCONDIGITAL');
   const [isLoaded, setIsLoaded] = useState(false);
 
   useEffect(() => {
@@ -54,10 +43,12 @@ export function useLeads() {
     const savedSettings = localStorage.getItem(SETTINGS_KEY);
     if (savedSettings) {
       try {
-        const { webhookUrl: url } = JSON.parse(savedSettings);
+        const { webhookUrl: url, instanceName: inst } = JSON.parse(savedSettings);
         setWebhookUrl(url || '');
+        setInstanceName(inst || 'HALCONDIGITAL');
       } catch (e) {
         setWebhookUrl('');
+        setInstanceName('HALCONDIGITAL');
       }
     }
 
@@ -70,9 +61,45 @@ export function useLeads() {
     }
   }, [leads, isLoaded]);
 
-  const updateSettings = (url: string) => {
+  const updateSettings = (url: string, inst: string) => {
     setWebhookUrl(url);
-    localStorage.setItem(SETTINGS_KEY, JSON.stringify({ webhookUrl: url }));
+    setInstanceName(inst);
+    localStorage.setItem(SETTINGS_KEY, JSON.stringify({ webhookUrl: url, instanceName: inst }));
+  };
+
+  const formatToWebhook = (lead: Lead) => {
+    // Limpiar el teléfono para que sea solo números
+    const cleanPhone = lead.phone.replace(/\D/g, '');
+    
+    return [
+      {
+        "INSTANCE": instanceName,
+        "REMOTEJID": `${cleanPhone}@s.whatsapp.net`,
+        "REMOTEJIDALT": `${cleanPhone}@s.whatsapp.net`,
+        "PUSHNAME": lead.contactName || lead.name,
+        "MESSAGE": lead.notes || "Nuevo lead creado desde CRM",
+        "TYPO_MESSAGE": "conversation",
+        "WHATSAPP": parseInt(cleanPhone) || 0,
+        "ESTADO_RESPUESTA": "LISTO",
+        "ESTADO_BOT": true,
+        "id": lead.id,
+        "createdAt": lead.createdAt,
+        "updatedAt": lead.updatedAt
+      }
+    ];
+  };
+
+  const sendWebhook = async (payload: any) => {
+    if (!webhookUrl) return;
+    try {
+      await fetch(webhookUrl, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
+    } catch (err) {
+      console.error('Error enviando webhook:', err);
+    }
   };
 
   const addLead = (lead: Omit<Lead, 'id' | 'createdAt' | 'updatedAt'>) => {
@@ -85,17 +112,8 @@ export function useLeads() {
     
     setLeads([...leads, newLead]);
 
-    // Llamada al Webhook si está configurado
     if (webhookUrl) {
-      fetch(webhookUrl, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          event: 'lead.created',
-          data: newLead,
-          timestamp: new Date().toISOString()
-        }),
-      }).catch(err => console.error('Error enviando webhook:', err));
+      sendWebhook(formatToWebhook(newLead));
     }
   };
 
@@ -111,14 +129,32 @@ export function useLeads() {
     updateLead(id, { stage: newStage });
   };
 
+  const testWebhook = () => {
+    const testLead: Lead = {
+      id: "test-id",
+      name: "Prueba de Webhook",
+      contactName: "Brayan Developer",
+      email: "test@example.com",
+      phone: "51975521788",
+      company: "Halcon Digital",
+      stage: "new",
+      notes: "hola qué tal",
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    };
+    return sendWebhook(formatToWebhook(testLead));
+  };
+
   return { 
     leads, 
     webhookUrl, 
+    instanceName,
     addLead, 
     updateLead, 
     deleteLead, 
     moveLead, 
     updateSettings, 
+    testWebhook,
     isLoaded 
   };
 }
