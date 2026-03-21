@@ -6,14 +6,14 @@ import { useState } from 'react';
 import { useLeads } from '@/lib/store';
 import { STAGES, Lead, StageId } from '@/lib/types';
 import { LeadDialog } from './LeadDialog';
-import { Plus, Building2, User, Mail, Phone } from 'lucide-react';
+import { Plus, Building2, User, Mail, Phone, RefreshCw } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
 
 export function KanbanBoard() {
-  const { leads, addLead, updateLead, deleteLead, moveLead, isLoaded } = useLeads();
+  const { leads, addLead, updateLead, deleteLead, moveLead, syncLeads, isSyncing, isLoaded } = useLeads();
   const [selectedLead, setSelectedLead] = useState<Lead | undefined>(undefined);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [draggingLeadId, setDraggingLeadId] = useState<string | null>(null);
@@ -57,10 +57,21 @@ export function KanbanBoard() {
           <h1 className="text-3xl font-bold font-headline text-primary">Leads</h1>
           <p className="text-muted-foreground">Gestiona tu proceso de ventas y prospectos de forma efectiva.</p>
         </div>
-        <Button onClick={openCreateDialog} className="bg-primary hover:bg-primary/90 gap-2">
-          <Plus className="h-4 w-4" />
-          Añadir Lead
-        </Button>
+        <div className="flex gap-2">
+          <Button 
+            variant="outline" 
+            onClick={syncLeads} 
+            disabled={isSyncing}
+            className="gap-2"
+          >
+            <RefreshCw className={cn("h-4 w-4", isSyncing && "animate-spin")} />
+            Sincronizar
+          </Button>
+          <Button onClick={openCreateDialog} className="bg-primary hover:bg-primary/90 gap-2">
+            <Plus className="h-4 w-4" />
+            Añadir Lead
+          </Button>
+        </div>
       </div>
 
       <div className="flex-1 overflow-x-auto pb-4">
