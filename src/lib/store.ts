@@ -91,11 +91,11 @@ export function useLeads() {
     }
   }, [webhookUrl, processIncomingData]);
 
-  const getHistory = useCallback(async (leadId: string): Promise<ChatMessage[]> => {
-    if (!historyWebhookUrl) return [];
+  const getHistory = useCallback(async (leadIdentifier: string): Promise<ChatMessage[]> => {
+    if (!historyWebhookUrl || !leadIdentifier) return [];
     try {
       const url = new URL(historyWebhookUrl);
-      url.searchParams.append('ID_LEAD', leadId);
+      url.searchParams.append('ID_LEAD', leadIdentifier);
       
       const response = await fetch(url.toString(), { method: 'GET' });
       if (response.ok) {
@@ -105,7 +105,7 @@ export function useLeads() {
           message: msg.MENSAJE || "",
           fromMe: msg.DE_MI === "1",
           timestamp: msg.createdAt || new Date().toISOString(),
-          pushName: "" // No disponible en esta estructura
+          pushName: ""
         }));
       }
     } catch (err) {

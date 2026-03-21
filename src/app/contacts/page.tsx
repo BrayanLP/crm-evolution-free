@@ -26,9 +26,10 @@ export default function ContactsPage() {
 
   useEffect(() => {
     async function fetchHistory() {
-      if (selectedLead?.id) {
+      if (selectedLead?.phone) {
         setIsLoadingHistory(true);
-        const history = await getHistory(selectedLead.id);
+        // Usamos selectedLead.phone ya que ese es el LEAD_ID real esperado por el webhook
+        const history = await getHistory(selectedLead.phone);
         setMessages(history);
         setIsLoadingHistory(false);
       } else {
