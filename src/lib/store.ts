@@ -4,7 +4,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import type { Lead, StageId } from './types';
 
-const STORAGE_KEY = 'leadflow_leads';
 const SETTINGS_KEY = 'leadflow_settings';
 
 export function useLeads() {
@@ -14,7 +13,7 @@ export function useLeads() {
   const [isLoaded, setIsLoaded] = useState(false);
   const [isSyncing, setIsSyncing] = useState(false);
 
-  // Cargar configuración inicial desde localStorage
+  // Cargar configuración de webhook desde localStorage (solo configuración)
   useEffect(() => {
     const savedSettings = localStorage.getItem(SETTINGS_KEY);
     let currentUrl = '';
@@ -30,33 +29,15 @@ export function useLeads() {
       }
     }
 
-    const savedLeads = localStorage.getItem(STORAGE_KEY);
-    if (savedLeads) {
-      try {
-        // Al iniciar, cargamos lo que tenemos guardado localmente
-        setLeads(JSON.parse(savedLeads));
-      } catch (e) {
-        setLeads([]);
-      }
-    } else {
-      // Si no hay nada guardado, empezamos con una lista vacía (sin data de prueba)
-      setLeads([]);
-    }
-
+    // Al iniciar, los leads siempre empiezan vacíos y se traen del webhook
+    setLeads([]);
     setIsLoaded(true);
 
-    // Intentar sincronización inicial por GET si hay URL configurada
+    // Sincronización inicial automática mediante GET si hay URL configurada
     if (currentUrl) {
       initialSync(currentUrl);
     }
   }, []);
-
-  // Persistir leads localmente cuando cambien
-  useEffect(() => {
-    if (isLoaded) {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(leads));
-    }
-  }, [leads, isLoaded]);
 
   const processIncomingData = useCallback((payload: any[]) => {
     if (!Array.isArray(payload)) return;
@@ -74,19 +55,13 @@ export function useLeads() {
       updatedAt: incoming.updatedAt || new Date().toISOString(),
     }));
 
-    setLeads(prev => {
-      // Evitar duplicados basados en ID
-      const existingIds = new Set(prev.map(l => l.id));
-      const filteredNew = newLeadsFromWebhook.filter(l => !existingIds.has(l.id));
-      return [...filteredNew, ...prev];
-    });
+    setLeads(newLeadsFromWebhook);
   }, [instanceName]);
 
   const initialSync = async (url: string) => {
     if (!url) return;
     setIsSyncing(true);
     try {
-      // PETICIÓN GET EXPLÍCITA
       const response = await fetch(url, { method: 'GET' });
       if (response.ok) {
         const data = await response.json();
@@ -103,7 +78,6 @@ export function useLeads() {
     if (!webhookUrl) return;
     setIsSyncing(true);
     try {
-      // PETICIÓN GET EXPLÍCITA
       const response = await fetch(webhookUrl, { method: 'GET' });
       if (response.ok) {
         const data = await response.json();
@@ -120,7 +94,6 @@ export function useLeads() {
     setWebhookUrl(url);
     setInstanceName(inst);
     localStorage.setItem(SETTINGS_KEY, JSON.stringify({ webhookUrl: url, instanceName: inst }));
-    // Sincronizar inmediatamente al guardar nueva URL usando GET
     if (url) initialSync(url);
   };
 
@@ -134,7 +107,7 @@ export function useLeads() {
     
     setLeads(prev => [newLead, ...prev]);
     
-    // El envío al webhook sigue siendo POST para "notificar" la creación de un nuevo lead si es necesario
+    // Notificación al webhook mediante POST para registro externo
     if (webhookUrl) {
       const cleanPhone = newLead.phone.replace(/\D/g, '');
       const payload = [{
@@ -174,7 +147,6 @@ export function useLeads() {
 
   const testWebhook = async () => {
     if (!webhookUrl) return;
-    // Función de prueba enviando la estructura por POST
     try {
       const testPayload = [{
         "INSTANCE": instanceName,
