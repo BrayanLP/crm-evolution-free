@@ -43,6 +43,18 @@ const INITIAL_LEADS: Lead[] = [
     notes: 'Lead cualificado. Tiene presupuesto aprobado y busca implementación inmediata.',
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
+  },
+  {
+    id: '4',
+    name: 'Boutique Creativa',
+    contactName: 'Lucía Méndez',
+    email: 'lucia@boutique.com',
+    phone: '51911223344',
+    company: 'Boutique Creativa',
+    stage: 'new',
+    notes: 'Preguntó por precios de diseño de marca a través de WhatsApp.',
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
   }
 ];
 
@@ -113,6 +125,33 @@ export function useLeads() {
     ];
   };
 
+  // Esta función permite "Consumir" la información del webhook entrante
+  const processIncomingWebhook = (payload: any[]) => {
+    if (!Array.isArray(payload) || payload.length === 0) return;
+    
+    const incoming = payload[0];
+    const newLead: Lead = {
+      id: incoming.id?.toString() || Math.random().toString(36).substr(2, 9),
+      name: incoming.PUSHNAME || "Nuevo Prospecto WhatsApp",
+      contactName: incoming.PUSHNAME || "Sin Nombre",
+      email: "", // No viene en el webhook de WhatsApp
+      phone: incoming.WHATSAPP?.toString() || incoming.REMOTEJID?.split('@')[0] || "",
+      company: incoming.INSTANCE || "Instancia Desconocida",
+      stage: 'new',
+      notes: incoming.MESSAGE || "Sin mensaje",
+      createdAt: incoming.createdAt || new Date().toISOString(),
+      updatedAt: incoming.updatedAt || new Date().toISOString(),
+    };
+
+    setLeads(prev => {
+      // Evitar duplicados por ID si el webhook envía el mismo ID
+      if (prev.some(l => l.id === newLead.id)) return prev;
+      return [newLead, ...prev];
+    });
+
+    return newLead;
+  };
+
   const sendWebhook = async (payload: any) => {
     if (!webhookUrl) return;
     try {
@@ -179,6 +218,7 @@ export function useLeads() {
     moveLead, 
     updateSettings, 
     testWebhook,
+    processIncomingWebhook,
     isLoaded 
   };
 }

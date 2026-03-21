@@ -61,7 +61,7 @@ export default function Home() {
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input 
                 className="pl-10 h-10 bg-slate-50 border-none shadow-none focus-visible:ring-1" 
-                placeholder="Buscar prospectos, empresas..." 
+                placeholder="Buscar leads, empresas..." 
               />
             </div>
           </div>

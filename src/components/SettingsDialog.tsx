@@ -7,7 +7,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogD
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Webhook, Save, Send, Smartphone } from 'lucide-react';
+import { Webhook, Save, Send, Smartphone, Download } from 'lucide-react';
 import { useLeads } from '@/lib/store';
 import { useToast } from '@/hooks/use-toast';
 
@@ -17,7 +17,7 @@ interface SettingsDialogProps {
 }
 
 export function SettingsDialog({ isOpen, onClose }: SettingsDialogProps) {
-  const { webhookUrl, instanceName, updateSettings, testWebhook } = useLeads();
+  const { webhookUrl, instanceName, updateSettings, testWebhook, processIncomingWebhook } = useLeads();
   const { toast } = useToast();
   const [url, setUrl] = useState(webhookUrl);
   const [inst, setInst] = useState(instanceName);
@@ -42,7 +42,7 @@ export function SettingsDialog({ isOpen, onClose }: SettingsDialogProps) {
     if (!url) {
       toast({
         title: "URL faltante",
-        description: "Configura primero una URL para realizar la prueba.",
+        description: "Configura primero una URL para realizar la prueba de envío.",
         variant: "destructive"
       });
       return;
@@ -58,6 +58,31 @@ export function SettingsDialog({ isOpen, onClose }: SettingsDialogProps) {
     });
   };
 
+  const handleSimulateIncoming = () => {
+    const mockData = [
+      {
+        "INSTANCE": inst || "HALCONDIGITAL",
+        "REMOTEJID": "51975521788@s.whatsapp.net",
+        "REMOTEJIDALT": "51975521788@s.whatsapp.net",
+        "PUSHNAME": "Brayan Developer (Test)",
+        "MESSAGE": "hola qué tal, necesito información sobre el servicio",
+        "TYPO_MESSAGE": "conversation",
+        "WHATSAPP": 51975521788,
+        "ESTADO_RESPUESTA": "LISTO",
+        "ESTADO_BOT": true,
+        "id": Date.now(),
+        "createdAt": new Date().toISOString(),
+        "updatedAt": new Date().toISOString()
+      }
+    ];
+
+    processIncomingWebhook(mockData);
+    toast({
+      title: "Webhook Consumido",
+      description: "Se ha simulado la entrada de un lead con el formato de WhatsApp.",
+    });
+  };
+
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="sm:max-w-[550px]">
@@ -67,7 +92,7 @@ export function SettingsDialog({ isOpen, onClose }: SettingsDialogProps) {
             Configuración de Webhooks
           </DialogTitle>
           <DialogDescription>
-            Define el endpoint y la instancia para la integración con tus servicios de WhatsApp.
+            Configura cómo tu CRM envía y recibe información de tus servicios de WhatsApp.
           </DialogDescription>
         </DialogHeader>
         
@@ -89,7 +114,7 @@ export function SettingsDialog({ isOpen, onClose }: SettingsDialogProps) {
             <div className="space-y-2">
               <Label htmlFor="webhookUrl" className="text-sm font-semibold flex items-center gap-2">
                 <Webhook className="h-4 w-4" />
-                URL del Endpoint
+                URL del Endpoint (Salida)
               </Label>
               <Input
                 id="webhookUrl"
@@ -100,7 +125,19 @@ export function SettingsDialog({ isOpen, onClose }: SettingsDialogProps) {
             </div>
 
             <div className="bg-slate-50 p-4 rounded-lg border border-slate-200">
-              <p className="text-xs font-bold text-slate-500 uppercase mb-2">Estructura de Envío:</p>
+              <div className="flex justify-between items-center mb-2">
+                <p className="text-xs font-bold text-slate-500 uppercase">Estructura de Datos:</p>
+                <Button 
+                  type="button" 
+                  variant="ghost" 
+                  size="sm" 
+                  className="h-7 text-[10px] text-accent hover:text-accent"
+                  onClick={handleSimulateIncoming}
+                >
+                  <Download className="h-3 w-3 mr-1" />
+                  Simular Entrada
+                </Button>
+              </div>
               <pre className="text-[10px] text-slate-600 overflow-x-auto">
 {`[
   {
@@ -125,11 +162,11 @@ export function SettingsDialog({ isOpen, onClose }: SettingsDialogProps) {
               disabled={isTesting}
             >
               <Send className="h-4 w-4 mr-2" />
-              {isTesting ? 'Probando...' : 'Probar Webhook'}
+              {isTesting ? 'Enviando...' : 'Probar Envío'}
             </Button>
             <div className="flex gap-2 flex-1">
               <Button type="button" variant="ghost" className="flex-1" onClick={onClose}>
-                Cancelar
+                Cerrar
               </Button>
               <Button type="submit" className="bg-primary hover:bg-primary/90 gap-2 flex-1">
                 <Save className="h-4 w-4" />
