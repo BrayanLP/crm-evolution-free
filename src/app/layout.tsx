@@ -3,7 +3,7 @@ import type {Metadata} from 'next';
 import './globals.css';
 
 export const metadata: Metadata = {
-  title: 'LeadFlow CRM - Pipeline de Ventas Profesional',
+  title: 'LeadFlow CRM - Gestión de Leads Profesional',
   description: 'Gestiona tus prospectos y tu pipeline de ventas con facilidad e inteligencia artificial.',
 };
 

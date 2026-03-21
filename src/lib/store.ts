@@ -20,6 +20,30 @@ const INITIAL_LEADS: Lead[] = [
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
   },
+  {
+    id: '2',
+    name: 'Innovate S.A.',
+    contactName: 'María García',
+    email: 'm.garcia@innovate.es',
+    phone: '51988776655',
+    company: 'Innovate S.A.',
+    stage: 'contacted',
+    notes: 'Primer contacto realizado por teléfono. Enviado catálogo de servicios.',
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+  },
+  {
+    id: '3',
+    name: 'Proyecto Alpha',
+    contactName: 'Carlos Ruiz',
+    email: 'cruiz@alpha.com',
+    phone: '51922334455',
+    company: 'Alpha Corp',
+    stage: 'qualified',
+    notes: 'Lead cualificado. Tiene presupuesto aprobado y busca implementación inmediata.',
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+  }
 ];
 
 export function useLeads() {
@@ -32,7 +56,8 @@ export function useLeads() {
     const savedLeads = localStorage.getItem(STORAGE_KEY);
     if (savedLeads) {
       try {
-        setLeads(JSON.parse(savedLeads));
+        const parsed = JSON.parse(savedLeads);
+        setLeads(parsed.length > 0 ? parsed : INITIAL_LEADS);
       } catch (e) {
         setLeads(INITIAL_LEADS);
       }
@@ -68,7 +93,6 @@ export function useLeads() {
   };
 
   const formatToWebhook = (lead: Lead) => {
-    // Limpiar el teléfono para que sea solo números
     const cleanPhone = lead.phone.replace(/\D/g, '');
     
     return [
@@ -137,7 +161,7 @@ export function useLeads() {
       email: "test@example.com",
       phone: "51975521788",
       company: "Halcon Digital",
-      stage: "new",
+      stage: 'new',
       notes: "hola qué tal",
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),

@@ -54,12 +54,12 @@ export function KanbanBoard() {
     <div className="flex flex-col h-full space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold font-headline text-primary">Pipeline</h1>
+          <h1 className="text-3xl font-bold font-headline text-primary">Leads</h1>
           <p className="text-muted-foreground">Gestiona tu proceso de ventas y prospectos de forma efectiva.</p>
         </div>
         <Button onClick={openCreateDialog} className="bg-primary hover:bg-primary/90 gap-2">
           <Plus className="h-4 w-4" />
-          Añadir Prospecto
+          Añadir Lead
         </Button>
       </div>
 
@@ -150,7 +150,7 @@ export function KanbanBoard() {
                   {stageLeads.length === 0 && (
                     <div className="flex flex-col items-center justify-center py-10 opacity-40">
                       <div className="w-10 h-10 rounded-full border-2 border-dashed border-slate-400 mb-2" />
-                      <p className="text-xs text-slate-500">No hay prospectos aquí</p>
+                      <p className="text-xs text-slate-500">No hay leads aquí</p>
                     </div>
                   )}
                 </div>

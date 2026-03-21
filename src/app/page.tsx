@@ -28,7 +28,7 @@ export default function Home() {
 
           <nav className="space-y-1">
             <NavItem icon={<PieChart className="h-5 w-5" />} label="Panel de Control" />
-            <NavItem icon={<LayoutGrid className="h-5 w-5" />} label="Pipeline" active />
+            <NavItem icon={<LayoutGrid className="h-5 w-5" />} label="Leads" active />
             <NavItem icon={<Users className="h-5 w-5" />} label="Contactos" />
             <NavItem icon={<Bell className="h-5 w-5" />} label="Actividades" />
           </nav>
