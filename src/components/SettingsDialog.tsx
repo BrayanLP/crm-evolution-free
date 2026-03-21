@@ -92,7 +92,7 @@ export function SettingsDialog({ isOpen, onClose }: SettingsDialogProps) {
                 placeholder="https://tu-servicio.com/history"
               />
               <p className="text-[10px] text-muted-foreground">
-                Se enviará el parámetro `?remoteJid=` a esta URL.
+                Se enviará el parámetro `?ID_LEAD=` a esta URL.
               </p>
             </div>
           </div>

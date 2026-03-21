@@ -14,7 +14,6 @@ export function useLeads() {
   const [isLoaded, setIsLoaded] = useState(false);
   const [isSyncing, setIsSyncing] = useState(false);
   
-  // Ref para evitar ciclos en sincronización inicial
   const initialSyncDone = useRef(false);
 
   const processIncomingData = useCallback((payload: any[]) => {
@@ -92,11 +91,11 @@ export function useLeads() {
     }
   }, [webhookUrl, processIncomingData]);
 
-  const getHistory = useCallback(async (remoteJid: string): Promise<ChatMessage[]> => {
+  const getHistory = useCallback(async (leadId: string): Promise<ChatMessage[]> => {
     if (!historyWebhookUrl) return [];
     try {
       const url = new URL(historyWebhookUrl);
-      url.searchParams.append('remoteJid', remoteJid);
+      url.searchParams.append('ID_LEAD', leadId);
       
       const response = await fetch(url.toString(), { method: 'GET' });
       if (response.ok) {
@@ -124,7 +123,7 @@ export function useLeads() {
       historyWebhookUrl: historyUrl,
       instanceName: inst 
     }));
-    initialSyncDone.current = false; // Permitir resincronización si cambia la URL
+    initialSyncDone.current = false;
     if (url) initialSync(url);
   }, [initialSync]);
 

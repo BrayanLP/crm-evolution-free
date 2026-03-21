@@ -26,9 +26,9 @@ export default function ContactsPage() {
 
   useEffect(() => {
     async function fetchHistory() {
-      if (selectedLead?.remoteJid) {
+      if (selectedLead?.id) {
         setIsLoadingHistory(true);
-        const history = await getHistory(selectedLead.remoteJid);
+        const history = await getHistory(selectedLead.id);
         setMessages(history);
         setIsLoadingHistory(false);
       } else {
