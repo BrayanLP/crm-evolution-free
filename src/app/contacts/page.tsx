@@ -28,9 +28,10 @@ export default function ContactsPage() {
     async function fetchHistory() {
       if (selectedLead?.phone) {
         setIsLoadingHistory(true);
-        // Usamos selectedLead.phone ya que ese es el LEAD_ID real esperado por el webhook
+        // Enviamos el phone (LEAD_ID) para obtener el historial correcto
         const history = await getHistory(selectedLead.phone);
-        setMessages(history);
+        // Invertimos el historial para ver el último mensaje primero
+        setMessages([...history].reverse());
         setIsLoadingHistory(false);
       } else {
         setMessages([]);
@@ -171,7 +172,7 @@ export default function ContactsPage() {
                     <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" />
                   </div>
                 ) : (
-                  <div className="space-y-4 max-w-4xl mx-auto">
+                  <div className="space-y-4 max-w-4xl mx-auto flex flex-col">
                     {messages.map((msg) => (
                       <div
                         key={msg.id}
