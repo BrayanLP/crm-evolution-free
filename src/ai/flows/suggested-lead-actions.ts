@@ -1,22 +1,23 @@
+
 'use server';
 /**
- * @fileOverview An AI agent that analyzes lead notes and suggests next steps or follow-up actions.
+ * @fileOverview Un agente de IA que analiza las notas de los prospectos y sugiere próximos pasos o acciones de seguimiento.
  *
- * - suggestLeadActions - A function that handles the generation of suggested lead actions.
- * - SuggestedLeadActionsInput - The input type for the suggestLeadActions function.
- * - SuggestedLeadActionsOutput - The return type for the suggestLeadActions function.
+ * - suggestLeadActions - Una función que maneja la generación de sugerencias de acciones para prospectos.
+ * - SuggestedLeadActionsInput - El tipo de entrada para la función suggestLeadActions.
+ * - SuggestedLeadActionsOutput - El tipo de retorno para la función suggestLeadActions.
  */
 
 import { ai } from '@/ai/genkit';
 import { z } from 'genkit';
 
 const SuggestedLeadActionsInputSchema = z.object({
-  leadNotes: z.string().describe('Detailed notes about the lead and interactions.'),
+  leadNotes: z.string().describe('Notas detalladas sobre el prospecto y sus interacciones.'),
 });
 export type SuggestedLeadActionsInput = z.infer<typeof SuggestedLeadActionsInputSchema>;
 
 const SuggestedLeadActionsOutputSchema = z.object({
-  actions: z.array(z.string()).describe('A list of suggested next steps or follow-up actions.'),
+  actions: z.array(z.string()).describe('Una lista de próximos pasos o acciones de seguimiento sugeridas.'),
 });
 export type SuggestedLeadActionsOutput = z.infer<typeof SuggestedLeadActionsOutputSchema>;
 
@@ -28,11 +29,13 @@ const prompt = ai.definePrompt({
   name: 'suggestLeadActionsPrompt',
   input: { schema: SuggestedLeadActionsInputSchema },
   output: { schema: SuggestedLeadActionsOutputSchema },
-  prompt: `You are an AI assistant specialized in sales and lead management. Your task is to analyze the provided lead notes and suggest concrete, actionable next steps or follow-up actions for a sales representative.
+  prompt: `Eres un asistente de IA especializado en ventas y gestión de prospectos. Tu tarea es analizar las notas proporcionadas sobre un prospecto y sugerir pasos siguientes concretos y accionables para un representante de ventas.
 
-Consider the context, past interactions, and potential blockers mentioned in the notes. Focus on generating specific, practical actions that can help move the lead forward in the sales pipeline.
+Considera el contexto, las interacciones pasadas y los posibles obstáculos mencionados en las notas. Enfócate en generar acciones específicas y prácticas que ayuden a avanzar al prospecto en el pipeline de ventas.
 
-Lead Notes: """{{{leadNotes}}}"""`,
+RESPONDE EXCLUSIVAMENTE EN ESPAÑOL.
+
+Notas del Prospecto: """{{{leadNotes}}}"""`,
 });
 
 const suggestedLeadActionsFlow = ai.defineFlow(

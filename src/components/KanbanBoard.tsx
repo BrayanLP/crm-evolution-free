@@ -6,7 +6,7 @@ import { useState } from 'react';
 import { useLeads } from '@/lib/store';
 import { STAGES, Lead, StageId } from '@/lib/types';
 import { LeadDialog } from './LeadDialog';
-import { Plus, MoreVertical, Mail, Phone, Building2, User } from 'lucide-react';
+import { Plus, Building2, User, Mail, Phone } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -55,11 +55,11 @@ export function KanbanBoard() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold font-headline text-primary">Pipeline</h1>
-          <p className="text-muted-foreground">Manage your sales journey and leads effectively.</p>
+          <p className="text-muted-foreground">Gestiona tu proceso de ventas y prospectos de forma efectiva.</p>
         </div>
         <Button onClick={openCreateDialog} className="bg-primary hover:bg-primary/90 gap-2">
           <Plus className="h-4 w-4" />
-          Add Lead
+          Añadir Prospecto
         </Button>
       </div>
 
@@ -150,7 +150,7 @@ export function KanbanBoard() {
                   {stageLeads.length === 0 && (
                     <div className="flex flex-col items-center justify-center py-10 opacity-40">
                       <div className="w-10 h-10 rounded-full border-2 border-dashed border-slate-400 mb-2" />
-                      <p className="text-xs text-slate-500">No leads here</p>
+                      <p className="text-xs text-slate-500">No hay prospectos aquí</p>
                     </div>
                   )}
                 </div>

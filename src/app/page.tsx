@@ -23,15 +23,15 @@ export default function Home() {
           </div>
 
           <nav className="space-y-1">
-            <NavItem icon={<PieChart className="h-5 w-5" />} label="Dashboard" />
+            <NavItem icon={<PieChart className="h-5 w-5" />} label="Panel de Control" />
             <NavItem icon={<LayoutGrid className="h-5 w-5" />} label="Pipeline" active />
-            <NavItem icon={<Users className="h-5 w-5" />} label="Contacts" />
-            <NavItem icon={<Bell className="h-5 w-5" />} label="Activities" />
+            <NavItem icon={<Users className="h-5 w-5" />} label="Contactos" />
+            <NavItem icon={<Bell className="h-5 w-5" />} label="Actividades" />
           </nav>
         </div>
 
         <div className="mt-auto p-6 border-t">
-          <NavItem icon={<Settings className="h-5 w-5" />} label="Settings" />
+          <NavItem icon={<Settings className="h-5 w-5" />} label="Configuración" />
           <div className="mt-4 flex items-center gap-3 px-3 py-2 rounded-lg bg-slate-50">
             <Avatar className="h-8 w-8">
               <AvatarImage src="https://picsum.photos/seed/admin/100/100" />
@@ -39,7 +39,7 @@ export default function Home() {
             </Avatar>
             <div className="flex flex-col overflow-hidden">
               <span className="text-sm font-semibold truncate">Alex Director</span>
-              <span className="text-[10px] text-muted-foreground uppercase">Administrator</span>
+              <span className="text-[10px] text-muted-foreground uppercase">ADMINISTRADOR</span>
             </div>
           </div>
         </div>
@@ -53,7 +53,7 @@ export default function Home() {
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input 
                 className="pl-10 h-10 bg-slate-50 border-none shadow-none focus-visible:ring-1" 
-                placeholder="Search leads, companies..." 
+                placeholder="Buscar prospectos, empresas..." 
               />
             </div>
           </div>

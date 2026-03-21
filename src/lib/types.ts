@@ -21,8 +21,8 @@ export interface Stage {
 }
 
 export const STAGES: Stage[] = [
-  { id: 'new', title: 'New', color: 'bg-blue-500' },
-  { id: 'contacted', title: 'Contacted', color: 'bg-amber-500' },
-  { id: 'qualified', title: 'Qualified', color: 'bg-emerald-500' },
-  { id: 'converted', title: 'Converted', color: 'bg-accent' },
+  { id: 'new', title: 'Nuevo', color: 'bg-blue-500' },
+  { id: 'contacted', title: 'Contactado', color: 'bg-amber-500' },
+  { id: 'qualified', title: 'Cualificado', color: 'bg-emerald-500' },
+  { id: 'converted', title: 'Convertido', color: 'bg-accent' },
 ];

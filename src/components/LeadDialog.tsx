@@ -67,8 +67,8 @@ export function LeadDialog({ lead, isOpen, onClose, onSave, onDelete }: LeadDial
   const handleSuggestActions = async () => {
     if (!formData.notes) {
       toast({
-        title: "No notes provided",
-        description: "Please add some notes to get AI suggestions.",
+        title: "Sin notas",
+        description: "Por favor, añade algunas notas para obtener sugerencias de la IA.",
         variant: "destructive",
       });
       return;
@@ -80,8 +80,8 @@ export function LeadDialog({ lead, isOpen, onClose, onSave, onDelete }: LeadDial
       setSuggestions(result.actions);
     } catch (error) {
       toast({
-        title: "AI error",
-        description: "Could not generate suggestions at this time.",
+        title: "Error de IA",
+        description: "No se pudieron generar sugerencias en este momento.",
         variant: "destructive",
       });
     } finally {
@@ -100,29 +100,29 @@ export function LeadDialog({ lead, isOpen, onClose, onSave, onDelete }: LeadDial
       <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="text-2xl font-headline text-primary">
-            {lead ? 'Edit Lead' : 'Create New Lead'}
+            {lead ? 'Editar Prospecto' : 'Crear Nuevo Prospecto'}
           </DialogTitle>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4 py-4">
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="name">Lead Name / Opportunity</Label>
+              <Label htmlFor="name">Nombre / Oportunidad</Label>
               <Input
                 id="name"
                 value={formData.name}
                 onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                placeholder="e.g. Enterprise Expansion"
+                placeholder="ej. Expansión Enterprise"
                 required
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="stage">Status Stage</Label>
+              <Label htmlFor="stage">Etapa del Estado</Label>
               <Select
                 value={formData.stage}
                 onValueChange={(val) => setFormData({ ...formData, stage: val as StageId })}
               >
                 <SelectTrigger>
-                  <SelectValue placeholder="Select stage" />
+                  <SelectValue placeholder="Seleccionar etapa" />
                 </SelectTrigger>
                 <SelectContent>
                   {STAGES.map((s) => (
@@ -137,50 +137,50 @@ export function LeadDialog({ lead, isOpen, onClose, onSave, onDelete }: LeadDial
 
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="contactName">Contact Person</Label>
+              <Label htmlFor="contactName">Persona de Contacto</Label>
               <Input
                 id="contactName"
                 value={formData.contactName}
                 onChange={(e) => setFormData({ ...formData, contactName: e.target.value })}
-                placeholder="Full Name"
+                placeholder="Nombre completo"
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="company">Company</Label>
+              <Label htmlFor="company">Empresa</Label>
               <Input
                 id="company"
                 value={formData.company}
                 onChange={(e) => setFormData({ ...formData, company: e.target.value })}
-                placeholder="Company Name"
+                placeholder="Nombre de la empresa"
               />
             </div>
           </div>
 
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="email">Email</Label>
+              <Label htmlFor="email">Correo Electrónico</Label>
               <Input
                 id="email"
                 type="email"
                 value={formData.email}
                 onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                placeholder="email@example.com"
+                placeholder="correo@ejemplo.com"
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="phone">Phone</Label>
+              <Label htmlFor="phone">Teléfono</Label>
               <Input
                 id="phone"
                 value={formData.phone}
                 onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                placeholder="Phone number"
+                placeholder="Número de teléfono"
               />
             </div>
           </div>
 
           <div className="space-y-2">
             <div className="flex justify-between items-center">
-              <Label htmlFor="notes">Notes & Interactions</Label>
+              <Label htmlFor="notes">Notas e Interacciones</Label>
               <Button
                 type="button"
                 variant="outline"
@@ -190,7 +190,7 @@ export function LeadDialog({ lead, isOpen, onClose, onSave, onDelete }: LeadDial
                 disabled={isSuggesting}
               >
                 {isSuggesting ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Sparkles className="h-3.5 w-3.5" />}
-                AI Suggestions
+                Sugerencias IA
               </Button>
             </div>
             <Textarea
@@ -198,13 +198,13 @@ export function LeadDialog({ lead, isOpen, onClose, onSave, onDelete }: LeadDial
               rows={4}
               value={formData.notes}
               onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
-              placeholder="Add details about meetings, calls, or specific requirements..."
+              placeholder="Añade detalles sobre reuniones, llamadas o requisitos específicos..."
             />
           </div>
 
           {suggestions.length > 0 && (
             <div className="bg-accent/5 rounded-lg p-3 border border-accent/20 space-y-2 animate-in fade-in slide-in-from-top-2">
-              <p className="text-xs font-bold text-accent uppercase tracking-wider">Suggested Actions</p>
+              <p className="text-xs font-bold text-accent uppercase tracking-wider">Acciones Sugeridas</p>
               <ul className="text-sm space-y-1 text-slate-700">
                 {suggestions.map((s, idx) => (
                   <li key={idx} className="flex gap-2">
@@ -224,23 +224,23 @@ export function LeadDialog({ lead, isOpen, onClose, onSave, onDelete }: LeadDial
                   variant="ghost"
                   className="text-destructive hover:text-destructive hover:bg-destructive/10"
                   onClick={() => {
-                    if (confirm('Are you sure you want to delete this lead?')) {
+                    if (confirm('¿Estás seguro de que quieres eliminar este prospecto?')) {
                       onDelete(lead.id);
                       onClose();
                     }
                   }}
                 >
                   <Trash2 className="h-4 w-4 mr-2" />
-                  Delete
+                  Eliminar
                 </Button>
               )}
             </div>
             <div className="flex gap-2">
               <Button type="button" variant="outline" onClick={onClose}>
-                Cancel
+                Cancelar
               </Button>
               <Button type="submit" className="bg-primary hover:bg-primary/90">
-                {lead ? 'Update Lead' : 'Create Lead'}
+                {lead ? 'Actualizar Prospecto' : 'Crear Prospecto'}
               </Button>
             </div>
           </DialogFooter>

@@ -3,8 +3,8 @@ import type {Metadata} from 'next';
 import './globals.css';
 
 export const metadata: Metadata = {
-  title: 'LeadFlow CRM - Professional Sales Pipeline',
-  description: 'Manage your leads and sales pipeline with ease and AI insights.',
+  title: 'LeadFlow CRM - Pipeline de Ventas Profesional',
+  description: 'Gestiona tus prospectos y tu pipeline de ventas con facilidad e inteligencia artificial.',
 };
 
 export default function RootLayout({
@@ -13,7 +13,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
+    <html lang="es">
       <head>
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
