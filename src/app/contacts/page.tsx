@@ -1,10 +1,10 @@
 
 "use client"
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useLeads } from '@/lib/store';
 import { SettingsDialog } from '@/components/SettingsDialog';
-import { LayoutGrid, Users, Settings, PieChart, Bell, Search, MessageSquare, Send, User, Smartphone, History } from 'lucide-react';
+import { LayoutGrid, Users, Settings, PieChart, Bell, Search, MessageSquare, Send, User, Smartphone, History as HistoryIcon } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -23,6 +23,15 @@ export default function ContactsPage() {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [isLoadingHistory, setIsLoadingHistory] = useState(false);
   const pathname = usePathname();
+  
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  // Auto-scroll to bottom when messages change
+  useEffect(() => {
+    if (messagesEndRef.current) {
+      messagesEndRef.current.scrollIntoView({ behavior: 'smooth' });
+    }
+  }, [messages]);
 
   useEffect(() => {
     async function fetchHistory() {
@@ -30,8 +39,8 @@ export default function ContactsPage() {
         setIsLoadingHistory(true);
         // Enviamos el phone (LEAD_ID) para obtener el historial correcto
         const history = await getHistory(selectedLead.phone);
-        // Invertimos el historial para ver el último mensaje primero
-        setMessages([...history].reverse());
+        // Orden cronológico: antiguo arriba, nuevo abajo
+        setMessages(history);
         setIsLoadingHistory(false);
       } else {
         setMessages([]);
@@ -155,7 +164,7 @@ export default function ContactsPage() {
                     <Smartphone className="h-5 w-5" />
                   </Button>
                   <Button variant="ghost" size="icon" className="text-muted-foreground">
-                    <History className="h-5 w-5" />
+                    <HistoryIcon className="h-5 w-5" />
                   </Button>
                 </div>
               </div>
@@ -164,7 +173,7 @@ export default function ContactsPage() {
               <ScrollArea className="flex-1 p-6">
                 {!historyWebhookUrl ? (
                   <div className="h-full flex flex-col items-center justify-center opacity-50 space-y-2">
-                    <History className="h-12 w-12" />
+                    <HistoryIcon className="h-12 w-12" />
                     <p className="text-sm font-medium">Configura el Webhook de Historial en Ajustes</p>
                   </div>
                 ) : isLoadingHistory ? (
@@ -202,6 +211,8 @@ export default function ContactsPage() {
                         <p className="text-sm">Sin historial de mensajes</p>
                       </div>
                     )}
+                    {/* Anchor for automatic scroll */}
+                    <div ref={messagesEndRef} />
                   </div>
                 )}
               </ScrollArea>
