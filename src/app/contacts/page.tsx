@@ -65,7 +65,6 @@ export default function ContactsPage() {
             <NavItem icon={<PieChart className="h-5 w-5" />} label="Panel" href="/" />
             <NavItem icon={<LayoutGrid className="h-5 w-5" />} label="Leads" href="/" />
             <NavItem icon={<Users className="h-5 w-5" />} label="Contactos" href="/contacts" active={pathname === "/contacts"} />
-            <NavItem icon={<Bell className="h-5 w-5" />} label="Actividades" href="/" />
           </nav>
         </div>
 

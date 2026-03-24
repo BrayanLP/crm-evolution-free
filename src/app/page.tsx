@@ -33,7 +33,6 @@ export default function Home() {
             <NavItem icon={<PieChart className="h-5 w-5" />} label="Panel" href="/" active={pathname === "/dashboard"} />
             <NavItem icon={<LayoutGrid className="h-5 w-5" />} label="Leads" href="/" active={pathname === "/"} />
             <NavItem icon={<Users className="h-5 w-5" />} label="Contactos" href="/contacts" active={pathname === "/contacts"} />
-            <NavItem icon={<Bell className="h-5 w-5" />} label="Actividades" href="/" active={pathname === "/activities"} />
           </nav>
         </div>
 
