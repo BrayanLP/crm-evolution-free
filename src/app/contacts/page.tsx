@@ -4,10 +4,9 @@
 import { useState, useEffect, useRef } from 'react';
 import { useLeads } from '@/lib/store';
 import { SettingsDialog } from '@/components/SettingsDialog';
-import { LayoutGrid, Users, Settings, PieChart, Bell, Search, MessageSquare, Send, User, Smartphone, History as HistoryIcon } from 'lucide-react';
+import { LayoutGrid, Users, Settings, PieChart, Search, MessageSquare, Send, User, Smartphone, History as HistoryIcon } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Toaster } from '@/components/ui/toaster';
 import { cn } from '@/lib/utils';
 import Link from 'next/link';
@@ -37,9 +36,7 @@ export default function ContactsPage() {
     async function fetchHistory() {
       if (selectedLead?.phone) {
         setIsLoadingHistory(true);
-        // Enviamos el phone (LEAD_ID) para obtener el historial correcto
         const history = await getHistory(selectedLead.phone);
-        // Orden cronológico: antiguo arriba, nuevo abajo
         setMessages(history);
         setIsLoadingHistory(false);
       } else {
@@ -74,16 +71,6 @@ export default function ContactsPage() {
             label="Configuración" 
             onClick={() => setIsSettingsOpen(true)}
           />
-          <div className="mt-4 flex items-center gap-3 px-3 py-2 rounded-lg bg-slate-50">
-            <Avatar className="h-8 w-8">
-              <AvatarImage src="https://picsum.photos/seed/admin/100/100" />
-              <AvatarFallback>AD</AvatarFallback>
-            </Avatar>
-            <div className="flex flex-col overflow-hidden">
-              <span className="text-sm font-semibold truncate">Alex Director</span>
-              <span className="text-[10px] text-muted-foreground uppercase">ADMINISTRADOR</span>
-            </div>
-          </div>
         </div>
       </aside>
 
@@ -109,10 +96,9 @@ export default function ContactsPage() {
                     selectedLead?.id === lead.id && "bg-primary/5 border-r-4 border-primary"
                   )}
                 >
-                  <Avatar>
-                    <AvatarImage src={`https://picsum.photos/seed/${lead.id}/100/100`} />
-                    <AvatarFallback>{lead.contactName[0]}</AvatarFallback>
-                  </Avatar>
+                  <div className="w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center flex-shrink-0">
+                    <User className="h-5 w-5 text-slate-400" />
+                  </div>
                   <div className="flex-1 min-w-0">
                     <div className="flex justify-between items-baseline">
                       <p className="font-semibold text-sm truncate">{lead.contactName}</p>
@@ -141,10 +127,9 @@ export default function ContactsPage() {
               {/* Chat Header */}
               <div className="h-16 border-b bg-white flex items-center justify-between px-6 shadow-sm z-10">
                 <div className="flex items-center gap-3">
-                  <Avatar className="h-9 w-9">
-                    <AvatarImage src={`https://picsum.photos/seed/${selectedLead.id}/100/100`} />
-                    <AvatarFallback>{selectedLead.contactName[0]}</AvatarFallback>
-                  </Avatar>
+                  <div className="w-9 h-9 rounded-full bg-slate-100 flex items-center justify-center">
+                    <User className="h-5 w-5 text-slate-400" />
+                  </div>
                   <div>
                     <p className="font-bold text-sm">{selectedLead.contactName}</p>
                     <div className="flex items-center gap-1.5">
@@ -210,7 +195,6 @@ export default function ContactsPage() {
                         <p className="text-sm">Sin historial de mensajes</p>
                       </div>
                     )}
-                    {/* Anchor for automatic scroll */}
                     <div ref={messagesEndRef} />
                   </div>
                 )}
