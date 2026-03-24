@@ -7,6 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell, PieChart as RePieChart, Pie, AreaChart, Area } from 'recharts';
 import { STAGES } from '@/lib/types';
 import { Users, Target, UserCheck, MessageSquare, TrendingUp } from 'lucide-react';
+import { cn } from '@/lib/utils';
 
 export function Dashboard() {
   const { leads, isSyncing, isLoaded } = useLeads();
