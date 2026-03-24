@@ -2,7 +2,7 @@
 "use client"
 
 import { useState } from 'react';
-import { Dashboard } from '@/components/Dashboard';
+import { KanbanBoard } from '@/components/KanbanBoard';
 import { SettingsDialog } from '@/components/SettingsDialog';
 import { LayoutGrid, Users, Settings, PieChart, Search } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -12,7 +12,7 @@ import { cn } from '@/lib/utils';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 
-export default function Home() {
+export default function LeadsPage() {
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const pathname = usePathname();
 
@@ -52,14 +52,14 @@ export default function Home() {
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input 
                 className="pl-10 h-10 bg-slate-50 border-none shadow-none focus-visible:ring-1" 
-                placeholder="Buscar reportes, métricas..." 
+                placeholder="Buscar leads, empresas..." 
               />
             </div>
           </div>
         </header>
 
-        <div className="flex-1 overflow-y-auto p-8">
-          <Dashboard />
+        <div className="flex-1 overflow-hidden p-8">
+          <KanbanBoard />
         </div>
       </main>
       

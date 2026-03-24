@@ -59,8 +59,8 @@ export default function ContactsPage() {
           </div>
 
           <nav className="space-y-1">
-            <NavItem icon={<PieChart className="h-5 w-5" />} label="Panel" href="/" />
-            <NavItem icon={<LayoutGrid className="h-5 w-5" />} label="Leads" href="/" />
+            <NavItem icon={<PieChart className="h-5 w-5" />} label="Panel" href="/" active={pathname === "/"} />
+            <NavItem icon={<LayoutGrid className="h-5 w-5" />} label="Leads" href="/leads" active={pathname === "/leads"} />
             <NavItem icon={<Users className="h-5 w-5" />} label="Contactos" href="/contacts" active={pathname === "/contacts"} />
           </nav>
         </div>
@@ -142,14 +142,6 @@ export default function ContactsPage() {
                       </span>
                     </div>
                   </div>
-                </div>
-                <div className="flex items-center gap-2">
-                  <Button variant="ghost" size="icon" className="text-muted-foreground">
-                    <Smartphone className="h-5 w-5" />
-                  </Button>
-                  <Button variant="ghost" size="icon" className="text-muted-foreground">
-                    <HistoryIcon className="h-5 w-5" />
-                  </Button>
                 </div>
               </div>
 
