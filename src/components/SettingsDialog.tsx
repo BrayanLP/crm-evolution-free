@@ -188,7 +188,7 @@ export function SettingsDialog({ isOpen, onClose }: SettingsDialogProps) {
                 placeholder="https://..."
               />
               <p className="text-[10px] text-muted-foreground italic">
-                Petición POST: {"{ \"whatsapp\": \"...\", \"status\": \"on/off\" }"}
+                Petición POST: {"{ \"whatsapp\": \"...\", \"ESTADO_BOT\": \"1/0\" }"}
               </p>
             </div>
           </div>

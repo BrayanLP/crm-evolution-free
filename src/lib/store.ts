@@ -32,7 +32,7 @@ export function useLeads() {
       notes: incoming.MESSAGE || "Sin mensaje",
       createdAt: incoming.createdAt || new Date().toISOString(),
       updatedAt: incoming.updatedAt || new Date().toISOString(),
-      botActive: true,
+      botActive: incoming.ESTADO_BOT === '1',
     }));
 
     setLeads(newLeadsFromWebhook);
@@ -129,7 +129,7 @@ export function useLeads() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           whatsapp: whatsapp,
-          status: status ? 'on' : 'off'
+          ESTADO_BOT: status ? '1' : '0'
         })
       });
     } catch (err) {
