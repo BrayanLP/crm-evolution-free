@@ -1,7 +1,7 @@
 
 "use client"
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Dashboard } from '@/components/Dashboard';
 import { SettingsDialog } from '@/components/SettingsDialog';
 import { LayoutGrid, Users, Settings, PieChart, Search } from 'lucide-react';
@@ -11,10 +11,18 @@ import { Toaster } from '@/components/ui/toaster';
 import { cn } from '@/lib/utils';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import { useLeads } from '@/lib/store';
 
 export default function Home() {
+  const { webhookUrl, isLoaded } = useLeads();
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const pathname = usePathname();
+
+  useEffect(() => {
+    if (isLoaded && !webhookUrl) {
+      setIsSettingsOpen(true);
+    }
+  }, [isLoaded, webhookUrl]);
 
   return (
     <div className="flex h-screen bg-background overflow-hidden">

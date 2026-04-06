@@ -32,7 +32,7 @@ export function useLeads() {
       notes: incoming.MESSAGE || "Sin mensaje",
       createdAt: incoming.createdAt || new Date().toISOString(),
       updatedAt: incoming.updatedAt || new Date().toISOString(),
-      botActive: true, // Por defecto asumimos activo
+      botActive: true,
     }));
 
     setLeads(newLeadsFromWebhook);
@@ -106,7 +106,7 @@ export function useLeads() {
         return (Array.isArray(data) ? data : []).map((msg: any) => ({
           id: msg.id?.toString() || Math.random().toString(36).substr(2, 9),
           message: msg.MENSAJE || "",
-          fromMe: msg.DE_MI === "1",
+          fromMe: String(msg.DE_MI) === "1",
           timestamp: msg.createdAt || new Date().toISOString(),
           pushName: ""
         }));
