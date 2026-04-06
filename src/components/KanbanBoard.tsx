@@ -6,7 +6,7 @@ import { useState } from 'react';
 import { useLeads } from '@/lib/store';
 import { STAGES, Lead, StageId } from '@/lib/types';
 import { LeadDialog } from './LeadDialog';
-import { Plus, Building2, User, Mail, Phone, RefreshCw, AlertCircle } from 'lucide-react';
+import { Building2, User, Phone, RefreshCw, AlertCircle } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -14,7 +14,7 @@ import { cn } from '@/lib/utils';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 
 export function KanbanBoard() {
-  const { leads, addLead, updateLead, deleteLead, moveLead, syncLeads, isSyncing, isLoaded, webhookUrl } = useLeads();
+  const { leads, updateLead, deleteLead, moveLead, syncLeads, isSyncing, isLoaded, webhookUrl } = useLeads();
   const [selectedLead, setSelectedLead] = useState<Lead | undefined>(undefined);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [draggingLeadId, setDraggingLeadId] = useState<string | null>(null);
@@ -46,11 +46,6 @@ export function KanbanBoard() {
     setIsDialogOpen(true);
   };
 
-  const openCreateDialog = () => {
-    setSelectedLead(undefined);
-    setIsDialogOpen(true);
-  };
-
   return (
     <div className="flex flex-col h-full space-y-6">
       <div className="flex items-center justify-between">
@@ -67,10 +62,6 @@ export function KanbanBoard() {
           >
             <RefreshCw className={cn("h-4 w-4", isSyncing && "animate-spin")} />
             Sincronizar Webhook
-          </Button>
-          <Button onClick={openCreateDialog} className="bg-primary hover:bg-primary/90 gap-2">
-            <Plus className="h-4 w-4" />
-            Añadir Lead
           </Button>
         </div>
       </div>
@@ -182,8 +173,6 @@ export function KanbanBoard() {
         onSave={(data) => {
           if (selectedLead) {
             updateLead(selectedLead.id, data);
-          } else {
-            addLead(data);
           }
         }}
         onDelete={deleteLead}
