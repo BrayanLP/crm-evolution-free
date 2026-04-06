@@ -6,15 +6,18 @@ import { useState } from 'react';
 import { useLeads } from '@/lib/store';
 import { STAGES, Lead, StageId } from '@/lib/types';
 import { LeadDialog } from './LeadDialog';
-import { Building2, User, Phone, RefreshCw, AlertCircle } from 'lucide-react';
+import { Building2, User, Phone, RefreshCw, AlertCircle, Bot } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { Switch } from '@/components/ui/switch';
+import { useToast } from '@/hooks/use-toast';
 
 export function KanbanBoard() {
-  const { leads, updateLead, deleteLead, moveLead, syncLeads, isSyncing, isLoaded, webhookUrl } = useLeads();
+  const { leads, updateLead, deleteLead, moveLead, syncLeads, toggleBot, isSyncing, isLoaded, webhookUrl, botWebhookUrl } = useLeads();
+  const { toast } = useToast();
   const [selectedLead, setSelectedLead] = useState<Lead | undefined>(undefined);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [draggingLeadId, setDraggingLeadId] = useState<string | null>(null);
@@ -44,6 +47,16 @@ export function KanbanBoard() {
   const openEditDialog = (lead: Lead) => {
     setSelectedLead(lead);
     setIsDialogOpen(true);
+  };
+
+  const handleBotToggle = (e: React.MouseEvent | React.TouchEvent, lead: Lead, checked: boolean) => {
+    e.stopPropagation(); // Evita que se abra el diálogo al tocar el switch
+    toggleBot(lead.phone, checked);
+    toast({
+      title: checked ? "Bot IA Encendido" : "Bot IA Apagado",
+      description: `El asistente para ${lead.contactName} ha sido ${checked ? 'activado' : 'desactivado'}.`,
+      variant: checked ? "default" : "destructive",
+    });
   };
 
   return (
@@ -118,7 +131,7 @@ export function KanbanBoard() {
                       <CardContent className="p-4 space-y-3">
                         <div className="flex justify-between items-start">
                           <h3 className="font-bold text-slate-800 leading-tight group-hover:text-primary transition-colors">
-                            {lead.name}
+                            {lead.contactName}
                           </h3>
                         </div>
                         
@@ -126,10 +139,6 @@ export function KanbanBoard() {
                           <div className="flex items-center gap-2 text-xs text-muted-foreground">
                             <Building2 className="h-3 w-3" />
                             <span className="truncate">{lead.company}</span>
-                          </div>
-                          <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                            <User className="h-3 w-3" />
-                            <span className="truncate">{lead.contactName}</span>
                           </div>
                           {lead.phone && (
                             <div className="flex items-center gap-2 text-xs text-muted-foreground">
@@ -145,7 +154,26 @@ export function KanbanBoard() {
                           </p>
                         )}
 
-                        <div className="flex justify-end pt-1">
+                        <div className="flex items-center justify-between pt-2 border-t border-slate-50 mt-1">
+                          {botWebhookUrl && (
+                            <div 
+                              className="flex items-center gap-1.5" 
+                              onClick={(e) => e.stopPropagation()}
+                            >
+                              <Bot className={cn("h-3.5 w-3.5", lead.botActive !== false ? "text-primary" : "text-slate-300")} />
+                              <Switch 
+                                checked={lead.botActive !== false} 
+                                onCheckedChange={(checked) => toggleBot(lead.phone, checked).then(() => {
+                                  toast({
+                                    title: checked ? "Bot Encendido" : "Bot Apagado",
+                                    description: `Estado del bot para ${lead.contactName} actualizado.`,
+                                    variant: checked ? "default" : "destructive",
+                                  });
+                                })}
+                                className="scale-75"
+                              />
+                            </div>
+                          )}
                           <span className="text-[10px] text-slate-400">
                             {new Date(lead.updatedAt).toLocaleDateString()}
                           </span>

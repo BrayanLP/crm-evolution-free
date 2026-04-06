@@ -13,6 +13,7 @@ export interface Lead {
   remoteJid?: string;
   createdAt: string;
   updatedAt: string;
+  botActive?: boolean;
 }
 
 export interface ChatMessage {

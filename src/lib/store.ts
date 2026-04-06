@@ -119,6 +119,10 @@ export function useLeads() {
 
   const toggleBot = useCallback(async (whatsapp: string, status: boolean) => {
     if (!botWebhookUrl) return;
+    
+    // Actualización optimista del estado local
+    setLeads(prev => prev.map(l => l.phone === whatsapp ? { ...l, botActive: status } : l));
+
     try {
       await fetch(botWebhookUrl, {
         method: 'POST',
@@ -132,6 +136,18 @@ export function useLeads() {
       console.error('Error al cambiar estado del bot:', err);
     }
   }, [botWebhookUrl]);
+
+  const updateLead = useCallback((id: string, data: Partial<Lead>) => {
+    setLeads(prev => prev.map(l => l.id === id ? { ...l, ...data, updatedAt: new Date().toISOString() } : l));
+  }, []);
+
+  const deleteLead = useCallback((id: string) => {
+    setLeads(prev => prev.filter(l => l.id !== id));
+  }, []);
+
+  const moveLead = useCallback((id: string, stageId: StageId) => {
+    setLeads(prev => prev.map(l => l.id === id ? { ...l, stage: stageId, updatedAt: new Date().toISOString() } : l));
+  }, []);
 
   const updateSettings = useCallback((url: string, historyUrl: string, botUrl: string, inst: string) => {
     setWebhookUrl(url);
@@ -158,6 +174,9 @@ export function useLeads() {
     syncLeads,
     getHistory,
     toggleBot,
+    updateLead,
+    deleteLead,
+    moveLead,
     updateSettings, 
     isLoaded,
     processIncomingWebhook: processIncomingData
