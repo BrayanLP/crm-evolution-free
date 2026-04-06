@@ -7,7 +7,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogD
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Webhook, Save, Smartphone, History } from 'lucide-react';
+import { Webhook, Save, Smartphone, History, Bot } from 'lucide-react';
 import { useLeads } from '@/lib/store';
 import { useToast } from '@/hooks/use-toast';
 
@@ -17,21 +17,23 @@ interface SettingsDialogProps {
 }
 
 export function SettingsDialog({ isOpen, onClose }: SettingsDialogProps) {
-  const { webhookUrl, historyWebhookUrl, instanceName, updateSettings } = useLeads();
+  const { webhookUrl, historyWebhookUrl, botWebhookUrl, instanceName, updateSettings } = useLeads();
   const { toast } = useToast();
   const [url, setUrl] = useState(webhookUrl);
   const [hUrl, setHUrl] = useState(historyWebhookUrl);
+  const [bUrl, setBUrl] = useState(botWebhookUrl);
   const [inst, setInst] = useState(instanceName);
 
   useEffect(() => {
     setUrl(webhookUrl);
     setHUrl(historyWebhookUrl);
+    setBUrl(botWebhookUrl);
     setInst(instanceName);
-  }, [webhookUrl, historyWebhookUrl, instanceName, isOpen]);
+  }, [webhookUrl, historyWebhookUrl, botWebhookUrl, instanceName, isOpen]);
 
   const handleSave = (e: React.FormEvent) => {
     e.preventDefault();
-    updateSettings(url, hUrl, inst);
+    updateSettings(url, hUrl, bUrl, inst);
     toast({
       title: "Configuración guardada",
       description: "Los webhooks se han actualizado correctamente.",
@@ -48,7 +50,7 @@ export function SettingsDialog({ isOpen, onClose }: SettingsDialogProps) {
             Configuración de Webhooks
           </DialogTitle>
           <DialogDescription>
-            Configura los endpoints para recibir leads e historiales de conversación.
+            Configura los endpoints para recibir leads, historiales y controlar el bot.
           </DialogDescription>
         </DialogHeader>
         
@@ -91,8 +93,21 @@ export function SettingsDialog({ isOpen, onClose }: SettingsDialogProps) {
                 onChange={(e) => setHUrl(e.target.value)}
                 placeholder="https://tu-servicio.com/history"
               />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="botUrl" className="text-sm font-semibold flex items-center gap-2">
+                <Bot className="h-4 w-4" />
+                URL Control Bot (POST)
+              </Label>
+              <Input
+                id="botUrl"
+                value={bUrl}
+                onChange={(e) => setBUrl(e.target.value)}
+                placeholder="https://n8n-danzas.../webhook/..."
+              />
               <p className="text-[10px] text-muted-foreground">
-                Se enviará el parámetro `?ID_LEAD=` a esta URL.
+                Se enviará un POST con {'{ "whatsapp": "...", "status": "on/off" }'}.
               </p>
             </div>
           </div>

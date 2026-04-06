@@ -4,7 +4,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { useLeads } from '@/lib/store';
 import { SettingsDialog } from '@/components/SettingsDialog';
-import { LayoutGrid, Users, Settings, PieChart, Search, MessageSquare, Send, User, Smartphone, History as HistoryIcon } from 'lucide-react';
+import { LayoutGrid, Users, Settings, PieChart, Search, MessageSquare, Send, User, Smartphone, History as HistoryIcon, Bot } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Toaster } from '@/components/ui/toaster';
@@ -14,18 +14,20 @@ import { usePathname } from 'next/navigation';
 import type { Lead, ChatMessage } from '@/lib/types';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Badge } from '@/components/ui/badge';
+import { Switch } from '@/components/ui/switch';
+import { Label } from '@/components/ui/label';
 
 export default function ContactsPage() {
-  const { leads, getHistory, historyWebhookUrl } = useLeads();
+  const { leads, getHistory, historyWebhookUrl, toggleBot, botWebhookUrl } = useLeads();
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [selectedLead, setSelectedLead] = useState<Lead | null>(null);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [isLoadingHistory, setIsLoadingHistory] = useState(false);
+  const [isBotActive, setIsBotActive] = useState(true);
   const pathname = usePathname();
   
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
-  // Auto-scroll to bottom when messages change
   useEffect(() => {
     if (messagesEndRef.current) {
       messagesEndRef.current.scrollIntoView({ behavior: 'smooth' });
@@ -46,9 +48,15 @@ export default function ContactsPage() {
     fetchHistory();
   }, [selectedLead, getHistory]);
 
+  const handleBotToggle = (checked: boolean) => {
+    if (selectedLead?.phone) {
+      setIsBotActive(checked);
+      toggleBot(selectedLead.phone, checked);
+    }
+  };
+
   return (
     <div className="flex h-screen bg-background overflow-hidden">
-      {/* Sidebar - Desktop */}
       <aside className="w-64 border-r bg-white hidden md:flex flex-col shadow-sm">
         <div className="p-6">
           <div className="flex items-center gap-2 mb-8">
@@ -74,9 +82,7 @@ export default function ContactsPage() {
         </div>
       </aside>
 
-      {/* Main Chat Interface */}
       <main className="flex-1 flex min-w-0">
-        {/* Contacts List */}
         <div className="w-80 border-r bg-white flex flex-col">
           <div className="p-4 border-b">
             <h2 className="text-xl font-bold mb-4">Chat de Leads</h2>
@@ -120,11 +126,9 @@ export default function ContactsPage() {
           </ScrollArea>
         </div>
 
-        {/* Chat Area */}
         <div className="flex-1 flex flex-col bg-slate-50">
           {selectedLead ? (
             <>
-              {/* Chat Header */}
               <div className="h-16 border-b bg-white flex items-center justify-between px-6 shadow-sm z-10">
                 <div className="flex items-center gap-3">
                   <div className="w-9 h-9 rounded-full bg-slate-100 flex items-center justify-center">
@@ -143,9 +147,22 @@ export default function ContactsPage() {
                     </div>
                   </div>
                 </div>
+
+                {botWebhookUrl && (
+                  <div className="flex items-center gap-3 bg-slate-50 px-4 py-2 rounded-full border">
+                    <Bot className={cn("h-4 w-4", isBotActive ? "text-primary" : "text-muted-foreground")} />
+                    <Label htmlFor="bot-mode" className="text-xs font-semibold cursor-pointer">
+                      Bot IA
+                    </Label>
+                    <Switch 
+                      id="bot-mode" 
+                      checked={isBotActive} 
+                      onCheckedChange={handleBotToggle}
+                    />
+                  </div>
+                )}
               </div>
 
-              {/* Chat Content */}
               <ScrollArea className="flex-1 p-6">
                 {!historyWebhookUrl ? (
                   <div className="h-full flex flex-col items-center justify-center opacity-50 space-y-2">
@@ -174,7 +191,7 @@ export default function ContactsPage() {
                               : "bg-white text-slate-800 rounded-tl-none border"
                           )}
                         >
-                          <p>{msg.message}</p>
+                          <p className="whitespace-pre-wrap">{msg.message}</p>
                         </div>
                         <span className="text-[9px] text-muted-foreground mt-1 px-1">
                           {new Date(msg.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
@@ -192,7 +209,6 @@ export default function ContactsPage() {
                 )}
               </ScrollArea>
 
-              {/* Chat Input */}
               <div className="p-4 bg-white border-t">
                 <div className="max-w-4xl mx-auto flex gap-2">
                   <Input 

@@ -10,6 +10,7 @@ export function useLeads() {
   const [leads, setLeads] = useState<Lead[]>([]);
   const [webhookUrl, setWebhookUrl] = useState<string>('');
   const [historyWebhookUrl, setHistoryWebhookUrl] = useState<string>('');
+  const [botWebhookUrl, setBotWebhookUrl] = useState<string>('');
   const [instanceName, setInstanceName] = useState<string>('HALCONDIGITAL');
   const [isLoaded, setIsLoaded] = useState(false);
   const [isSyncing, setIsSyncing] = useState(false);
@@ -31,6 +32,7 @@ export function useLeads() {
       notes: incoming.MESSAGE || "Sin mensaje",
       createdAt: incoming.createdAt || new Date().toISOString(),
       updatedAt: incoming.updatedAt || new Date().toISOString(),
+      botActive: true, // Por defecto asumimos activo
     }));
 
     setLeads(newLeadsFromWebhook);
@@ -62,6 +64,7 @@ export function useLeads() {
         currentUrl = settings.webhookUrl || '';
         setWebhookUrl(currentUrl);
         setHistoryWebhookUrl(settings.historyWebhookUrl || '');
+        setBotWebhookUrl(settings.botWebhookUrl || '');
         setInstanceName(settings.instanceName || 'HALCONDIGITAL');
       } catch (e) {
         console.error("Error al cargar settings");
@@ -114,13 +117,31 @@ export function useLeads() {
     return [];
   }, [historyWebhookUrl]);
 
-  const updateSettings = useCallback((url: string, historyUrl: string, inst: string) => {
+  const toggleBot = useCallback(async (whatsapp: string, status: boolean) => {
+    if (!botWebhookUrl) return;
+    try {
+      await fetch(botWebhookUrl, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          whatsapp: whatsapp,
+          status: status ? 'on' : 'off'
+        })
+      });
+    } catch (err) {
+      console.error('Error al cambiar estado del bot:', err);
+    }
+  }, [botWebhookUrl]);
+
+  const updateSettings = useCallback((url: string, historyUrl: string, botUrl: string, inst: string) => {
     setWebhookUrl(url);
     setHistoryWebhookUrl(historyUrl);
+    setBotWebhookUrl(botUrl);
     setInstanceName(inst);
     localStorage.setItem(SETTINGS_KEY, JSON.stringify({ 
       webhookUrl: url, 
       historyWebhookUrl: historyUrl,
+      botWebhookUrl: botUrl,
       instanceName: inst 
     }));
     initialSyncDone.current = false;
@@ -131,10 +152,12 @@ export function useLeads() {
     leads, 
     webhookUrl, 
     historyWebhookUrl,
+    botWebhookUrl,
     instanceName,
     isSyncing,
     syncLeads,
     getHistory,
+    toggleBot,
     updateSettings, 
     isLoaded,
     processIncomingWebhook: processIncomingData
