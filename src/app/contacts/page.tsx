@@ -1,4 +1,3 @@
-
 "use client"
 
 import { useState, useEffect, useRef } from 'react';
@@ -16,9 +15,11 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Badge } from '@/components/ui/badge';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
+import { useToast } from '@/hooks/use-toast';
 
 export default function ContactsPage() {
   const { leads, getHistory, historyWebhookUrl, toggleBot, botWebhookUrl } = useLeads();
+  const { toast } = useToast();
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [selectedLead, setSelectedLead] = useState<Lead | null>(null);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
@@ -51,7 +52,13 @@ export default function ContactsPage() {
   const handleBotToggle = (checked: boolean) => {
     if (selectedLead?.phone) {
       setIsBotActive(checked);
-      toggleBot(selectedLead.phone, checked);
+      toggleBot(selectedLead.phone, checked).then(() => {
+        toast({
+          title: checked ? "Bot IA Encendido" : "Bot IA Apagado",
+          description: `El asistente para ${selectedLead.contactName} ha sido ${checked ? 'activado' : 'desactivado'}.`,
+          variant: "success",
+        });
+      });
     }
   };
 

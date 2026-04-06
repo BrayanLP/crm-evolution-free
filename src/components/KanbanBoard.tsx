@@ -1,4 +1,3 @@
-
 "use client"
 
 import * as React from 'react';
@@ -47,16 +46,6 @@ export function KanbanBoard() {
   const openEditDialog = (lead: Lead) => {
     setSelectedLead(lead);
     setIsDialogOpen(true);
-  };
-
-  const handleBotToggle = (e: React.MouseEvent | React.TouchEvent, lead: Lead, checked: boolean) => {
-    e.stopPropagation(); // Evita que se abra el diálogo al tocar el switch
-    toggleBot(lead.phone, checked);
-    toast({
-      title: checked ? "Bot IA Encendido" : "Bot IA Apagado",
-      description: `El asistente para ${lead.contactName} ha sido ${checked ? 'activado' : 'desactivado'}.`,
-      variant: checked ? "default" : "destructive",
-    });
   };
 
   return (
@@ -167,7 +156,7 @@ export function KanbanBoard() {
                                   toast({
                                     title: checked ? "Bot Encendido" : "Bot Apagado",
                                     description: `Estado del bot para ${lead.contactName} actualizado.`,
-                                    variant: checked ? "default" : "destructive",
+                                    variant: "success",
                                   });
                                 })}
                                 className="scale-75"
