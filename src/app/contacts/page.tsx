@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { useLeads } from '@/lib/store';
 import { SettingsDialog } from '@/components/SettingsDialog';
-import { LayoutGrid, Users, Settings, PieChart, Search, MessageSquare, Send, User, Smartphone, History as HistoryIcon, Bot } from 'lucide-react';
+import { LayoutGrid, Users, Settings, PieChart, Search, MessageSquare, User, History as HistoryIcon, Bot } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Toaster } from '@/components/ui/toaster';
@@ -215,17 +215,12 @@ export default function ContactsPage() {
                   </div>
                 )}
               </ScrollArea>
-
-              <div className="p-4 bg-white border-t">
-                <div className="max-w-4xl mx-auto flex gap-2">
-                  <Input 
-                    className="flex-1 bg-slate-50 border-none focus-visible:ring-1" 
-                    placeholder="Escribe un mensaje..." 
-                  />
-                  <Button size="icon" className="rounded-full shadow-md bg-primary hover:bg-primary/90">
-                    <Send className="h-4 w-4" />
-                  </Button>
-                </div>
+              
+              <div className="p-4 bg-white border-t text-center">
+                <p className="text-xs text-muted-foreground italic flex items-center justify-center gap-2">
+                  <MessageSquare className="h-3 w-3" />
+                  Modo visor: Las respuestas deben gestionarse desde WhatsApp
+                </p>
               </div>
             </>
           ) : (
