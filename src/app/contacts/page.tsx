@@ -3,7 +3,6 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { useLeads } from '@/lib/store';
-import { SettingsDialog } from '@/components/SettingsDialog';
 import { LayoutGrid, Users, Settings, PieChart, Search, MessageSquare, User, History as HistoryIcon, Bot, Briefcase } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -23,7 +22,6 @@ export default function ContactsPage() {
   const { leads, getHistory, historyWebhookUrl, toggleBot, botWebhookUrl } = useLeads();
   const { t } = useTranslation();
   const { toast } = useToast();
-  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [selectedLead, setSelectedLead] = useState<Lead | null>(null);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [isLoadingHistory, setIsLoadingHistory] = useState(false);
@@ -88,7 +86,8 @@ export default function ContactsPage() {
           <NavItem 
             icon={<Settings className="h-5 w-5" />} 
             label={t('nav.settings')} 
-            onClick={() => setIsSettingsOpen(true)}
+            href="/settings"
+            active={pathname === "/settings"}
           />
         </div>
       </aside>
@@ -238,8 +237,6 @@ export default function ContactsPage() {
           )}
         </div>
       </main>
-      
-      <SettingsDialog isOpen={isSettingsOpen} onClose={() => setIsSettingsOpen(false)} />
       <Toaster />
     </div>
   );
@@ -249,39 +246,24 @@ function NavItem({
   icon, 
   label, 
   href,
-  active = false, 
-  onClick 
+  active = false
 }: { 
   icon: React.ReactNode, 
   label: string, 
-  href?: string,
-  active?: boolean,
-  onClick?: () => void
+  href: string,
+  active?: boolean
 }) {
-  const content = (
-    <>
+  return (
+    <Link 
+      href={href} 
+      className={cn(
+        "w-full justify-start gap-3 px-4 py-6 text-base font-medium transition-all duration-200 flex items-center",
+        active ? "bg-primary/5 text-primary shadow-sm hover:bg-primary/10" : "text-slate-500 hover:text-primary hover:bg-primary/5"
+      )}
+    >
       {icon}
       {label}
       {active && <div className="ml-auto w-1 h-5 bg-primary rounded-full" />}
-    </>
-  );
-
-  const className = cn(
-    "w-full justify-start gap-3 px-4 py-6 text-base font-medium transition-all duration-200 flex items-center",
-    active ? "bg-primary/5 text-primary shadow-sm hover:bg-primary/10" : "text-slate-500 hover:text-primary hover:bg-primary/5"
-  );
-
-  if (href) {
-    return (
-      <Link href={href} className={className}>
-        {content}
-      </Link>
-    );
-  }
-
-  return (
-    <Button variant="ghost" onClick={onClick} className={className}>
-      {content}
-    </Button>
+    </Link>
   );
 }

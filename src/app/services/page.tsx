@@ -3,7 +3,6 @@
 
 import { useState, useEffect } from 'react';
 import { useLeads } from '@/lib/store';
-import { SettingsDialog } from '@/components/SettingsDialog';
 import { LayoutGrid, Users, Settings, PieChart, Search, Briefcase, Plus, RefreshCw, Pencil, Trash2, DollarSign } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -23,7 +22,6 @@ export default function ServicesPage() {
   const { services, isSyncingServices, syncServices, createService, updateService, deleteService, isLoaded } = useLeads();
   const { t } = useTranslation();
   const pathname = usePathname();
-  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [selectedService, setSelectedService] = useState<Service | null>(null);
   
@@ -84,7 +82,12 @@ export default function ServicesPage() {
         </div>
 
         <div className="mt-auto p-6 border-t">
-          <NavItem icon={<Settings className="h-5 w-5" />} label={t('nav.settings')} onClick={() => setIsSettingsOpen(true)} />
+          <NavItem 
+            icon={<Settings className="h-5 w-5" />} 
+            label={t('nav.settings')} 
+            href="/settings"
+            active={pathname === "/settings"}
+          />
         </div>
       </aside>
 
@@ -207,38 +210,33 @@ export default function ServicesPage() {
           </form>
         </DialogContent>
       </Dialog>
-      
-      <SettingsDialog isOpen={isSettingsOpen} onClose={() => setIsSettingsOpen(false)} />
       <Toaster />
     </div>
   );
 }
 
-function NavItem({ icon, label, href, active = false, onClick }: { icon: React.ReactNode, label: string, href?: string, active?: boolean, onClick?: () => void }) {
-  const content = (
-    <>
+function NavItem({ 
+  icon, 
+  label, 
+  href,
+  active = false
+}: { 
+  icon: React.ReactNode, 
+  label: string, 
+  href: string,
+  active?: boolean
+}) {
+  return (
+    <Link 
+      href={href} 
+      className={cn(
+        "w-full justify-start gap-3 px-4 py-6 text-base font-medium transition-all duration-200 flex items-center",
+        active ? "bg-primary/5 text-primary shadow-sm hover:bg-primary/10" : "text-slate-500 hover:text-primary hover:bg-primary/5"
+      )}
+    >
       {icon}
       {label}
       {active && <div className="ml-auto w-1 h-5 bg-primary rounded-full" />}
-    </>
-  );
-
-  const className = cn(
-    "w-full justify-start gap-3 px-4 py-6 text-base font-medium transition-all duration-200 flex items-center",
-    active ? "bg-primary/5 text-primary shadow-sm hover:bg-primary/10" : "text-slate-500 hover:text-primary hover:bg-primary/5"
-  );
-
-  if (href) {
-    return (
-      <Link href={href} className={className}>
-        {content}
-      </Link>
-    );
-  }
-
-  return (
-    <Button variant="ghost" onClick={onClick} className={className}>
-      {content}
-    </Button>
+    </Link>
   );
 }

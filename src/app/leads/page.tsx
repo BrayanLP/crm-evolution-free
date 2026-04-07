@@ -1,9 +1,7 @@
 
 "use client"
 
-import { useState } from 'react';
 import { KanbanBoard } from '@/components/KanbanBoard';
-import { SettingsDialog } from '@/components/SettingsDialog';
 import { LayoutGrid, Users, Settings, PieChart, Search, Briefcase } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -14,13 +12,11 @@ import { usePathname } from 'next/navigation';
 import { useTranslation } from '@/context/LanguageContext';
 
 export default function LeadsPage() {
-  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const { t } = useTranslation();
   const pathname = usePathname();
 
   return (
     <div className="flex h-screen bg-background overflow-hidden">
-      {/* Sidebar - Desktop */}
       <aside className="w-64 border-r bg-white hidden md:flex flex-col shadow-sm">
         <div className="p-6">
           <div className="flex items-center gap-2 mb-8">
@@ -42,12 +38,12 @@ export default function LeadsPage() {
           <NavItem 
             icon={<Settings className="h-5 w-5" />} 
             label={t('nav.settings')} 
-            onClick={() => setIsSettingsOpen(true)}
+            href="/settings"
+            active={pathname === "/settings"}
           />
         </div>
       </aside>
 
-      {/* Main Content */}
       <main className="flex-1 flex flex-col min-w-0">
         <header className="h-16 border-b bg-white flex items-center justify-between px-8">
           <div className="flex items-center w-full max-w-md">
@@ -65,8 +61,6 @@ export default function LeadsPage() {
           <KanbanBoard />
         </div>
       </main>
-      
-      <SettingsDialog isOpen={isSettingsOpen} onClose={() => setIsSettingsOpen(false)} />
       <Toaster />
     </div>
   );
@@ -76,39 +70,24 @@ function NavItem({
   icon, 
   label, 
   href,
-  active = false, 
-  onClick 
+  active = false
 }: { 
   icon: React.ReactNode, 
   label: string, 
-  href?: string,
-  active?: boolean,
-  onClick?: () => void
+  href: string,
+  active?: boolean
 }) {
-  const content = (
-    <>
+  return (
+    <Link 
+      href={href} 
+      className={cn(
+        "w-full justify-start gap-3 px-4 py-6 text-base font-medium transition-all duration-200 flex items-center",
+        active ? "bg-primary/5 text-primary shadow-sm hover:bg-primary/10" : "text-slate-500 hover:text-primary hover:bg-primary/5"
+      )}
+    >
       {icon}
       {label}
       {active && <div className="ml-auto w-1 h-5 bg-primary rounded-full" />}
-    </>
-  );
-
-  const className = cn(
-    "w-full justify-start gap-3 px-4 py-6 text-base font-medium transition-all duration-200 flex items-center",
-    active ? "bg-primary/5 text-primary shadow-sm hover:bg-primary/10" : "text-slate-500 hover:text-primary hover:bg-primary/5"
-  );
-
-  if (href) {
-    return (
-      <Link href={href} className={className}>
-        {content}
-      </Link>
-    );
-  }
-
-  return (
-    <Button variant="ghost" onClick={onClick} className={className}>
-      {content}
-    </Button>
+    </Link>
   );
 }
