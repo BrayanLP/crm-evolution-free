@@ -4,6 +4,7 @@
     "dashboard": "Panel",
     "leads": "Leads",
     "contacts": "Contactos",
+    "services": "Servicios",
     "settings": "Configuración"
   },
   "dashboard": {
@@ -47,13 +48,28 @@
     "title": "Chat de Leads",
     "search": "Buscar contacto...",
     "empty": "No hay contactos disponibles",
-    "active": "WhatsApp Activo",
+    "active": "WhatsApp Active",
     "botIA": "Bot IA",
     "noHistory": "Configura el Webhook de Historial en Ajustes",
     "emptyHistory": "Sin historial de mensajes",
     "viewMode": "Modo visor: Las respuestas deben gestionarse desde WhatsApp",
     "selectLead": "Selecciona un contacto",
     "selectLeadDesc": "Elige un lead de la lista para ver su historial de WhatsApp"
+  },
+  "services": {
+    "title": "Gestión de Servicios",
+    "subtitle": "Administra el catálogo de servicios de tu negocio.",
+    "add": "Nuevo Servicio",
+    "sync": "Sincronizar",
+    "empty": "No hay servicios registrados",
+    "name": "Nombre",
+    "description": "Descripción",
+    "price": "Precio",
+    "actions": "Acciones",
+    "edit": "Editar Servicio",
+    "delete": "Eliminar",
+    "save": "Guardar",
+    "deleteConfirm": "¿Estás seguro de que quieres eliminar este servicio?"
   },
   "settings": {
     "title": "Ajustes del Sistema",
@@ -64,6 +80,10 @@
     "webhookUrl": "URL de Leads (GET)",
     "historyUrl": "URL de Historial (GET)",
     "botUrl": "URL Control Bot (POST)",
+    "servicesUrl": "URL Ver Servicios (GET)",
+    "servicesCreateUrl": "URL Crear Servicios (POST)",
+    "servicesEditUrl": "URL Editar Servicios (POST)",
+    "servicesDeleteUrl": "URL Eliminar Servicios (POST)",
     "botDesc": "Petición POST: { \"whatsapp\": \"...\", \"ESTADO_BOT\": \"1/0\" }",
     "save": "Guardar y Sincronizar",
     "language": "Idioma",

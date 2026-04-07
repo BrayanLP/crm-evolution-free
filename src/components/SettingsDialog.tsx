@@ -7,12 +7,13 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogD
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Webhook, Save, Smartphone, History, Bot, Download, Upload, FileJson, Languages } from 'lucide-react';
+import { Webhook, Save, Smartphone, History, Bot, Download, Upload, FileJson, Languages, Briefcase } from 'lucide-react';
 import { useLeads } from '@/lib/store';
 import { useToast } from '@/hooks/use-toast';
 import { Separator } from '@/components/ui/separator';
 import { useTranslation } from '@/context/LanguageContext';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { ScrollArea } from '@/components/ui/scroll-area';
 
 interface SettingsDialogProps {
   isOpen: boolean;
@@ -20,28 +21,44 @@ interface SettingsDialogProps {
 }
 
 export function SettingsDialog({ isOpen, onClose }: SettingsDialogProps) {
-  const { webhookUrl, historyWebhookUrl, botWebhookUrl, instanceName, updateSettings } = useLeads();
+  const { 
+    webhookUrl, historyWebhookUrl, botWebhookUrl, instanceName, 
+    servicesUrl, servicesCreateUrl, servicesEditUrl, servicesDeleteUrl,
+    updateSettings 
+  } = useLeads();
   const { t, language, setLanguage } = useTranslation();
   const { toast } = useToast();
   const fileInputRef = useRef<HTMLInputElement>(null);
   
-  const [url, setUrl] = useState(webhookUrl);
-  const [hUrl, setHUrl] = useState(historyWebhookUrl);
-  const [bUrl, setBUrl] = useState(botWebhookUrl);
-  const [inst, setInst] = useState(instanceName);
+  const [formData, setFormData] = useState({
+    webhookUrl: '',
+    historyWebhookUrl: '',
+    botWebhookUrl: '',
+    instanceName: 'HALCONDIGITAL',
+    servicesUrl: '',
+    servicesCreateUrl: '',
+    servicesEditUrl: '',
+    servicesDeleteUrl: ''
+  });
 
   useEffect(() => {
     if (isOpen) {
-      setUrl(webhookUrl);
-      setHUrl(historyWebhookUrl);
-      setBUrl(botWebhookUrl);
-      setInst(instanceName);
+      setFormData({
+        webhookUrl,
+        historyWebhookUrl,
+        botWebhookUrl,
+        instanceName,
+        servicesUrl,
+        servicesCreateUrl,
+        servicesEditUrl,
+        servicesDeleteUrl
+      });
     }
-  }, [webhookUrl, historyWebhookUrl, botWebhookUrl, instanceName, isOpen]);
+  }, [isOpen, webhookUrl, historyWebhookUrl, botWebhookUrl, instanceName, servicesUrl, servicesCreateUrl, servicesEditUrl, servicesDeleteUrl]);
 
   const handleSave = (e?: React.FormEvent) => {
     e?.preventDefault();
-    updateSettings(url, hUrl, bUrl, inst);
+    updateSettings({ ...formData, language });
     toast({
       title: t('settings.saved'),
       description: t('settings.savedDesc'),
@@ -51,10 +68,7 @@ export function SettingsDialog({ isOpen, onClose }: SettingsDialogProps) {
 
   const exportConfig = () => {
     const config = {
-      webhookUrl: url,
-      historyWebhookUrl: hUrl,
-      botWebhookUrl: bUrl,
-      instanceName: inst,
+      ...formData,
       language: language
     };
     const blob = new Blob([JSON.stringify(config, null, 2)], { type: 'application/json' });
@@ -76,10 +90,16 @@ export function SettingsDialog({ isOpen, onClose }: SettingsDialogProps) {
     reader.onload = (event) => {
       try {
         const json = JSON.parse(event.target?.result as string);
-        setUrl(json.webhookUrl || '');
-        setHUrl(json.historyWebhookUrl || '');
-        setBUrl(json.botWebhookUrl || '');
-        setInst(json.instanceName || 'HALCONDIGITAL');
+        setFormData({
+          webhookUrl: json.webhookUrl || '',
+          historyWebhookUrl: json.historyWebhookUrl || '',
+          botWebhookUrl: json.botWebhookUrl || '',
+          instanceName: json.instanceName || 'HALCONDIGITAL',
+          servicesUrl: json.servicesUrl || '',
+          servicesCreateUrl: json.servicesCreateUrl || '',
+          servicesEditUrl: json.servicesEditUrl || '',
+          servicesDeleteUrl: json.servicesDeleteUrl || ''
+        });
         if (json.language) setLanguage(json.language);
         toast({
           title: t('settings.imported'),
@@ -99,7 +119,7 @@ export function SettingsDialog({ isOpen, onClose }: SettingsDialogProps) {
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-[550px]">
+      <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-hidden flex flex-col">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2 text-2xl font-headline text-primary">
             <Webhook className="h-6 w-6" />
@@ -111,121 +131,137 @@ export function SettingsDialog({ isOpen, onClose }: SettingsDialogProps) {
         </DialogHeader>
         
         <div className="flex gap-2 mb-4">
-          <Button 
-            variant="outline" 
-            size="sm" 
-            className="flex-1 gap-2" 
-            onClick={exportConfig}
-          >
+          <Button variant="outline" size="sm" className="flex-1 gap-2" onClick={exportConfig}>
             <Download className="h-4 w-4" />
             {t('settings.export')}
           </Button>
-          <Button 
-            variant="outline" 
-            size="sm" 
-            className="flex-1 gap-2" 
-            onClick={() => fileInputRef.current?.click()}
-          >
+          <Button variant="outline" size="sm" className="flex-1 gap-2" onClick={() => fileInputRef.current?.click()}>
             <Upload className="h-4 w-4" />
             {t('settings.import')}
           </Button>
-          <input 
-            type="file" 
-            ref={fileInputRef} 
-            className="hidden" 
-            accept=".json" 
-            onChange={importConfig} 
-          />
+          <input type="file" ref={fileInputRef} className="hidden" accept=".json" onChange={importConfig} />
         </div>
 
-        <Separator className="mb-6" />
-
-        <form onSubmit={handleSave} className="space-y-6">
-          <div className="space-y-4">
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="language" className="text-sm font-semibold flex items-center gap-2">
-                  <Languages className="h-4 w-4" />
-                  {t('settings.language')}
-                </Label>
-                <Select value={language} onValueChange={(val: any) => setLanguage(val)}>
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="es">Español</SelectItem>
-                    <SelectItem value="en">English</SelectItem>
-                  </SelectContent>
-                </Select>
+        <ScrollArea className="flex-1 pr-4">
+          <form onSubmit={handleSave} className="space-y-6 pb-4">
+            <div className="space-y-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label className="text-sm font-semibold flex items-center gap-2">
+                    <Languages className="h-4 w-4" />
+                    {t('settings.language')}
+                  </Label>
+                  <Select value={language} onValueChange={(val: any) => setLanguage(val)}>
+                    <SelectTrigger><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="es">Español</SelectItem>
+                      <SelectItem value="en">English</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-2">
+                  <Label className="text-sm font-semibold flex items-center gap-2">
+                    <Smartphone className="h-4 w-4" />
+                    {t('settings.instanceName')}
+                  </Label>
+                  <Input
+                    value={formData.instanceName}
+                    onChange={(e) => setFormData({ ...formData, instanceName: e.target.value })}
+                    placeholder="ej. HALCONDIGITAL"
+                  />
+                </div>
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="instanceName" className="text-sm font-semibold flex items-center gap-2">
-                  <Smartphone className="h-4 w-4" />
-                  {t('settings.instanceName')}
+                <Label className="text-sm font-semibold flex items-center gap-2">
+                  <FileJson className="h-4 w-4" />
+                  {t('settings.webhookUrl')}
                 </Label>
                 <Input
-                  id="instanceName"
-                  value={inst}
-                  onChange={(e) => setInst(e.target.value)}
-                  placeholder="ej. HALCONDIGITAL"
+                  value={formData.webhookUrl}
+                  onChange={(e) => setFormData({ ...formData, webhookUrl: e.target.value })}
+                  placeholder="https://..."
                 />
               </div>
-            </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="webhookUrl" className="text-sm font-semibold flex items-center gap-2">
-                <FileJson className="h-4 w-4" />
-                {t('settings.webhookUrl')}
-              </Label>
-              <Input
-                id="webhookUrl"
-                value={url}
-                onChange={(e) => setUrl(e.target.value)}
-                placeholder="https://..."
-              />
-            </div>
+              <div className="space-y-2">
+                <Label className="text-sm font-semibold flex items-center gap-2">
+                  <History className="h-4 w-4" />
+                  {t('settings.historyUrl')}
+                </Label>
+                <Input
+                  value={formData.historyWebhookUrl}
+                  onChange={(e) => setFormData({ ...formData, historyWebhookUrl: e.target.value })}
+                  placeholder="https://..."
+                />
+              </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="historyUrl" className="text-sm font-semibold flex items-center gap-2">
-                <History className="h-4 w-4" />
-                {t('settings.historyUrl')}
-              </Label>
-              <Input
-                id="historyUrl"
-                value={hUrl}
-                onChange={(e) => setHUrl(e.target.value)}
-                placeholder="https://..."
-              />
-            </div>
+              <div className="space-y-2">
+                <Label className="text-sm font-semibold flex items-center gap-2">
+                  <Bot className="h-4 w-4" />
+                  {t('settings.botUrl')}
+                </Label>
+                <Input
+                  value={formData.botWebhookUrl}
+                  onChange={(e) => setFormData({ ...formData, botWebhookUrl: e.target.value })}
+                  placeholder="https://..."
+                />
+                <p className="text-[10px] text-muted-foreground italic">{t('settings.botDesc')}</p>
+              </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="botUrl" className="text-sm font-semibold flex items-center gap-2">
-                <Bot className="h-4 w-4" />
-                {t('settings.botUrl')}
-              </Label>
-              <Input
-                id="botUrl"
-                value={bUrl}
-                onChange={(e) => setBUrl(e.target.value)}
-                placeholder="https://..."
-              />
-              <p className="text-[10px] text-muted-foreground italic">
-                {t('settings.botDesc')}
-              </p>
-            </div>
-          </div>
+              <Separator className="my-6" />
+              <h3 className="text-sm font-bold flex items-center gap-2 text-primary">
+                <Briefcase className="h-4 w-4" />
+                SERVICIOS WEBHOOKS
+              </h3>
 
-          <DialogFooter className="pt-2">
-            <Button type="button" variant="ghost" onClick={onClose}>
-              {t('leadDialog.cancel')}
-            </Button>
-            <Button type="submit" className="bg-primary hover:bg-primary/90 gap-2">
-              <Save className="h-4 w-4" />
-              {t('settings.save')}
-            </Button>
-          </DialogFooter>
-        </form>
+              <div className="space-y-4">
+                <div className="space-y-2">
+                  <Label className="text-xs font-medium">{t('settings.servicesUrl')}</Label>
+                  <Input
+                    value={formData.servicesUrl}
+                    onChange={(e) => setFormData({ ...formData, servicesUrl: e.target.value })}
+                    placeholder="https://.../ver/servicios"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label className="text-xs font-medium">{t('settings.servicesCreateUrl')}</Label>
+                  <Input
+                    value={formData.servicesCreateUrl}
+                    onChange={(e) => setFormData({ ...formData, servicesCreateUrl: e.target.value })}
+                    placeholder="https://.../crear/servicios"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label className="text-xs font-medium">{t('settings.servicesEditUrl')}</Label>
+                  <Input
+                    value={formData.servicesEditUrl}
+                    onChange={(e) => setFormData({ ...formData, servicesEditUrl: e.target.value })}
+                    placeholder="https://.../editar/servicios"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label className="text-xs font-medium">{t('settings.servicesDeleteUrl')}</Label>
+                  <Input
+                    value={formData.servicesDeleteUrl}
+                    onChange={(e) => setFormData({ ...formData, servicesDeleteUrl: e.target.value })}
+                    placeholder="https://.../eliminar/servicios"
+                  />
+                </div>
+              </div>
+            </div>
+          </form>
+        </ScrollArea>
+
+        <DialogFooter className="pt-4 border-t">
+          <Button type="button" variant="ghost" onClick={onClose}>
+            {t('leadDialog.cancel')}
+          </Button>
+          <Button onClick={handleSave} className="bg-primary hover:bg-primary/90 gap-2">
+            <Save className="h-4 w-4" />
+            {t('settings.save')}
+          </Button>
+        </DialogFooter>
       </DialogContent>
     </Dialog>
   );

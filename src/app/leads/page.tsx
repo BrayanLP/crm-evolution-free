@@ -4,7 +4,7 @@
 import { useState } from 'react';
 import { KanbanBoard } from '@/components/KanbanBoard';
 import { SettingsDialog } from '@/components/SettingsDialog';
-import { LayoutGrid, Users, Settings, PieChart, Search } from 'lucide-react';
+import { LayoutGrid, Users, Settings, PieChart, Search, Briefcase } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Toaster } from '@/components/ui/toaster';
@@ -34,6 +34,7 @@ export default function LeadsPage() {
             <NavItem icon={<PieChart className="h-5 w-5" />} label={t('nav.dashboard')} href="/" active={pathname === "/"} />
             <NavItem icon={<LayoutGrid className="h-5 w-5" />} label={t('nav.leads')} href="/leads" active={pathname === "/leads"} />
             <NavItem icon={<Users className="h-5 w-5" />} label={t('nav.contacts')} href="/contacts" active={pathname === "/contacts"} />
+            <NavItem icon={<Briefcase className="h-5 w-5" />} label={t('nav.services')} href="/services" active={pathname === "/services"} />
           </nav>
         </div>
 
@@ -93,16 +94,14 @@ function NavItem({
   );
 
   const className = cn(
-    "w-full justify-start gap-3 px-4 py-6 text-base font-medium transition-all duration-200",
+    "w-full justify-start gap-3 px-4 py-6 text-base font-medium transition-all duration-200 flex items-center",
     active ? "bg-primary/5 text-primary shadow-sm hover:bg-primary/10" : "text-slate-500 hover:text-primary hover:bg-primary/5"
   );
 
   if (href) {
     return (
       <Link href={href} className={className}>
-        <div className="flex items-center gap-3 w-full">
-          {content}
-        </div>
+        {content}
       </Link>
     );
   }

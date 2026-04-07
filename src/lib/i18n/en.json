@@ -4,6 +4,7 @@
     "dashboard": "Dashboard",
     "leads": "Leads",
     "contacts": "Contacts",
+    "services": "Services",
     "settings": "Settings"
   },
   "dashboard": {
@@ -55,6 +56,21 @@
     "selectLead": "Select a contact",
     "selectLeadDesc": "Choose a lead from the list to view their WhatsApp history"
   },
+  "services": {
+    "title": "Services Management",
+    "subtitle": "Manage your business services catalog.",
+    "add": "New Service",
+    "sync": "Sync",
+    "empty": "No services registered",
+    "name": "Name",
+    "description": "Description",
+    "price": "Price",
+    "actions": "Actions",
+    "edit": "Edit Service",
+    "delete": "Delete",
+    "save": "Save",
+    "deleteConfirm": "Are you sure you want to delete this service?"
+  },
   "settings": {
     "title": "System Settings",
     "description": "Configure your WhatsApp webhooks or import an existing configuration.",
@@ -64,6 +80,10 @@
     "webhookUrl": "Leads URL (GET)",
     "historyUrl": "History URL (GET)",
     "botUrl": "Bot Control URL (POST)",
+    "servicesUrl": "View Services URL (GET)",
+    "servicesCreateUrl": "Create Service URL (POST)",
+    "servicesEditUrl": "Edit Service URL (POST)",
+    "servicesDeleteUrl": "Delete Service URL (POST)",
     "botDesc": "POST Request: { \"whatsapp\": \"...\", \"ESTADO_BOT\": \"1/0\" }",
     "save": "Save and Sync",
     "language": "Language",

@@ -2,18 +2,29 @@
 "use client"
 
 import { useState, useEffect, useCallback, useRef } from 'react';
-import type { Lead, StageId, ChatMessage } from './types';
+import type { Lead, StageId, ChatMessage, Service } from './types';
 
 const SETTINGS_KEY = 'leadflow_settings';
 
 export function useLeads() {
   const [leads, setLeads] = useState<Lead[]>([]);
+  const [services, setServices] = useState<Service[]>([]);
+  
+  // Settings
   const [webhookUrl, setWebhookUrl] = useState<string>('');
   const [historyWebhookUrl, setHistoryWebhookUrl] = useState<string>('');
   const [botWebhookUrl, setBotWebhookUrl] = useState<string>('');
   const [instanceName, setInstanceName] = useState<string>('HALCONDIGITAL');
+  
+  // Services Webhooks
+  const [servicesUrl, setServicesUrl] = useState<string>('');
+  const [servicesEditUrl, setServicesEditUrl] = useState<string>('');
+  const [servicesCreateUrl, setServicesCreateUrl] = useState<string>('');
+  const [servicesDeleteUrl, setServicesDeleteUrl] = useState<string>('');
+
   const [isLoaded, setIsLoaded] = useState(false);
   const [isSyncing, setIsSyncing] = useState(false);
+  const [isSyncingServices, setIsSyncingServices] = useState(false);
   
   const initialSyncDone = useRef(false);
 
@@ -38,43 +49,76 @@ export function useLeads() {
     setLeads(newLeadsFromWebhook);
   }, [instanceName]);
 
-  const initialSync = useCallback(async (url: string) => {
-    if (!url || initialSyncDone.current) return;
-    setIsSyncing(true);
+  const syncServices = useCallback(async (url: string) => {
+    if (!url) return;
+    setIsSyncingServices(true);
     try {
       const response = await fetch(url, { method: 'GET' });
       if (response.ok) {
         const data = await response.json();
-        processIncomingData(data);
-        initialSyncDone.current = true;
+        setServices(Array.isArray(data) ? data : []);
       }
     } catch (err) {
-      console.error('Error GET inicial:', err);
+      console.error('Error sincronizando servicios:', err);
     } finally {
-      setIsSyncing(false);
+      setIsSyncingServices(false);
     }
-  }, [processIncomingData]);
+  }, []);
+
+  const initialSync = useCallback(async (url: string, sUrl?: string) => {
+    if (initialSyncDone.current) return;
+    
+    if (url) {
+      setIsSyncing(true);
+      try {
+        const response = await fetch(url, { method: 'GET' });
+        if (response.ok) {
+          const data = await response.json();
+          processIncomingData(data);
+        }
+      } catch (err) {
+        console.error('Error GET inicial:', err);
+      } finally {
+        setIsSyncing(false);
+      }
+    }
+
+    if (sUrl) {
+      await syncServices(sUrl);
+    }
+
+    initialSyncDone.current = true;
+  }, [processIncomingData, syncServices]);
 
   useEffect(() => {
     const savedSettings = localStorage.getItem(SETTINGS_KEY);
-    let currentUrl = '';
+    let currentLeadsUrl = '';
+    let currentServicesUrl = '';
+    
     if (savedSettings) {
       try {
         const settings = JSON.parse(savedSettings);
-        currentUrl = settings.webhookUrl || '';
-        setWebhookUrl(currentUrl);
+        currentLeadsUrl = settings.webhookUrl || '';
+        currentServicesUrl = settings.servicesUrl || '';
+        
+        setWebhookUrl(currentLeadsUrl);
         setHistoryWebhookUrl(settings.historyWebhookUrl || '');
         setBotWebhookUrl(settings.botWebhookUrl || '');
         setInstanceName(settings.instanceName || 'HALCONDIGITAL');
+        
+        setServicesUrl(currentServicesUrl);
+        setServicesEditUrl(settings.servicesEditUrl || '');
+        setServicesCreateUrl(settings.servicesCreateUrl || '');
+        setServicesDeleteUrl(settings.servicesDeleteUrl || '');
       } catch (e) {
         console.error("Error al cargar settings");
       }
     }
-    setLeads([]);
+    
     setIsLoaded(true);
 
-    if (currentUrl) {
-      initialSync(currentUrl);
+    if (currentLeadsUrl || currentServicesUrl) {
+      initialSync(currentLeadsUrl, currentServicesUrl);
     }
   }, [initialSync]);
 
@@ -88,7 +132,7 @@ export function useLeads() {
         processIncomingData(data);
       }
     } catch (err) {
-      console.error('Error sincronizando (GET):', err);
+      console.error('Error sincronizando leads (GET):', err);
     } finally {
       setIsSyncing(false);
     }
@@ -120,7 +164,6 @@ export function useLeads() {
   const toggleBot = useCallback(async (whatsapp: string, status: boolean) => {
     if (!botWebhookUrl) return;
     
-    // Actualización optimista del estado local
     setLeads(prev => prev.map(l => l.phone === whatsapp ? { ...l, botActive: status } : l));
 
     try {
@@ -137,6 +180,54 @@ export function useLeads() {
     }
   }, [botWebhookUrl]);
 
+  const createService = useCallback(async (serviceData: Omit<Service, 'id'>) => {
+    if (!servicesCreateUrl) return;
+    try {
+      const response = await fetch(servicesCreateUrl, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(serviceData)
+      });
+      if (response.ok) {
+        syncServices(servicesUrl);
+      }
+    } catch (err) {
+      console.error('Error creando servicio:', err);
+    }
+  }, [servicesCreateUrl, servicesUrl, syncServices]);
+
+  const updateService = useCallback(async (id: string, serviceData: Partial<Service>) => {
+    if (!servicesEditUrl) return;
+    try {
+      const response = await fetch(servicesEditUrl, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id, ...serviceData })
+      });
+      if (response.ok) {
+        syncServices(servicesUrl);
+      }
+    } catch (err) {
+      console.error('Error editando servicio:', err);
+    }
+  }, [servicesEditUrl, servicesUrl, syncServices]);
+
+  const deleteService = useCallback(async (id: string) => {
+    if (!servicesDeleteUrl) return;
+    try {
+      const response = await fetch(servicesDeleteUrl, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id })
+      });
+      if (response.ok) {
+        syncServices(servicesUrl);
+      }
+    } catch (err) {
+      console.error('Error eliminando servicio:', err);
+    }
+  }, [servicesDeleteUrl, servicesUrl, syncServices]);
+
   const updateLead = useCallback((id: string, data: Partial<Lead>) => {
     setLeads(prev => prev.map(l => l.id === id ? { ...l, ...data, updatedAt: new Date().toISOString() } : l));
   }, []);
@@ -149,34 +240,46 @@ export function useLeads() {
     setLeads(prev => prev.map(l => l.id === id ? { ...l, stage: stageId, updatedAt: new Date().toISOString() } : l));
   }, []);
 
-  const updateSettings = useCallback((url: string, historyUrl: string, botUrl: string, inst: string) => {
-    setWebhookUrl(url);
-    setHistoryWebhookUrl(historyUrl);
-    setBotWebhookUrl(botUrl);
-    setInstanceName(inst);
-    localStorage.setItem(SETTINGS_KEY, JSON.stringify({ 
-      webhookUrl: url, 
-      historyWebhookUrl: historyUrl,
-      botWebhookUrl: botUrl,
-      instanceName: inst 
-    }));
+  const updateSettings = useCallback((newSettings: any) => {
+    setWebhookUrl(newSettings.webhookUrl || '');
+    setHistoryWebhookUrl(newSettings.historyWebhookUrl || '');
+    setBotWebhookUrl(newSettings.botWebhookUrl || '');
+    setInstanceName(newSettings.instanceName || 'HALCONDIGITAL');
+    
+    setServicesUrl(newSettings.servicesUrl || '');
+    setServicesEditUrl(newSettings.servicesEditUrl || '');
+    setServicesCreateUrl(newSettings.servicesCreateUrl || '');
+    setServicesDeleteUrl(newSettings.servicesDeleteUrl || '');
+
+    localStorage.setItem(SETTINGS_KEY, JSON.stringify(newSettings));
+    
     initialSyncDone.current = false;
-    if (url) initialSync(url);
+    initialSync(newSettings.webhookUrl, newSettings.servicesUrl);
   }, [initialSync]);
 
   return { 
     leads, 
+    services,
     webhookUrl, 
     historyWebhookUrl,
     botWebhookUrl,
     instanceName,
+    servicesUrl,
+    servicesEditUrl,
+    servicesCreateUrl,
+    servicesDeleteUrl,
     isSyncing,
+    isSyncingServices,
     syncLeads,
+    syncServices: () => syncServices(servicesUrl),
     getHistory,
     toggleBot,
     updateLead,
     deleteLead,
     moveLead,
+    createService,
+    updateService,
+    deleteService,
     updateSettings, 
     isLoaded,
     processIncomingWebhook: processIncomingData

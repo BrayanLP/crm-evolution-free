@@ -30,6 +30,15 @@ export interface Stage {
   color: string;
 }
 
+export interface Service {
+  id: string;
+  nombre: string;
+  descripcion: string;
+  precio: number;
+  duracion?: string;
+  createdAt?: string;
+}
+
 export const STAGES: Stage[] = [
   { id: 'new', title: 'Nuevo', color: 'bg-blue-500' },
   { id: 'contacted', title: 'Contactado', color: 'bg-amber-500' },
