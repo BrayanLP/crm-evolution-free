@@ -1,0 +1,105 @@
+
+{
+  "nav": {
+    "dashboard": "Panel",
+    "leads": "Leads",
+    "contacts": "Contactos",
+    "settings": "Configuración"
+  },
+  "dashboard": {
+    "title": "Panel de Control",
+    "subtitle": "Resumen de rendimiento y salud de tus prospectos.",
+    "kpi": {
+      "totalLeads": "Total Leads",
+      "contacted": "Contactados",
+      "qualified": "Cualificados",
+      "conversionRate": "Tasa de Cierre",
+      "descTotal": "Prospectos registrados",
+      "descContacted": "En conversación activa",
+      "descQualified": "Listos para cierre",
+      "descConversion": "Conversión final"
+    },
+    "charts": {
+      "funnel": "Embudo de Ventas",
+      "funnelDesc": "Distribución de leads por etapa",
+      "activity": "Actividad Reciente",
+      "activityDesc": "Nuevos leads en los últimos 7 días",
+      "health": "Salud del Pipeline"
+    },
+    "recentLeads": {
+      "title": "Leads Recientes",
+      "subtitle": "Últimos prospectos ingresados vía WhatsApp",
+      "empty": "No hay leads registrados aún."
+    }
+  },
+  "leads": {
+    "title": "Leads",
+    "subtitle": "Gestiona tus prospectos reales desde WhatsApp.",
+    "sync": "Sincronizar Webhook",
+    "configPending": "Configuración pendiente",
+    "configPendingDesc": "No se ha configurado una URL de webhook. Ve a \"Configuración\" para conectar tu servicio de WhatsApp.",
+    "emptyStage": "No hay leads en esta etapa",
+    "botOn": "Bot Encendido",
+    "botOff": "Bot Apagado",
+    "botDesc": "Estado del bot para {name} actualizado."
+  },
+  "contacts": {
+    "title": "Chat de Leads",
+    "search": "Buscar contacto...",
+    "empty": "No hay contactos disponibles",
+    "active": "WhatsApp Activo",
+    "botIA": "Bot IA",
+    "noHistory": "Configura el Webhook de Historial en Ajustes",
+    "emptyHistory": "Sin historial de mensajes",
+    "viewMode": "Modo visor: Las respuestas deben gestionarse desde WhatsApp",
+    "selectLead": "Selecciona un contacto",
+    "selectLeadDesc": "Elige un lead de la lista para ver su historial de WhatsApp"
+  },
+  "settings": {
+    "title": "Ajustes del Sistema",
+    "description": "Configura tus webhooks de WhatsApp o importa una configuración existente.",
+    "export": "Exportar JSON",
+    "import": "Importar JSON",
+    "instanceName": "Nombre de la Instancia",
+    "webhookUrl": "URL de Leads (GET)",
+    "historyUrl": "URL de Historial (GET)",
+    "botUrl": "URL Control Bot (POST)",
+    "botDesc": "Petición POST: { \"whatsapp\": \"...\", \"ESTADO_BOT\": \"1/0\" }",
+    "save": "Guardar y Sincronizar",
+    "language": "Idioma",
+    "saved": "Configuración guardada",
+    "savedDesc": "Los parámetros se han actualizado correctamente.",
+    "imported": "Archivo importado",
+    "importedDesc": "La configuración se ha cargado. Recuerda guardar los cambios.",
+    "importError": "Error al importar",
+    "importErrorDesc": "El archivo no tiene un formato válido."
+  },
+  "leadDialog": {
+    "edit": "Editar Prospecto",
+    "create": "Crear Nuevo Prospecto",
+    "name": "Nombre / Oportunidad",
+    "stage": "Etapa del Estado",
+    "contact": "Persona de Contacto",
+    "company": "Empresa",
+    "email": "Correo Electrónico",
+    "phone": "Teléfono",
+    "notes": "Notas e Interacciones",
+    "aiSuggestions": "Sugerencias IA",
+    "suggestedActions": "Acciones Sugeridas",
+    "cancel": "Cancelar",
+    "save": "Guardar",
+    "update": "Actualizar Prospecto",
+    "delete": "Eliminar",
+    "deleteConfirm": "¿Estás seguro de que quieres eliminar este prospecto?",
+    "noNotes": "Sin notas",
+    "noNotesDesc": "Por favor, añade algunas notas para obtener sugerencias de la IA.",
+    "aiError": "Error de IA",
+    "aiErrorDesc": "No se pudieron generar sugerencias en este momento."
+  },
+  "stages": {
+    "new": "Nuevo",
+    "contacted": "Contactado",
+    "qualified": "Cualificado",
+    "converted": "Convertido"
+  }
+}

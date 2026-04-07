@@ -12,9 +12,11 @@ import { cn } from '@/lib/utils';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useLeads } from '@/lib/store';
+import { useTranslation } from '@/context/LanguageContext';
 
 export default function Home() {
   const { webhookUrl, isLoaded } = useLeads();
+  const { t } = useTranslation();
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const pathname = usePathname();
 
@@ -37,16 +39,16 @@ export default function Home() {
           </div>
 
           <nav className="space-y-1">
-            <NavItem icon={<PieChart className="h-5 w-5" />} label="Panel" href="/" active={pathname === "/"} />
-            <NavItem icon={<LayoutGrid className="h-5 w-5" />} label="Leads" href="/leads" active={pathname === "/leads"} />
-            <NavItem icon={<Users className="h-5 w-5" />} label="Contactos" href="/contacts" active={pathname === "/contacts"} />
+            <NavItem icon={<PieChart className="h-5 w-5" />} label={t('nav.dashboard')} href="/" active={pathname === "/"} />
+            <NavItem icon={<LayoutGrid className="h-5 w-5" />} label={t('nav.leads')} href="/leads" active={pathname === "/leads"} />
+            <NavItem icon={<Users className="h-5 w-5" />} label={t('nav.contacts')} href="/contacts" active={pathname === "/contacts"} />
           </nav>
         </div>
 
         <div className="mt-auto p-6 border-t">
           <NavItem 
             icon={<Settings className="h-5 w-5" />} 
-            label="Configuración" 
+            label={t('nav.settings')} 
             onClick={() => setIsSettingsOpen(true)}
           />
         </div>
@@ -55,12 +57,12 @@ export default function Home() {
       {/* Main Content */}
       <main className="flex-1 flex flex-col min-w-0">
         <header className="h-16 border-b bg-white flex items-center justify-between px-8">
-          <div className="flex items-center w-full max-w-md">
+          <div className="flex items-center w-full max-md">
             <div className="relative w-full">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input 
                 className="pl-10 h-10 bg-slate-50 border-none shadow-none focus-visible:ring-1" 
-                placeholder="Buscar reportes, métricas..." 
+                placeholder={t('contacts.search')} 
               />
             </div>
           </div>

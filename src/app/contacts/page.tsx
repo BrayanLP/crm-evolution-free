@@ -1,3 +1,4 @@
+
 "use client"
 
 import { useState, useEffect, useRef } from 'react';
@@ -16,9 +17,11 @@ import { Badge } from '@/components/ui/badge';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
+import { useTranslation } from '@/context/LanguageContext';
 
 export default function ContactsPage() {
   const { leads, getHistory, historyWebhookUrl, toggleBot, botWebhookUrl } = useLeads();
+  const { t } = useTranslation();
   const { toast } = useToast();
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [selectedLead, setSelectedLead] = useState<Lead | null>(null);
@@ -54,8 +57,8 @@ export default function ContactsPage() {
       setIsBotActive(checked);
       toggleBot(selectedLead.phone, checked).then(() => {
         toast({
-          title: checked ? "Bot IA Encendido" : "Bot IA Apagado",
-          description: `El asistente para ${selectedLead.contactName} ha sido ${checked ? 'activado' : 'desactivado'}.`,
+          title: checked ? t('leads.botOn') : t('leads.botOff'),
+          description: t('leads.botDesc').replace('{name}', selectedLead.contactName),
           variant: "success",
         });
       });
@@ -74,16 +77,16 @@ export default function ContactsPage() {
           </div>
 
           <nav className="space-y-1">
-            <NavItem icon={<PieChart className="h-5 w-5" />} label="Panel" href="/" active={pathname === "/"} />
-            <NavItem icon={<LayoutGrid className="h-5 w-5" />} label="Leads" href="/leads" active={pathname === "/leads"} />
-            <NavItem icon={<Users className="h-5 w-5" />} label="Contactos" href="/contacts" active={pathname === "/contacts"} />
+            <NavItem icon={<PieChart className="h-5 w-5" />} label={t('nav.dashboard')} href="/" active={pathname === "/"} />
+            <NavItem icon={<LayoutGrid className="h-5 w-5" />} label={t('nav.leads')} href="/leads" active={pathname === "/leads"} />
+            <NavItem icon={<Users className="h-5 w-5" />} label={t('nav.contacts')} href="/contacts" active={pathname === "/contacts"} />
           </nav>
         </div>
 
         <div className="mt-auto p-6 border-t">
           <NavItem 
             icon={<Settings className="h-5 w-5" />} 
-            label="Configuración" 
+            label={t('nav.settings')} 
             onClick={() => setIsSettingsOpen(true)}
           />
         </div>
@@ -92,10 +95,10 @@ export default function ContactsPage() {
       <main className="flex-1 flex min-w-0">
         <div className="w-80 border-r bg-white flex flex-col">
           <div className="p-4 border-b">
-            <h2 className="text-xl font-bold mb-4">Chat de Leads</h2>
+            <h2 className="text-xl font-bold mb-4">{t('contacts.title')}</h2>
             <div className="relative">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-              <Input className="pl-9 bg-slate-50" placeholder="Buscar contacto..." />
+              <Input className="pl-9 bg-slate-50" placeholder={t('contacts.search')} />
             </div>
           </div>
           <ScrollArea className="flex-1">
@@ -126,7 +129,7 @@ export default function ContactsPage() {
               {leads.length === 0 && (
                 <div className="p-8 text-center opacity-40">
                   <User className="h-10 w-10 mx-auto mb-2" />
-                  <p className="text-xs">No hay contactos disponibles</p>
+                  <p className="text-xs">{t('contacts.empty')}</p>
                 </div>
               )}
             </div>
@@ -145,11 +148,11 @@ export default function ContactsPage() {
                     <p className="font-bold text-sm">{selectedLead.contactName}</p>
                     <div className="flex items-center gap-1.5">
                       <Badge variant="outline" className="text-[10px] py-0 px-1 font-normal">
-                        {selectedLead.stage.toUpperCase()}
+                        {t(`stages.${selectedLead.stage}`).toUpperCase()}
                       </Badge>
                       <span className="text-[10px] text-emerald-500 font-medium flex items-center gap-1">
                         <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-                        WhatsApp Activo
+                        {t('contacts.active')}
                       </span>
                     </div>
                   </div>
@@ -159,7 +162,7 @@ export default function ContactsPage() {
                   <div className="flex items-center gap-3 bg-slate-50 px-4 py-2 rounded-full border">
                     <Bot className={cn("h-4 w-4", isBotActive ? "text-primary" : "text-muted-foreground")} />
                     <Label htmlFor="bot-mode" className="text-xs font-semibold cursor-pointer">
-                      Bot IA
+                      {t('contacts.botIA')}
                     </Label>
                     <Switch 
                       id="bot-mode" 
@@ -174,7 +177,7 @@ export default function ContactsPage() {
                 {!historyWebhookUrl ? (
                   <div className="h-full flex flex-col items-center justify-center opacity-50 space-y-2">
                     <HistoryIcon className="h-12 w-12" />
-                    <p className="text-sm font-medium">Configura el Webhook de Historial en Ajustes</p>
+                    <p className="text-sm font-medium">{t('contacts.noHistory')}</p>
                   </div>
                 ) : isLoadingHistory ? (
                   <div className="h-full flex items-center justify-center">
@@ -208,7 +211,7 @@ export default function ContactsPage() {
                     {messages.length === 0 && (
                       <div className="text-center py-20 opacity-30">
                         <MessageSquare className="h-12 w-12 mx-auto mb-2" />
-                        <p className="text-sm">Sin historial de mensajes</p>
+                        <p className="text-sm">{t('contacts.emptyHistory')}</p>
                       </div>
                     )}
                     <div ref={messagesEndRef} />
@@ -219,7 +222,7 @@ export default function ContactsPage() {
               <div className="p-4 bg-white border-t text-center">
                 <p className="text-xs text-muted-foreground italic flex items-center justify-center gap-2">
                   <MessageSquare className="h-3 w-3" />
-                  Modo visor: Las respuestas deben gestionarse desde WhatsApp
+                  {t('contacts.viewMode')}
                 </p>
               </div>
             </>
@@ -228,8 +231,8 @@ export default function ContactsPage() {
               <div className="w-20 h-20 rounded-full bg-slate-200 flex items-center justify-center mb-4">
                 <MessageSquare className="h-10 w-10 text-slate-400" />
               </div>
-              <h3 className="text-lg font-bold">Selecciona un contacto</h3>
-              <p className="text-sm">Elige un lead de la lista para ver su historial de WhatsApp</p>
+              <h3 className="text-lg font-bold">{t('contacts.selectLead')}</h3>
+              <p className="text-sm">{t('contacts.selectLeadDesc')}</p>
             </div>
           )}
         </div>

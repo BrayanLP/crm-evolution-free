@@ -1,0 +1,105 @@
+
+{
+  "nav": {
+    "dashboard": "Dashboard",
+    "leads": "Leads",
+    "contacts": "Contacts",
+    "settings": "Settings"
+  },
+  "dashboard": {
+    "title": "Control Panel",
+    "subtitle": "Performance summary and health of your prospects.",
+    "kpi": {
+      "totalLeads": "Total Leads",
+      "contacted": "Contacted",
+      "qualified": "Qualified",
+      "conversionRate": "Closing Rate",
+      "descTotal": "Registered prospects",
+      "descContacted": "In active conversation",
+      "descQualified": "Ready for closing",
+      "descConversion": "Final conversion"
+    },
+    "charts": {
+      "funnel": "Sales Funnel",
+      "funnelDesc": "Leads distribution by stage",
+      "activity": "Recent Activity",
+      "activityDesc": "New leads in the last 7 days",
+      "health": "Pipeline Health"
+    },
+    "recentLeads": {
+      "title": "Recent Leads",
+      "subtitle": "Latest prospects entered via WhatsApp",
+      "empty": "No leads registered yet."
+    }
+  },
+  "leads": {
+    "title": "Leads",
+    "subtitle": "Manage your real prospects from WhatsApp.",
+    "sync": "Sync Webhook",
+    "configPending": "Pending configuration",
+    "configPendingDesc": "No webhook URL configured. Go to \"Settings\" to connect your WhatsApp service.",
+    "emptyStage": "No leads in this stage",
+    "botOn": "Bot ON",
+    "botOff": "Bot OFF",
+    "botDesc": "Bot status for {name} updated."
+  },
+  "contacts": {
+    "title": "Leads Chat",
+    "search": "Search contact...",
+    "empty": "No contacts available",
+    "active": "WhatsApp Active",
+    "botIA": "AI Bot",
+    "noHistory": "Configure History Webhook in Settings",
+    "emptyHistory": "No message history",
+    "viewMode": "Viewer mode: Responses must be managed from WhatsApp",
+    "selectLead": "Select a contact",
+    "selectLeadDesc": "Choose a lead from the list to view their WhatsApp history"
+  },
+  "settings": {
+    "title": "System Settings",
+    "description": "Configure your WhatsApp webhooks or import an existing configuration.",
+    "export": "Export JSON",
+    "import": "Import JSON",
+    "instanceName": "Instance Name",
+    "webhookUrl": "Leads URL (GET)",
+    "historyUrl": "History URL (GET)",
+    "botUrl": "Bot Control URL (POST)",
+    "botDesc": "POST Request: { \"whatsapp\": \"...\", \"ESTADO_BOT\": \"1/0\" }",
+    "save": "Save and Sync",
+    "language": "Language",
+    "saved": "Settings saved",
+    "savedDesc": "Parameters updated successfully.",
+    "imported": "File imported",
+    "importedDesc": "Configuration loaded. Remember to save changes.",
+    "importError": "Import error",
+    "importErrorDesc": "Invalid file format."
+  },
+  "leadDialog": {
+    "edit": "Edit Prospect",
+    "create": "Create New Prospect",
+    "name": "Name / Opportunity",
+    "stage": "Status Stage",
+    "contact": "Contact Person",
+    "company": "Company",
+    "email": "Email",
+    "phone": "Phone",
+    "notes": "Notes and Interactions",
+    "aiSuggestions": "AI Suggestions",
+    "suggestedActions": "Suggested Actions",
+    "cancel": "Cancel",
+    "save": "Save",
+    "update": "Update Prospect",
+    "delete": "Delete",
+    "deleteConfirm": "Are you sure you want to delete this prospect?",
+    "noNotes": "No notes",
+    "noNotesDesc": "Please add some notes to get AI suggestions.",
+    "aiError": "AI Error",
+    "aiErrorDesc": "Could not generate suggestions at this time."
+  },
+  "stages": {
+    "new": "New",
+    "contacted": "Contacted",
+    "qualified": "Qualified",
+    "converted": "Converted"
+  }
+}

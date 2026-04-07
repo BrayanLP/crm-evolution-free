@@ -14,6 +14,7 @@ import type { Lead, StageId } from '@/lib/types';
 import { STAGES } from '@/lib/types';
 import { suggestLeadActions } from '@/ai/flows/suggested-lead-actions';
 import { useToast } from '@/hooks/use-toast';
+import { useTranslation } from '@/context/LanguageContext';
 
 interface LeadDialogProps {
   lead?: Lead;
@@ -25,6 +26,7 @@ interface LeadDialogProps {
 
 export function LeadDialog({ lead, isOpen, onClose, onSave, onDelete }: LeadDialogProps) {
   const { toast } = useToast();
+  const { t } = useTranslation();
   const [formData, setFormData] = useState({
     name: lead?.name || '',
     contactName: lead?.contactName || '',
@@ -67,8 +69,8 @@ export function LeadDialog({ lead, isOpen, onClose, onSave, onDelete }: LeadDial
   const handleSuggestActions = async () => {
     if (!formData.notes) {
       toast({
-        title: "Sin notas",
-        description: "Por favor, añade algunas notas para obtener sugerencias de la IA.",
+        title: t('leadDialog.noNotes'),
+        description: t('leadDialog.noNotesDesc'),
         variant: "destructive",
       });
       return;
@@ -80,8 +82,8 @@ export function LeadDialog({ lead, isOpen, onClose, onSave, onDelete }: LeadDial
       setSuggestions(result.actions);
     } catch (error) {
       toast({
-        title: "Error de IA",
-        description: "No se pudieron generar sugerencias en este momento.",
+        title: t('leadDialog.aiError'),
+        description: t('leadDialog.aiErrorDesc'),
         variant: "destructive",
       });
     } finally {
@@ -100,13 +102,13 @@ export function LeadDialog({ lead, isOpen, onClose, onSave, onDelete }: LeadDial
       <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="text-2xl font-headline text-primary">
-            {lead ? 'Editar Prospecto' : 'Crear Nuevo Prospecto'}
+            {lead ? t('leadDialog.edit') : t('leadDialog.create')}
           </DialogTitle>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4 py-4">
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="name">Nombre / Oportunidad</Label>
+              <Label htmlFor="name">{t('leadDialog.name')}</Label>
               <Input
                 id="name"
                 value={formData.name}
@@ -116,7 +118,7 @@ export function LeadDialog({ lead, isOpen, onClose, onSave, onDelete }: LeadDial
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="stage">Etapa del Estado</Label>
+              <Label htmlFor="stage">{t('leadDialog.stage')}</Label>
               <Select
                 value={formData.stage}
                 onValueChange={(val) => setFormData({ ...formData, stage: val as StageId })}
@@ -127,7 +129,7 @@ export function LeadDialog({ lead, isOpen, onClose, onSave, onDelete }: LeadDial
                 <SelectContent>
                   {STAGES.map((s) => (
                     <SelectItem key={s.id} value={s.id}>
-                      {s.title}
+                      {t(`stages.${s.id}`)}
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -137,7 +139,7 @@ export function LeadDialog({ lead, isOpen, onClose, onSave, onDelete }: LeadDial
 
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="contactName">Persona de Contacto</Label>
+              <Label htmlFor="contactName">{t('leadDialog.contact')}</Label>
               <Input
                 id="contactName"
                 value={formData.contactName}
@@ -146,7 +148,7 @@ export function LeadDialog({ lead, isOpen, onClose, onSave, onDelete }: LeadDial
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="company">Empresa</Label>
+              <Label htmlFor="company">{t('leadDialog.company')}</Label>
               <Input
                 id="company"
                 value={formData.company}
@@ -158,7 +160,7 @@ export function LeadDialog({ lead, isOpen, onClose, onSave, onDelete }: LeadDial
 
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="email">Correo Electrónico</Label>
+              <Label htmlFor="email">{t('leadDialog.email')}</Label>
               <Input
                 id="email"
                 type="email"
@@ -168,7 +170,7 @@ export function LeadDialog({ lead, isOpen, onClose, onSave, onDelete }: LeadDial
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="phone">Teléfono</Label>
+              <Label htmlFor="phone">{t('leadDialog.phone')}</Label>
               <Input
                 id="phone"
                 value={formData.phone}
@@ -180,7 +182,7 @@ export function LeadDialog({ lead, isOpen, onClose, onSave, onDelete }: LeadDial
 
           <div className="space-y-2">
             <div className="flex justify-between items-center">
-              <Label htmlFor="notes">Notas e Interacciones</Label>
+              <Label htmlFor="notes">{t('leadDialog.notes')}</Label>
               <Button
                 type="button"
                 variant="outline"
@@ -190,7 +192,7 @@ export function LeadDialog({ lead, isOpen, onClose, onSave, onDelete }: LeadDial
                 disabled={isSuggesting}
               >
                 {isSuggesting ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Sparkles className="h-3.5 w-3.5" />}
-                Sugerencias IA
+                {t('leadDialog.aiSuggestions')}
               </Button>
             </div>
             <Textarea
@@ -198,13 +200,13 @@ export function LeadDialog({ lead, isOpen, onClose, onSave, onDelete }: LeadDial
               rows={4}
               value={formData.notes}
               onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
-              placeholder="Añade detalles sobre reuniones, llamadas o requisitos específicos..."
+              placeholder="..."
             />
           </div>
 
           {suggestions.length > 0 && (
             <div className="bg-accent/5 rounded-lg p-3 border border-accent/20 space-y-2 animate-in fade-in slide-in-from-top-2">
-              <p className="text-xs font-bold text-accent uppercase tracking-wider">Acciones Sugeridas</p>
+              <p className="text-xs font-bold text-accent uppercase tracking-wider">{t('leadDialog.suggestedActions')}</p>
               <ul className="text-sm space-y-1 text-slate-700">
                 {suggestions.map((s, idx) => (
                   <li key={idx} className="flex gap-2">
@@ -224,23 +226,23 @@ export function LeadDialog({ lead, isOpen, onClose, onSave, onDelete }: LeadDial
                   variant="ghost"
                   className="text-destructive hover:text-destructive hover:bg-destructive/10"
                   onClick={() => {
-                    if (confirm('¿Estás seguro de que quieres eliminar este prospecto?')) {
+                    if (confirm(t('leadDialog.deleteConfirm'))) {
                       onDelete(lead.id);
                       onClose();
                     }
                   }}
                 >
                   <Trash2 className="h-4 w-4 mr-2" />
-                  Eliminar
+                  {t('leadDialog.delete')}
                 </Button>
               )}
             </div>
             <div className="flex gap-2">
               <Button type="button" variant="outline" onClick={onClose}>
-                Cancelar
+                {t('leadDialog.cancel')}
               </Button>
               <Button type="submit" className="bg-primary hover:bg-primary/90">
-                {lead ? 'Actualizar Prospecto' : 'Crear Prospecto'}
+                {lead ? t('leadDialog.update') : t('leadDialog.create')}
               </Button>
             </div>
           </DialogFooter>

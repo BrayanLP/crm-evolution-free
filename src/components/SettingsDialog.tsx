@@ -7,10 +7,12 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogD
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Webhook, Save, Smartphone, History, Bot, Download, Upload, FileJson } from 'lucide-react';
+import { Webhook, Save, Smartphone, History, Bot, Download, Upload, FileJson, Languages } from 'lucide-react';
 import { useLeads } from '@/lib/store';
 import { useToast } from '@/hooks/use-toast';
 import { Separator } from '@/components/ui/separator';
+import { useTranslation } from '@/context/LanguageContext';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 interface SettingsDialogProps {
   isOpen: boolean;
@@ -19,6 +21,7 @@ interface SettingsDialogProps {
 
 export function SettingsDialog({ isOpen, onClose }: SettingsDialogProps) {
   const { webhookUrl, historyWebhookUrl, botWebhookUrl, instanceName, updateSettings } = useLeads();
+  const { t, language, setLanguage } = useTranslation();
   const { toast } = useToast();
   const fileInputRef = useRef<HTMLInputElement>(null);
   
@@ -40,8 +43,8 @@ export function SettingsDialog({ isOpen, onClose }: SettingsDialogProps) {
     e?.preventDefault();
     updateSettings(url, hUrl, bUrl, inst);
     toast({
-      title: "Configuración guardada",
-      description: "Los parámetros se han actualizado correctamente.",
+      title: t('settings.saved'),
+      description: t('settings.savedDesc'),
     });
     onClose();
   };
@@ -51,7 +54,8 @@ export function SettingsDialog({ isOpen, onClose }: SettingsDialogProps) {
       webhookUrl: url,
       historyWebhookUrl: hUrl,
       botWebhookUrl: bUrl,
-      instanceName: inst
+      instanceName: inst,
+      language: language
     };
     const blob = new Blob([JSON.stringify(config, null, 2)], { type: 'application/json' });
     const href = URL.createObjectURL(blob);
@@ -76,14 +80,15 @@ export function SettingsDialog({ isOpen, onClose }: SettingsDialogProps) {
         setHUrl(json.historyWebhookUrl || '');
         setBUrl(json.botWebhookUrl || '');
         setInst(json.instanceName || 'HALCONDIGITAL');
+        if (json.language) setLanguage(json.language);
         toast({
-          title: "Archivo importado",
-          description: "La configuración se ha cargado. Recuerda guardar los cambios.",
+          title: t('settings.imported'),
+          description: t('settings.importedDesc'),
         });
       } catch (error) {
         toast({
-          title: "Error al importar",
-          description: "El archivo no tiene un formato válido.",
+          title: t('settings.importError'),
+          description: t('settings.importErrorDesc'),
           variant: "destructive",
         });
       }
@@ -98,10 +103,10 @@ export function SettingsDialog({ isOpen, onClose }: SettingsDialogProps) {
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2 text-2xl font-headline text-primary">
             <Webhook className="h-6 w-6" />
-            Ajustes del Sistema
+            {t('settings.title')}
           </DialogTitle>
           <DialogDescription>
-            Configura tus webhooks de WhatsApp o importa una configuración existente.
+            {t('settings.description')}
           </DialogDescription>
         </DialogHeader>
         
@@ -113,7 +118,7 @@ export function SettingsDialog({ isOpen, onClose }: SettingsDialogProps) {
             onClick={exportConfig}
           >
             <Download className="h-4 w-4" />
-            Exportar JSON
+            {t('settings.export')}
           </Button>
           <Button 
             variant="outline" 
@@ -122,7 +127,7 @@ export function SettingsDialog({ isOpen, onClose }: SettingsDialogProps) {
             onClick={() => fileInputRef.current?.click()}
           >
             <Upload className="h-4 w-4" />
-            Importar JSON
+            {t('settings.import')}
           </Button>
           <input 
             type="file" 
@@ -137,23 +142,41 @@ export function SettingsDialog({ isOpen, onClose }: SettingsDialogProps) {
 
         <form onSubmit={handleSave} className="space-y-6">
           <div className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="instanceName" className="text-sm font-semibold flex items-center gap-2">
-                <Smartphone className="h-4 w-4" />
-                Nombre de la Instancia
-              </Label>
-              <Input
-                id="instanceName"
-                value={inst}
-                onChange={(e) => setInst(e.target.value)}
-                placeholder="ej. HALCONDIGITAL"
-              />
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="language" className="text-sm font-semibold flex items-center gap-2">
+                  <Languages className="h-4 w-4" />
+                  {t('settings.language')}
+                </Label>
+                <Select value={language} onValueChange={(val: any) => setLanguage(val)}>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="es">Español</SelectItem>
+                    <SelectItem value="en">English</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="instanceName" className="text-sm font-semibold flex items-center gap-2">
+                  <Smartphone className="h-4 w-4" />
+                  {t('settings.instanceName')}
+                </Label>
+                <Input
+                  id="instanceName"
+                  value={inst}
+                  onChange={(e) => setInst(e.target.value)}
+                  placeholder="ej. HALCONDIGITAL"
+                />
+              </div>
             </div>
 
             <div className="space-y-2">
               <Label htmlFor="webhookUrl" className="text-sm font-semibold flex items-center gap-2">
                 <FileJson className="h-4 w-4" />
-                URL de Leads (GET)
+                {t('settings.webhookUrl')}
               </Label>
               <Input
                 id="webhookUrl"
@@ -166,7 +189,7 @@ export function SettingsDialog({ isOpen, onClose }: SettingsDialogProps) {
             <div className="space-y-2">
               <Label htmlFor="historyUrl" className="text-sm font-semibold flex items-center gap-2">
                 <History className="h-4 w-4" />
-                URL de Historial (GET)
+                {t('settings.historyUrl')}
               </Label>
               <Input
                 id="historyUrl"
@@ -179,7 +202,7 @@ export function SettingsDialog({ isOpen, onClose }: SettingsDialogProps) {
             <div className="space-y-2">
               <Label htmlFor="botUrl" className="text-sm font-semibold flex items-center gap-2">
                 <Bot className="h-4 w-4" />
-                URL Control Bot (POST)
+                {t('settings.botUrl')}
               </Label>
               <Input
                 id="botUrl"
@@ -188,18 +211,18 @@ export function SettingsDialog({ isOpen, onClose }: SettingsDialogProps) {
                 placeholder="https://..."
               />
               <p className="text-[10px] text-muted-foreground italic">
-                Petición POST: {"{ \"whatsapp\": \"...\", \"ESTADO_BOT\": \"1/0\" }"}
+                {t('settings.botDesc')}
               </p>
             </div>
           </div>
 
           <DialogFooter className="pt-2">
             <Button type="button" variant="ghost" onClick={onClose}>
-              Cerrar
+              {t('leadDialog.cancel')}
             </Button>
             <Button type="submit" className="bg-primary hover:bg-primary/90 gap-2">
               <Save className="h-4 w-4" />
-              Guardar y Sincronizar
+              {t('settings.save')}
             </Button>
           </DialogFooter>
         </form>

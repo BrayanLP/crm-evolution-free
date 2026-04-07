@@ -1,3 +1,4 @@
+
 "use client"
 
 import * as React from 'react';
@@ -5,7 +6,7 @@ import { useState } from 'react';
 import { useLeads } from '@/lib/store';
 import { STAGES, Lead, StageId } from '@/lib/types';
 import { LeadDialog } from './LeadDialog';
-import { Building2, User, Phone, RefreshCw, AlertCircle, Bot } from 'lucide-react';
+import { Building2, Phone, RefreshCw, AlertCircle, Bot } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -13,9 +14,11 @@ import { cn } from '@/lib/utils';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Switch } from '@/components/ui/switch';
 import { useToast } from '@/hooks/use-toast';
+import { useTranslation } from '@/context/LanguageContext';
 
 export function KanbanBoard() {
   const { leads, updateLead, deleteLead, moveLead, syncLeads, toggleBot, isSyncing, isLoaded, webhookUrl, botWebhookUrl } = useLeads();
+  const { t } = useTranslation();
   const { toast } = useToast();
   const [selectedLead, setSelectedLead] = useState<Lead | undefined>(undefined);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -52,8 +55,8 @@ export function KanbanBoard() {
     <div className="flex flex-col h-full space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold font-headline text-primary">Leads</h1>
-          <p className="text-muted-foreground">Gestiona tus prospectos reales desde WhatsApp.</p>
+          <h1 className="text-3xl font-bold font-headline text-primary">{t('leads.title')}</h1>
+          <p className="text-muted-foreground">{t('leads.subtitle')}</p>
         </div>
         <div className="flex gap-2">
           <Button 
@@ -63,7 +66,7 @@ export function KanbanBoard() {
             className="gap-2"
           >
             <RefreshCw className={cn("h-4 w-4", isSyncing && "animate-spin")} />
-            Sincronizar Webhook
+            {t('leads.sync')}
           </Button>
         </div>
       </div>
@@ -71,9 +74,9 @@ export function KanbanBoard() {
       {!webhookUrl && (
         <Alert variant="destructive" className="bg-amber-50 border-amber-200 text-amber-800">
           <AlertCircle className="h-4 w-4" />
-          <AlertTitle>Configuración pendiente</AlertTitle>
+          <AlertTitle>{t('leads.configPending')}</AlertTitle>
           <AlertDescription>
-            No se ha configurado una URL de webhook. Ve a "Configuración" para conectar tu servicio de WhatsApp.
+            {t('leads.configPendingDesc')}
           </AlertDescription>
         </Alert>
       )}
@@ -93,7 +96,7 @@ export function KanbanBoard() {
                   <div className="flex items-center gap-2">
                     <div className={cn("w-2 h-2 rounded-full", stage.color)} />
                     <h2 className="font-semibold text-sm uppercase tracking-wider text-slate-600">
-                      {stage.title}
+                      {t(`stages.${stage.id}`)}
                     </h2>
                     <Badge variant="secondary" className="ml-1 text-xs">
                       {stageLeads.length}
@@ -154,8 +157,8 @@ export function KanbanBoard() {
                                 checked={lead.botActive !== false} 
                                 onCheckedChange={(checked) => toggleBot(lead.phone, checked).then(() => {
                                   toast({
-                                    title: checked ? "Bot Encendido" : "Bot Apagado",
-                                    description: `Estado del bot para ${lead.contactName} actualizado.`,
+                                    title: checked ? t('leads.botOn') : t('leads.botOff'),
+                                    description: t('leads.botDesc').replace('{name}', lead.contactName),
                                     variant: "success",
                                   });
                                 })}
@@ -173,7 +176,7 @@ export function KanbanBoard() {
                   {stageLeads.length === 0 && (
                     <div className="flex flex-col items-center justify-center py-10 opacity-40">
                       <div className="w-10 h-10 rounded-full border-2 border-dashed border-slate-400 mb-2" />
-                      <p className="text-xs text-slate-500">No hay leads en esta etapa</p>
+                      <p className="text-xs text-slate-500">{t('leads.emptyStage')}</p>
                     </div>
                   )}
                 </div>

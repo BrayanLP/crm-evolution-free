@@ -8,9 +8,11 @@ import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContaine
 import { STAGES } from '@/lib/types';
 import { Users, Target, UserCheck, MessageSquare, TrendingUp } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { useTranslation } from '@/context/LanguageContext';
 
 export function Dashboard() {
   const { leads, isSyncing, isLoaded } = useLeads();
+  const { t } = useTranslation();
 
   if (!isLoaded) return (
     <div className="flex items-center justify-center h-full">
@@ -28,7 +30,7 @@ export function Dashboard() {
 
   // Data for Funnel/Bar Chart
   const stageData = STAGES.map(stage => ({
-    name: stage.title,
+    name: t(`stages.${stage.id}`),
     count: leads.filter(l => l.stage === stage.id).length,
     color: stage.id === 'new' ? '#3b82f6' : 
            stage.id === 'contacted' ? '#f59e0b' : 
@@ -50,35 +52,35 @@ export function Dashboard() {
   return (
     <div className="space-y-8 animate-in fade-in duration-500">
       <div>
-        <h1 className="text-3xl font-bold font-headline text-primary">Panel de Control</h1>
-        <p className="text-muted-foreground">Resumen de rendimiento y salud de tus prospectos.</p>
+        <h1 className="text-3xl font-bold font-headline text-primary">{t('dashboard.title')}</h1>
+        <p className="text-muted-foreground">{t('dashboard.subtitle')}</p>
       </div>
 
       {/* KPI Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         <KpiCard 
-          title="Total Leads" 
+          title={t('dashboard.kpi.totalLeads')} 
           value={totalLeads.toString()} 
           icon={<Users className="h-5 w-5 text-blue-500" />} 
-          description="Prospectos registrados"
+          description={t('dashboard.kpi.descTotal')}
         />
         <KpiCard 
-          title="Contactados" 
+          title={t('dashboard.kpi.contacted')} 
           value={contactedLeads.toString()} 
           icon={<MessageSquare className="h-5 w-5 text-amber-500" />} 
-          description="En conversación activa"
+          description={t('dashboard.kpi.descContacted')}
         />
         <KpiCard 
-          title="Cualificados" 
+          title={t('dashboard.kpi.qualified')} 
           value={qualifiedLeads.toString()} 
           icon={<Target className="h-5 w-5 text-emerald-500" />} 
-          description="Listos para cierre"
+          description={t('dashboard.kpi.descQualified')}
         />
         <KpiCard 
-          title="Tasa de Cierre" 
+          title={t('dashboard.kpi.conversionRate')} 
           value={`${conversionRate}%`} 
           icon={<UserCheck className="h-5 w-5 text-indigo-500" />} 
-          description="Conversión final"
+          description={t('dashboard.kpi.descConversion')}
         />
       </div>
 
@@ -87,8 +89,8 @@ export function Dashboard() {
         {/* Funnel Chart */}
         <Card className="shadow-sm border-slate-200">
           <CardHeader>
-            <CardTitle className="text-lg">Embudo de Ventas</CardTitle>
-            <CardDescription>Distribución de leads por etapa</CardDescription>
+            <CardTitle className="text-lg">{t('dashboard.charts.funnel')}</CardTitle>
+            <CardDescription>{t('dashboard.charts.funnelDesc')}</CardDescription>
           </CardHeader>
           <CardContent className="h-[300px]">
             <ResponsiveContainer width="100%" height="100%">
@@ -121,8 +123,8 @@ export function Dashboard() {
           <CardHeader>
             <div className="flex items-center justify-between">
               <div>
-                <CardTitle className="text-lg">Actividad Reciente</CardTitle>
-                <CardDescription>Nuevos leads en los últimos 7 días</CardDescription>
+                <CardTitle className="text-lg">{t('dashboard.charts.activity')}</CardTitle>
+                <CardDescription>{t('dashboard.charts.activityDesc')}</CardDescription>
               </div>
               <div className="bg-primary/10 p-2 rounded-full">
                 <TrendingUp className="h-5 w-5 text-primary" />
@@ -171,7 +173,7 @@ export function Dashboard() {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         <Card className="lg:col-span-1 shadow-sm border-slate-200">
           <CardHeader>
-            <CardTitle className="text-lg">Salud del Pipeline</CardTitle>
+            <CardTitle className="text-lg">{t('dashboard.charts.health')}</CardTitle>
           </CardHeader>
           <CardContent className="h-[250px] flex items-center justify-center">
              <ResponsiveContainer width="100%" height="100%">
@@ -206,8 +208,8 @@ export function Dashboard() {
         {/* Recent Activity Table Preview */}
         <Card className="lg:col-span-2 shadow-sm border-slate-200">
           <CardHeader>
-            <CardTitle className="text-lg">Leads Recientes</CardTitle>
-            <CardDescription>Últimos prospectos ingresados vía WhatsApp</CardDescription>
+            <CardTitle className="text-lg">{t('dashboard.recentLeads.title')}</CardTitle>
+            <CardDescription>{t('dashboard.recentLeads.subtitle')}</CardDescription>
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
@@ -230,7 +232,7 @@ export function Dashboard() {
                       lead.stage === 'qualified' ? "bg-emerald-100 text-emerald-700" :
                       "bg-indigo-100 text-indigo-700"
                     )}>
-                      {lead.stage}
+                      {t(`stages.${lead.stage}`)}
                     </div>
                     <span className="text-[10px] text-slate-400">
                       {new Date(lead.createdAt).toLocaleDateString()}
@@ -240,7 +242,7 @@ export function Dashboard() {
               ))}
               {leads.length === 0 && (
                 <div className="py-10 text-center text-muted-foreground">
-                  No hay leads registrados aún.
+                  {t('dashboard.recentLeads.empty')}
                 </div>
               )}
             </div>
