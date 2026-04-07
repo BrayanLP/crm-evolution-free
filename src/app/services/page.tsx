@@ -34,9 +34,9 @@ export default function ServicesPage() {
   useEffect(() => {
     if (selectedService) {
       setFormData({
-        nombre: selectedService.nombre,
-        descripcion: selectedService.descripcion,
-        precio: selectedService.precio
+        nombre: selectedService.nombre || '',
+        descripcion: selectedService.descripcion || '',
+        precio: selectedService.precio || 0
       });
     } else {
       setFormData({ nombre: '', descripcion: '', precio: 0 });
@@ -129,12 +129,12 @@ export default function ServicesPage() {
                   <TableBody>
                     {services.map((service) => (
                       <TableRow key={service.id}>
-                        <TableCell className="font-medium">{service.nombre}</TableCell>
+                        <TableCell className="font-medium">{service.nombre || 'Sin nombre'}</TableCell>
                         <TableCell className="hidden md:table-cell text-muted-foreground line-clamp-1 max-w-xs">
-                          {service.descripcion}
+                          {service.descripcion || '-'}
                         </TableCell>
                         <TableCell className="text-right font-semibold">
-                          ${service.precio.toLocaleString()}
+                          ${(service.precio || 0).toLocaleString()}
                         </TableCell>
                         <TableCell className="text-right">
                           <div className="flex justify-end gap-2">
@@ -187,7 +187,7 @@ export default function ServicesPage() {
                   type="number"
                   className="pl-9"
                   value={formData.precio}
-                  onChange={(e) => setFormData({ ...formData, precio: parseFloat(e.target.value) })}
+                  onChange={(e) => setFormData({ ...formData, precio: parseFloat(e.target.value) || 0 })}
                   required
                 />
               </div>
