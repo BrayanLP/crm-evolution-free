@@ -3,7 +3,7 @@
 
 import { useState, useEffect } from 'react';
 import { useLeads } from '@/lib/store';
-import { LayoutGrid, Users, Settings, PieChart, Search, Briefcase, Plus, RefreshCw, Pencil, Trash2, DollarSign } from 'lucide-react';
+import { LayoutGrid, Users, Settings, PieChart, Search, Briefcase, Plus, RefreshCw, Pencil, Trash2, DollarSign, Users2, BookOpen } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Toaster } from '@/components/ui/toaster';
@@ -26,27 +26,31 @@ export default function ServicesPage() {
   const [selectedService, setSelectedService] = useState<Service | null>(null);
   
   const [formData, setFormData] = useState({
-    nombre: '',
-    descripcion: '',
-    precio: 0
+    NOMBRE: '',
+    DESCRIPCION: '',
+    PRECIO: '',
+    CANTIDAD_PERSONAS: 0,
+    CANTIDAD_CLASES: 0
   });
 
   useEffect(() => {
     if (selectedService) {
       setFormData({
-        nombre: selectedService.nombre || '',
-        descripcion: selectedService.descripcion || '',
-        precio: selectedService.precio || 0
+        NOMBRE: selectedService.NOMBRE || '',
+        DESCRIPCION: selectedService.DESCRIPCION || '',
+        PRECIO: selectedService.PRECIO?.toString() || '',
+        CANTIDAD_PERSONAS: selectedService.CANTIDAD_PERSONAS || 0,
+        CANTIDAD_CLASES: selectedService.CANTIDAD_CLASES || 0
       });
     } else {
-      setFormData({ nombre: '', descripcion: '', precio: 0 });
+      setFormData({ NOMBRE: '', DESCRIPCION: '', PRECIO: '', CANTIDAD_PERSONAS: 0, CANTIDAD_CLASES: 0 });
     }
   }, [selectedService]);
 
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
     if (selectedService) {
-      await updateService(selectedService.id, formData);
+      await updateService(selectedService.id.toString(), formData);
     } else {
       await createService(formData);
     }
@@ -54,9 +58,9 @@ export default function ServicesPage() {
     setSelectedService(null);
   };
 
-  const handleDelete = async (id: string) => {
+  const handleDelete = async (id: string | number) => {
     if (confirm(t('services.deleteConfirm'))) {
-      await deleteService(id);
+      await deleteService(id.toString());
     }
   };
 
@@ -129,12 +133,30 @@ export default function ServicesPage() {
                   <TableBody>
                     {services.map((service) => (
                       <TableRow key={service.id}>
-                        <TableCell className="font-medium">{service.nombre || 'Sin nombre'}</TableCell>
-                        <TableCell className="hidden md:table-cell text-muted-foreground line-clamp-1 max-w-xs">
-                          {service.descripcion || '-'}
+                        <TableCell className="font-medium">
+                          <div className="flex flex-col">
+                            <span>{service.NOMBRE || 'Sin nombre'}</span>
+                            <div className="flex gap-2 mt-1">
+                              {service.CANTIDAD_PERSONAS && (
+                                <span className="text-[10px] bg-slate-100 px-1.5 py-0.5 rounded flex items-center gap-1">
+                                  <Users2 className="h-2.5 w-2.5" />
+                                  {service.CANTIDAD_PERSONAS} pers.
+                                </span>
+                              )}
+                              {service.CANTIDAD_CLASES && (
+                                <span className="text-[10px] bg-slate-100 px-1.5 py-0.5 rounded flex items-center gap-1">
+                                  <BookOpen className="h-2.5 w-2.5" />
+                                  {service.CANTIDAD_CLASES} clases
+                                </span>
+                              )}
+                            </div>
+                          </div>
                         </TableCell>
-                        <TableCell className="text-right font-semibold">
-                          ${(service.precio || 0).toLocaleString()}
+                        <TableCell className="hidden md:table-cell text-muted-foreground max-w-xs">
+                          <p className="line-clamp-2 text-xs">{service.DESCRIPCION || '-'}</p>
+                        </TableCell>
+                        <TableCell className="text-right font-semibold text-primary">
+                          {service.PRECIO || '-'}
                         </TableCell>
                         <TableCell className="text-right">
                           <div className="flex justify-end gap-2">
@@ -170,35 +192,55 @@ export default function ServicesPage() {
           </DialogHeader>
           <form onSubmit={handleSave} className="space-y-4 py-4">
             <div className="space-y-2">
-              <Label htmlFor="nombre">{t('services.name')}</Label>
+              <Label htmlFor="NOMBRE">{t('services.name')}</Label>
               <Input
-                id="nombre"
-                value={formData.nombre}
-                onChange={(e) => setFormData({ ...formData, nombre: e.target.value })}
+                id="NOMBRE"
+                value={formData.NOMBRE}
+                onChange={(e) => setFormData({ ...formData, NOMBRE: e.target.value })}
                 required
               />
             </div>
-            <div className="space-y-2">
-              <Label htmlFor="precio">{t('services.price')}</Label>
-              <div className="relative">
-                <DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="PRECIO">{t('services.price')}</Label>
+                <div className="relative">
+                  <DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    id="PRECIO"
+                    className="pl-9"
+                    value={formData.PRECIO}
+                    onChange={(e) => setFormData({ ...formData, PRECIO: e.target.value })}
+                    placeholder="ej. S/350"
+                    required
+                  />
+                </div>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="CANTIDAD_PERSONAS">Cant. Personas</Label>
                 <Input
-                  id="precio"
+                  id="CANTIDAD_PERSONAS"
                   type="number"
-                  className="pl-9"
-                  value={formData.precio}
-                  onChange={(e) => setFormData({ ...formData, precio: parseFloat(e.target.value) || 0 })}
-                  required
+                  value={formData.CANTIDAD_PERSONAS}
+                  onChange={(e) => setFormData({ ...formData, CANTIDAD_PERSONAS: parseInt(e.target.value) || 0 })}
                 />
               </div>
             </div>
             <div className="space-y-2">
-              <Label htmlFor="descripcion">{t('services.description')}</Label>
+              <Label htmlFor="CANTIDAD_CLASES">Cant. Clases</Label>
+              <Input
+                id="CANTIDAD_CLASES"
+                type="number"
+                value={formData.CANTIDAD_CLASES}
+                onChange={(e) => setFormData({ ...formData, CANTIDAD_CLASES: parseInt(e.target.value) || 0 })}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="DESCRIPCION">{t('services.description')}</Label>
               <Textarea
-                id="descripcion"
+                id="DESCRIPCION"
                 rows={4}
-                value={formData.descripcion}
-                onChange={(e) => setFormData({ ...formData, descripcion: e.target.value })}
+                value={formData.DESCRIPCION}
+                onChange={(e) => setFormData({ ...formData, DESCRIPCION: e.target.value })}
               />
             </div>
             <DialogFooter className="pt-4">

@@ -31,12 +31,16 @@ export interface Stage {
 }
 
 export interface Service {
-  id: string;
-  nombre: string;
-  descripcion: string;
-  precio: number;
-  duracion?: string;
+  id: string | number;
+  NOMBRE: string;
+  DESCRIPCION: string;
+  PRECIO: string | number;
+  CANTIDAD_PERSONAS?: number;
+  CANTIDAD_CLASES?: number;
+  FOTOS?: string;
+  VIDEO?: string;
   createdAt?: string;
+  updatedAt?: string;
 }
 
 export const STAGES: Stage[] = [
