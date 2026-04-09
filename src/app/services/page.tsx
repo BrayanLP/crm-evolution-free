@@ -3,7 +3,7 @@
 
 import { useState, useEffect } from 'react';
 import { useLeads } from '@/lib/store';
-import { LayoutGrid, Users, Settings, PieChart, Search, Briefcase, Plus, RefreshCw, Pencil, Trash2, DollarSign, Users2, BookOpen } from 'lucide-react';
+import { LayoutGrid, Users, Settings, PieChart, Search, Briefcase, Plus, RefreshCw, Pencil, Trash2, DollarSign, Users2, BookOpen, AlertTriangle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Toaster } from '@/components/ui/toaster';
@@ -16,14 +16,18 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import type { Service } from '@/lib/types';
 
 export default function ServicesPage() {
   const { services, isSyncingServices, syncServices, createService, updateService, deleteService, isLoaded } = useLeads();
   const { t } = useTranslation();
   const pathname = usePathname();
+  
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [selectedService, setSelectedService] = useState<Service | null>(null);
+  const [serviceToDelete, setServiceToDelete] = useState<string | null>(null);
   
   const [formData, setFormData] = useState({
     NOMBRE: '',
@@ -58,9 +62,16 @@ export default function ServicesPage() {
     setSelectedService(null);
   };
 
-  const handleDelete = async (id: string | number) => {
-    if (confirm(t('services.deleteConfirm'))) {
-      await deleteService(id.toString());
+  const confirmDelete = (id: string | number) => {
+    setServiceToDelete(id.toString());
+    setIsDeleteDialogOpen(true);
+  };
+
+  const executeDelete = async () => {
+    if (serviceToDelete) {
+      await deleteService(serviceToDelete);
+      setIsDeleteDialogOpen(false);
+      setServiceToDelete(null);
     }
   };
 
@@ -163,7 +174,7 @@ export default function ServicesPage() {
                             <Button variant="ghost" size="icon" onClick={() => { setSelectedService(service); setIsDialogOpen(true); }}>
                               <Pencil className="h-4 w-4 text-primary" />
                             </Button>
-                            <Button variant="ghost" size="icon" onClick={() => handleDelete(service.id)}>
+                            <Button variant="ghost" size="icon" onClick={() => confirmDelete(service.id)}>
                               <Trash2 className="h-4 w-4 text-destructive" />
                             </Button>
                           </div>
@@ -185,6 +196,7 @@ export default function ServicesPage() {
         </div>
       </main>
 
+      {/* Diálogo de Creación/Edición */}
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
         <DialogContent className="sm:max-w-[425px]">
           <DialogHeader>
@@ -252,6 +264,30 @@ export default function ServicesPage() {
           </form>
         </DialogContent>
       </Dialog>
+
+      {/* Diálogo de Confirmación de Eliminación */}
+      <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <div className="flex items-center gap-3 mb-2">
+              <div className="p-2 bg-destructive/10 rounded-full">
+                <AlertTriangle className="h-6 w-6 text-destructive" />
+              </div>
+              <AlertDialogTitle>{t('services.deleteConfirm')}</AlertDialogTitle>
+            </div>
+            <AlertDialogDescription>
+              {t('services.deleteConfirm')}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>{t('leadDialog.cancel')}</AlertDialogCancel>
+            <AlertDialogAction onClick={executeDelete} className="bg-destructive hover:bg-destructive/90">
+              {t('services.delete')}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
       <Toaster />
     </div>
   );
