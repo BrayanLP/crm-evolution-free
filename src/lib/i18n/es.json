@@ -5,6 +5,7 @@
     "leads": "Leads",
     "contacts": "Contactos",
     "services": "Servicios",
+    "info": "Información",
     "settings": "Configuración"
   },
   "dashboard": {
@@ -71,6 +72,19 @@
     "save": "Guardar",
     "deleteConfirm": "¿Estás seguro de que quieres eliminar este servicio?"
   },
+  "info": {
+    "title": "Información General",
+    "subtitle": "Administra la información de la empresa para la IA.",
+    "add": "Añadir Información",
+    "sync": "Sincronizar",
+    "empty": "No hay información registrada",
+    "text": "Información",
+    "actions": "Acciones",
+    "edit": "Editar Información",
+    "delete": "Eliminar",
+    "save": "Guardar",
+    "deleteConfirm": "¿Estás seguro de que quieres eliminar esta información?"
+  },
   "settings": {
     "title": "Ajustes del Sistema",
     "description": "Configura tus webhooks de WhatsApp o importa una configuración existente.",
@@ -84,6 +98,10 @@
     "servicesCreateUrl": "URL Crear Servicios (POST)",
     "servicesEditUrl": "URL Editar Servicios (POST)",
     "servicesDeleteUrl": "URL Eliminar Servicios (POST)",
+    "infoUrl": "URL Ver Información (GET)",
+    "infoCreateUrl": "URL Crear Información (POST)",
+    "infoEditUrl": "URL Editar Información (POST)",
+    "infoDeleteUrl": "URL Eliminar Información (POST)",
     "botDesc": "Petición POST: { \"whatsapp\": \"...\", \"ESTADO_BOT\": \"1/0\" }",
     "save": "Guardar y Sincronizar",
     "language": "Idioma",

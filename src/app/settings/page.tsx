@@ -8,7 +8,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { 
   Webhook, Save, Smartphone, History, Bot, Download, Upload, 
-  FileJson, Languages, Briefcase, LayoutGrid, Users, Settings as SettingsIcon, PieChart 
+  FileJson, Languages, Briefcase, LayoutGrid, Users, Settings as SettingsIcon, PieChart, Info
 } from 'lucide-react';
 import { useLeads } from '@/lib/store';
 import { useToast } from '@/hooks/use-toast';
@@ -26,6 +26,7 @@ export default function SettingsPage() {
   const { 
     webhookUrl, historyWebhookUrl, botWebhookUrl, instanceName, 
     servicesUrl, servicesCreateUrl, servicesEditUrl, servicesDeleteUrl,
+    infoUrl, infoCreateUrl, infoEditUrl, infoDeleteUrl,
     updateSettings 
   } = useLeads();
   const { t, language, setLanguage } = useTranslation();
@@ -41,7 +42,11 @@ export default function SettingsPage() {
     servicesUrl: '',
     servicesCreateUrl: '',
     servicesEditUrl: '',
-    servicesDeleteUrl: ''
+    servicesDeleteUrl: '',
+    infoUrl: '',
+    infoCreateUrl: '',
+    infoEditUrl: '',
+    infoDeleteUrl: ''
   });
 
   useEffect(() => {
@@ -53,9 +58,17 @@ export default function SettingsPage() {
       servicesUrl: servicesUrl || '',
       servicesCreateUrl: servicesCreateUrl || '',
       servicesEditUrl: servicesEditUrl || '',
-      servicesDeleteUrl: servicesDeleteUrl || ''
+      servicesDeleteUrl: servicesDeleteUrl || '',
+      infoUrl: infoUrl || '',
+      infoCreateUrl: infoCreateUrl || '',
+      infoEditUrl: infoEditUrl || '',
+      infoDeleteUrl: infoDeleteUrl || ''
     });
-  }, [webhookUrl, historyWebhookUrl, botWebhookUrl, instanceName, servicesUrl, servicesCreateUrl, servicesEditUrl, servicesDeleteUrl]);
+  }, [
+    webhookUrl, historyWebhookUrl, botWebhookUrl, instanceName, 
+    servicesUrl, servicesCreateUrl, servicesEditUrl, servicesDeleteUrl,
+    infoUrl, infoCreateUrl, infoEditUrl, infoDeleteUrl
+  ]);
 
   const handleSave = (e?: React.FormEvent) => {
     e?.preventDefault();
@@ -95,7 +108,11 @@ export default function SettingsPage() {
           servicesUrl: json.servicesUrl || '',
           servicesCreateUrl: json.servicesCreateUrl || '',
           servicesEditUrl: json.servicesEditUrl || '',
-          servicesDeleteUrl: json.servicesDeleteUrl || ''
+          servicesDeleteUrl: json.servicesDeleteUrl || '',
+          infoUrl: json.infoUrl || '',
+          infoCreateUrl: json.infoCreateUrl || '',
+          infoEditUrl: json.infoEditUrl || '',
+          infoDeleteUrl: json.infoDeleteUrl || ''
         });
         if (json.language) setLanguage(json.language);
         toast({
@@ -130,6 +147,7 @@ export default function SettingsPage() {
             <NavItem icon={<LayoutGrid className="h-5 w-5" />} label={t('nav.leads')} href="/leads" active={pathname === "/leads"} />
             <NavItem icon={<Users className="h-5 w-5" />} label={t('nav.contacts')} href="/contacts" active={pathname === "/contacts"} />
             <NavItem icon={<Briefcase className="h-5 w-5" />} label={t('nav.services')} href="/services" active={pathname === "/services"} />
+            <NavItem icon={<Info className="h-5 w-5" />} label={t('nav.info')} href="/info" active={pathname === "/info"} />
           </nav>
         </div>
         <div className="mt-auto p-6 border-t">
@@ -248,6 +266,51 @@ export default function SettingsPage() {
                         value={formData.servicesDeleteUrl}
                         onChange={(e) => setFormData({ ...formData, servicesDeleteUrl: e.target.value })}
                         placeholder="https://.../eliminar/servicios"
+                      />
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card className="shadow-sm border-slate-200">
+                <CardHeader>
+                  <CardTitle className="text-lg flex items-center gap-2">
+                    <Info className="h-5 w-5 text-primary" />
+                    Webhooks de Información
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label className="text-xs font-medium">{t('settings.infoUrl')}</Label>
+                      <Input
+                        value={formData.infoUrl}
+                        onChange={(e) => setFormData({ ...formData, infoUrl: e.target.value })}
+                        placeholder="https://.../ver/info"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label className="text-xs font-medium">{t('settings.infoCreateUrl')}</Label>
+                      <Input
+                        value={formData.infoCreateUrl}
+                        onChange={(e) => setFormData({ ...formData, infoCreateUrl: e.target.value })}
+                        placeholder="https://.../crear/info"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label className="text-xs font-medium">{t('settings.infoEditUrl')}</Label>
+                      <Input
+                        value={formData.infoEditUrl}
+                        onChange={(e) => setFormData({ ...formData, infoEditUrl: e.target.value })}
+                        placeholder="https://.../editar/info"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label className="text-xs font-medium">{t('settings.infoDeleteUrl')}</Label>
+                      <Input
+                        value={formData.infoDeleteUrl}
+                        onChange={(e) => setFormData({ ...formData, infoDeleteUrl: e.target.value })}
+                        placeholder="https://.../eliminar/info"
                       />
                     </div>
                   </div>

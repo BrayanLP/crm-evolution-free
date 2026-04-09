@@ -2,13 +2,14 @@
 "use client"
 
 import { useState, useEffect, useCallback, useRef } from 'react';
-import type { Lead, StageId, ChatMessage, Service } from './types';
+import type { Lead, StageId, ChatMessage, Service, Info } from './types';
 
 const SETTINGS_KEY = 'leadflow_settings';
 
 export function useLeads() {
   const [leads, setLeads] = useState<Lead[]>([]);
   const [services, setServices] = useState<Service[]>([]);
+  const [info, setInfo] = useState<Info[]>([]);
   
   // Settings
   const [webhookUrl, setWebhookUrl] = useState<string>('');
@@ -22,9 +23,16 @@ export function useLeads() {
   const [servicesCreateUrl, setServicesCreateUrl] = useState<string>('');
   const [servicesDeleteUrl, setServicesDeleteUrl] = useState<string>('');
 
+  // Info Webhooks
+  const [infoUrl, setInfoUrl] = useState<string>('');
+  const [infoEditUrl, setInfoEditUrl] = useState<string>('');
+  const [infoCreateUrl, setInfoCreateUrl] = useState<string>('');
+  const [infoDeleteUrl, setInfoDeleteUrl] = useState<string>('');
+
   const [isLoaded, setIsLoaded] = useState(false);
   const [isSyncing, setIsSyncing] = useState(false);
   const [isSyncingServices, setIsSyncingServices] = useState(false);
+  const [isSyncingInfo, setIsSyncingInfo] = useState(false);
   
   const initialSyncDone = useRef(false);
 
@@ -65,7 +73,23 @@ export function useLeads() {
     }
   }, []);
 
-  const initialSync = useCallback(async (url: string, sUrl?: string) => {
+  const syncInfo = useCallback(async (url: string) => {
+    if (!url) return;
+    setIsSyncingInfo(true);
+    try {
+      const response = await fetch(url, { method: 'GET' });
+      if (response.ok) {
+        const data = await response.json();
+        setInfo(Array.isArray(data) ? data : []);
+      }
+    } catch (err) {
+      console.error('Error sincronizando información:', err);
+    } finally {
+      setIsSyncingInfo(false);
+    }
+  }, []);
+
+  const initialSync = useCallback(async (url: string, sUrl?: string, iUrl?: string) => {
     if (initialSyncDone.current) return;
     
     if (url) {
@@ -87,19 +111,25 @@ export function useLeads() {
       await syncServices(sUrl);
     }
 
+    if (iUrl) {
+      await syncInfo(iUrl);
+    }
+
     initialSyncDone.current = true;
-  }, [processIncomingData, syncServices]);
+  }, [processIncomingData, syncServices, syncInfo]);
 
   useEffect(() => {
     const savedSettings = localStorage.getItem(SETTINGS_KEY);
     let currentLeadsUrl = '';
     let currentServicesUrl = '';
+    let currentInfoUrl = '';
     
     if (savedSettings) {
       try {
         const settings = JSON.parse(savedSettings);
         currentLeadsUrl = settings.webhookUrl || '';
         currentServicesUrl = settings.servicesUrl || '';
+        currentInfoUrl = settings.infoUrl || '';
         
         setWebhookUrl(currentLeadsUrl);
         setHistoryWebhookUrl(settings.historyWebhookUrl || '');
@@ -110,6 +140,11 @@ export function useLeads() {
         setServicesEditUrl(settings.servicesEditUrl || '');
         setServicesCreateUrl(settings.servicesCreateUrl || '');
         setServicesDeleteUrl(settings.servicesDeleteUrl || '');
+
+        setInfoUrl(currentInfoUrl);
+        setInfoEditUrl(settings.infoEditUrl || '');
+        setInfoCreateUrl(settings.infoCreateUrl || '');
+        setInfoDeleteUrl(settings.infoDeleteUrl || '');
       } catch (e) {
         console.error("Error al cargar settings");
       }
@@ -117,8 +152,8 @@ export function useLeads() {
     
     setIsLoaded(true);
 
-    if (currentLeadsUrl || currentServicesUrl) {
-      initialSync(currentLeadsUrl, currentServicesUrl);
+    if (currentLeadsUrl || currentServicesUrl || currentInfoUrl) {
+      initialSync(currentLeadsUrl, currentServicesUrl, currentInfoUrl);
     }
   }, [initialSync]);
 
@@ -228,6 +263,54 @@ export function useLeads() {
     }
   }, [servicesDeleteUrl, servicesUrl, syncServices]);
 
+  const createInfo = useCallback(async (infoData: Omit<Info, 'id'>) => {
+    if (!infoCreateUrl) return;
+    try {
+      const response = await fetch(infoCreateUrl, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(infoData)
+      });
+      if (response.ok) {
+        syncInfo(infoUrl);
+      }
+    } catch (err) {
+      console.error('Error creando información:', err);
+    }
+  }, [infoCreateUrl, infoUrl, syncInfo]);
+
+  const updateInfo = useCallback(async (id: string, infoData: Partial<Info>) => {
+    if (!infoEditUrl) return;
+    try {
+      const response = await fetch(infoEditUrl, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id, ...infoData })
+      });
+      if (response.ok) {
+        syncInfo(infoUrl);
+      }
+    } catch (err) {
+      console.error('Error editando información:', err);
+    }
+  }, [infoEditUrl, infoUrl, syncInfo]);
+
+  const deleteInfo = useCallback(async (id: string) => {
+    if (!infoDeleteUrl) return;
+    try {
+      const response = await fetch(infoDeleteUrl, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id })
+      });
+      if (response.ok) {
+        syncInfo(infoUrl);
+      }
+    } catch (err) {
+      console.error('Error eliminando información:', err);
+    }
+  }, [infoDeleteUrl, infoUrl, syncInfo]);
+
   const updateLead = useCallback((id: string, data: Partial<Lead>) => {
     setLeads(prev => prev.map(l => l.id === id ? { ...l, ...data, updatedAt: new Date().toISOString() } : l));
   }, []);
@@ -251,15 +334,21 @@ export function useLeads() {
     setServicesCreateUrl(newSettings.servicesCreateUrl || '');
     setServicesDeleteUrl(newSettings.servicesDeleteUrl || '');
 
+    setInfoUrl(newSettings.infoUrl || '');
+    setInfoEditUrl(newSettings.infoEditUrl || '');
+    setInfoCreateUrl(newSettings.infoCreateUrl || '');
+    setInfoDeleteUrl(newSettings.infoDeleteUrl || '');
+
     localStorage.setItem(SETTINGS_KEY, JSON.stringify(newSettings));
     
     initialSyncDone.current = false;
-    initialSync(newSettings.webhookUrl, newSettings.servicesUrl);
+    initialSync(newSettings.webhookUrl, newSettings.servicesUrl, newSettings.infoUrl);
   }, [initialSync]);
 
   return { 
     leads, 
     services,
+    info,
     webhookUrl, 
     historyWebhookUrl,
     botWebhookUrl,
@@ -268,10 +357,16 @@ export function useLeads() {
     servicesEditUrl,
     servicesCreateUrl,
     servicesDeleteUrl,
+    infoUrl,
+    infoEditUrl,
+    infoCreateUrl,
+    infoDeleteUrl,
     isSyncing,
     isSyncingServices,
+    isSyncingInfo,
     syncLeads,
     syncServices: () => syncServices(servicesUrl),
+    syncInfo: () => syncInfo(infoUrl),
     getHistory,
     toggleBot,
     updateLead,
@@ -280,6 +375,9 @@ export function useLeads() {
     createService,
     updateService,
     deleteService,
+    createInfo,
+    updateInfo,
+    deleteInfo,
     updateSettings, 
     isLoaded,
     processIncomingWebhook: processIncomingData

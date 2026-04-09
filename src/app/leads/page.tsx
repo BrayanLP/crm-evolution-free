@@ -2,7 +2,7 @@
 "use client"
 
 import { KanbanBoard } from '@/components/KanbanBoard';
-import { LayoutGrid, Users, Settings, PieChart, Search, Briefcase } from 'lucide-react';
+import { LayoutGrid, Users, Settings, PieChart, Search, Briefcase, Info } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Toaster } from '@/components/ui/toaster';
@@ -31,6 +31,7 @@ export default function LeadsPage() {
             <NavItem icon={<LayoutGrid className="h-5 w-5" />} label={t('nav.leads')} href="/leads" active={pathname === "/leads"} />
             <NavItem icon={<Users className="h-5 w-5" />} label={t('nav.contacts')} href="/contacts" active={pathname === "/contacts"} />
             <NavItem icon={<Briefcase className="h-5 w-5" />} label={t('nav.services')} href="/services" active={pathname === "/services"} />
+            <NavItem icon={<Info className="h-5 w-5" />} label={t('nav.info')} href="/info" active={pathname === "/info"} />
           </nav>
         </div>
 

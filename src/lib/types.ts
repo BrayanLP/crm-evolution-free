@@ -43,6 +43,13 @@ export interface Service {
   updatedAt?: string;
 }
 
+export interface Info {
+  id: string | number;
+  Informacion: string;
+  createdAt?: string;
+  updatedAt?: string;
+}
+
 export const STAGES: Stage[] = [
   { id: 'new', title: 'Nuevo', color: 'bg-blue-500' },
   { id: 'contacted', title: 'Contactado', color: 'bg-amber-500' },
