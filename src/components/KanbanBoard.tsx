@@ -84,7 +84,10 @@ export function KanbanBoard() {
       <div className="flex-1 overflow-x-auto pb-4">
         <div className="flex h-full gap-4 min-w-max">
           {STAGES.map((stage) => {
-            const stageLeads = leads.filter((l) => l.stage === stage.id);
+            const stageLeads = leads
+              .filter((l) => l.stage === stage.id)
+              .sort((a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime());
+
             return (
               <div
                 key={stage.id}
