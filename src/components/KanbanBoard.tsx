@@ -6,7 +6,7 @@ import { useState } from 'react';
 import { useLeads } from '@/lib/store';
 import { STAGES, Lead, StageId } from '@/lib/types';
 import { LeadDialog } from './LeadDialog';
-import { Building2, Phone, RefreshCw, AlertCircle, Bot } from 'lucide-react';
+import { Phone, RefreshCw, AlertCircle, Bot } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -131,10 +131,6 @@ export function KanbanBoard() {
                         </div>
                         
                         <div className="space-y-1.5">
-                          <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                            <Building2 className="h-3 w-3" />
-                            <span className="truncate">{lead.company}</span>
-                          </div>
                           {lead.phone && (
                             <div className="flex items-center gap-2 text-xs text-muted-foreground">
                               <Phone className="h-3 w-3" />
@@ -142,12 +138,6 @@ export function KanbanBoard() {
                             </div>
                           )}
                         </div>
-
-                        {lead.notes && (
-                          <p className="text-[11px] text-muted-foreground line-clamp-2 italic bg-slate-50 p-1.5 rounded-md border border-slate-100">
-                            "{lead.notes}"
-                          </p>
-                        )}
 
                         <div className="flex items-center justify-between pt-2 border-t border-slate-50 mt-1">
                           {botWebhookUrl && (
