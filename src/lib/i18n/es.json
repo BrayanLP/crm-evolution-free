@@ -47,7 +47,12 @@
     "filterBot": "Filtrar por Bot",
     "botAll": "Todos los Bots",
     "botActive": "Bot Activo",
-    "botInactive": "Bot Apagado"
+    "botInactive": "Bot Apagado",
+    "filterDate": "Filtrar por Fecha",
+    "dateAll": "Todas las fechas",
+    "dateToday": "Hoy",
+    "dateWeek": "Últimos 7 días",
+    "dateMonth": "Últimos 30 días"
   },
   "contacts": {
     "title": "Chat de Leads",

@@ -47,7 +47,12 @@
     "filterBot": "Filter by Bot",
     "botAll": "All Bots",
     "botActive": "Bot Active",
-    "botInactive": "Bot Inactive"
+    "botInactive": "Bot Inactive",
+    "filterDate": "Filter by Date",
+    "dateAll": "All Dates",
+    "dateToday": "Today",
+    "dateWeek": "Last 7 days",
+    "dateMonth": "Last 30 days"
   },
   "contacts": {
     "title": "Leads Chat",

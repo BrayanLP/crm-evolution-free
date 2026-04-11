@@ -3,7 +3,7 @@
 
 import { useState, useEffect, useRef, useMemo } from 'react';
 import { useLeads } from '@/lib/store';
-import { LayoutGrid, Users, Settings, PieChart, Search, MessageSquare, User, History as HistoryIcon, Bot, Briefcase, Info, Filter } from 'lucide-react';
+import { LayoutGrid, Users, Settings, PieChart, Search, MessageSquare, User, History as HistoryIcon, Bot, Briefcase, Info, Filter, Calendar } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Toaster } from '@/components/ui/toaster';
@@ -30,6 +30,7 @@ export default function ContactsPage() {
   const [isBotActive, setIsBotActive] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [botFilter, setBotFilter] = useState<'all' | 'active' | 'inactive'>('all');
+  const [dateFilter, setDateFilter] = useState<'all' | 'today' | 'week' | 'month'>('all');
   
   const pathname = usePathname();
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -49,10 +50,27 @@ export default function ContactsPage() {
           (botFilter === 'active' && lead.botActive !== false) || 
           (botFilter === 'inactive' && lead.botActive === false);
 
-        return matchesSearch && matchesBot;
+        let matchesDate = true;
+        if (dateFilter !== 'all') {
+          const leadDate = new Date(lead.updatedAt);
+          const now = new Date();
+          if (dateFilter === 'today') {
+            matchesDate = leadDate.toDateString() === now.toDateString();
+          } else if (dateFilter === 'week') {
+            const sevenDaysAgo = new Date();
+            sevenDaysAgo.setDate(now.getDate() - 7);
+            matchesDate = leadDate >= sevenDaysAgo;
+          } else if (dateFilter === 'month') {
+            const thirtyDaysAgo = new Date();
+            thirtyDaysAgo.setDate(now.getDate() - 30);
+            matchesDate = leadDate >= thirtyDaysAgo;
+          }
+        }
+
+        return matchesSearch && matchesBot && matchesDate;
       })
       .sort((a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime());
-  }, [leads, searchQuery, botFilter]);
+  }, [leads, searchQuery, botFilter, dateFilter]);
 
   useEffect(() => {
     if (messagesEndRef.current) {
@@ -131,18 +149,34 @@ export default function ContactsPage() {
                 onChange={(e) => setSearchQuery(e.target.value)}
               />
             </div>
-            <div className="flex items-center gap-2">
-              <Filter className="h-3.5 w-3.5 text-slate-400" />
-              <Select value={botFilter} onValueChange={(val: any) => setBotFilter(val)}>
-                <SelectTrigger className="h-8 bg-slate-50 border-none text-[10px] shadow-none">
-                  <SelectValue placeholder={t('leads.filterBot')} />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all" className="text-xs">{t('leads.botAll')}</SelectItem>
-                  <SelectItem value="active" className="text-xs">{t('leads.botActive')}</SelectItem>
-                  <SelectItem value="inactive" className="text-xs">{t('leads.botInactive')}</SelectItem>
-                </SelectContent>
-              </Select>
+            <div className="grid grid-cols-2 gap-2">
+              <div className="flex items-center gap-1.5">
+                <Filter className="h-3.5 w-3.5 text-slate-400" />
+                <Select value={botFilter} onValueChange={(val: any) => setBotFilter(val)}>
+                  <SelectTrigger className="h-8 bg-slate-50 border-none text-[10px] shadow-none p-2">
+                    <SelectValue placeholder={t('leads.filterBot')} />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all" className="text-xs">{t('leads.botAll')}</SelectItem>
+                    <SelectItem value="active" className="text-xs">{t('leads.botActive')}</SelectItem>
+                    <SelectItem value="inactive" className="text-xs">{t('leads.botInactive')}</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="flex items-center gap-1.5">
+                <Calendar className="h-3.5 w-3.5 text-slate-400" />
+                <Select value={dateFilter} onValueChange={(val: any) => setDateFilter(val)}>
+                  <SelectTrigger className="h-8 bg-slate-50 border-none text-[10px] shadow-none p-2">
+                    <SelectValue placeholder={t('leads.filterDate')} />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all" className="text-xs">{t('leads.dateAll')}</SelectItem>
+                    <SelectItem value="today" className="text-xs">{t('leads.dateToday')}</SelectItem>
+                    <SelectItem value="week" className="text-xs">{t('leads.dateWeek')}</SelectItem>
+                    <SelectItem value="month" className="text-xs">{t('leads.dateMonth')}</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
           </div>
           <ScrollArea className="flex-1">

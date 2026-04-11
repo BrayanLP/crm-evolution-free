@@ -6,7 +6,7 @@ import { useState, useMemo } from 'react';
 import { useLeads } from '@/lib/store';
 import { STAGES, Lead, StageId } from '@/lib/types';
 import { LeadDialog } from './LeadDialog';
-import { Phone, RefreshCw, AlertCircle, Bot } from 'lucide-react';
+import { Phone, RefreshCw, AlertCircle, Bot, Calendar as CalendarIcon } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -19,9 +19,14 @@ import { useTranslation } from '@/context/LanguageContext';
 interface KanbanBoardProps {
   searchQuery?: string;
   botFilter?: 'all' | 'active' | 'inactive';
+  dateFilter?: 'all' | 'today' | 'week' | 'month';
 }
 
-export function KanbanBoard({ searchQuery = '', botFilter = 'all' }: KanbanBoardProps) {
+export function KanbanBoard({ 
+  searchQuery = '', 
+  botFilter = 'all',
+  dateFilter = 'all'
+}: KanbanBoardProps) {
   const { leads, updateLead, deleteLead, moveLead, syncLeads, toggleBot, isSyncing, isLoaded, webhookUrl, botWebhookUrl } = useLeads();
   const { t } = useTranslation();
   const { toast } = useToast();
@@ -31,7 +36,7 @@ export function KanbanBoard({ searchQuery = '', botFilter = 'all' }: KanbanBoard
 
   const filteredLeads = useMemo(() => {
     return leads.filter(lead => {
-      // Filtro de búsqueda (nombre, celular, correo)
+      // Filtro de búsqueda
       const q = searchQuery.toLowerCase();
       const matchesSearch = 
         lead.contactName.toLowerCase().includes(q) ||
@@ -44,9 +49,27 @@ export function KanbanBoard({ searchQuery = '', botFilter = 'all' }: KanbanBoard
         (botFilter === 'active' && lead.botActive !== false) || 
         (botFilter === 'inactive' && lead.botActive === false);
 
-      return matchesSearch && matchesBot;
+      // Filtro de Fecha (usando updatedAt)
+      let matchesDate = true;
+      if (dateFilter !== 'all') {
+        const leadDate = new Date(lead.updatedAt);
+        const now = new Date();
+        if (dateFilter === 'today') {
+          matchesDate = leadDate.toDateString() === now.toDateString();
+        } else if (dateFilter === 'week') {
+          const sevenDaysAgo = new Date();
+          sevenDaysAgo.setDate(now.getDate() - 7);
+          matchesDate = leadDate >= sevenDaysAgo;
+        } else if (dateFilter === 'month') {
+          const thirtyDaysAgo = new Date();
+          thirtyDaysAgo.setDate(now.getDate() - 30);
+          matchesDate = leadDate >= thirtyDaysAgo;
+        }
+      }
+
+      return matchesSearch && matchesBot && matchesDate;
     });
-  }, [leads, searchQuery, botFilter]);
+  }, [leads, searchQuery, botFilter, dateFilter]);
 
   if (!isLoaded) return (
     <div className="flex items-center justify-center h-full">
