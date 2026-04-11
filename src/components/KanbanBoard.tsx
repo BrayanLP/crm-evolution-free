@@ -6,7 +6,7 @@ import { useState, useMemo } from 'react';
 import { useLeads } from '@/lib/store';
 import { STAGES, Lead, StageId } from '@/lib/types';
 import { LeadDialog } from './LeadDialog';
-import { Phone, RefreshCw, AlertCircle, Bot, Calendar as CalendarIcon } from 'lucide-react';
+import { Phone, RefreshCw, AlertCircle, Bot, DollarSign } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -143,6 +143,13 @@ export function KanbanBoard({
               .filter((l) => l.stage === stage.id)
               .sort((a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime());
 
+            const totalBudget = stageLeads.reduce((acc, lead) => {
+              const value = typeof lead.budget === 'string' 
+                ? parseFloat(lead.budget.replace(/[^0-9.]/g, '')) 
+                : (typeof lead.budget === 'number' ? lead.budget : 0);
+              return acc + (isNaN(value) ? 0 : value);
+            }, 0);
+
             return (
               <div
                 key={stage.id}
@@ -150,19 +157,25 @@ export function KanbanBoard({
                 onDragOver={handleDragOver}
                 onDrop={(e) => handleDrop(e, stage.id)}
               >
-                <div className="p-4 flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <div className={cn("w-2 h-2 rounded-full", stage.color)} />
-                    <h2 className="font-semibold text-sm uppercase tracking-wider text-slate-600">
-                      {t(`stages.${stage.id}`)}
-                    </h2>
-                    <Badge variant="secondary" className="ml-1 text-xs">
+                <div className="p-4 border-b border-slate-200/60">
+                  <div className="flex items-center justify-between mb-2">
+                    <div className="flex items-center gap-2">
+                      <div className={cn("w-2.5 h-2.5 rounded-full", stage.color)} />
+                      <h2 className="font-bold text-sm uppercase tracking-wider text-slate-700">
+                        {t(`stages.${stage.id}`)}
+                      </h2>
+                    </div>
+                    <Badge variant="secondary" className="text-xs font-bold">
                       {stageLeads.length}
                     </Badge>
                   </div>
+                  <div className="flex items-center gap-1.5 text-xs font-semibold text-primary">
+                    <DollarSign className="h-3 w-3" />
+                    <span>S/ {totalBudget.toLocaleString()}</span>
+                  </div>
                 </div>
 
-                <div className="flex-1 overflow-y-auto px-2 space-y-3 pb-4 scrollbar-hide">
+                <div className="flex-1 overflow-y-auto px-2 space-y-3 py-4 scrollbar-hide">
                   {stageLeads.map((lead) => (
                     <Card
                       key={lead.id}
@@ -171,7 +184,7 @@ export function KanbanBoard({
                       onDragEnd={() => setDraggingLeadId(null)}
                       onClick={() => openEditDialog(lead)}
                       className={cn(
-                        "cursor-grab active:cursor-grabbing hover:shadow-md transition-all duration-200 border-l-4",
+                        "cursor-grab active:cursor-grabbing hover:shadow-md transition-all duration-200 border-l-4 bg-white",
                         draggingLeadId === lead.id ? "opacity-40 scale-95" : "opacity-100",
                         stage.id === 'new' ? "border-l-blue-500" :
                         stage.id === 'contacted' ? "border-l-amber-500" :
