@@ -2,7 +2,7 @@
 "use client"
 
 import * as React from 'react';
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { useLeads } from '@/lib/store';
 import { STAGES, Lead, StageId } from '@/lib/types';
 import { LeadDialog } from './LeadDialog';
@@ -16,13 +16,37 @@ import { Switch } from '@/components/ui/switch';
 import { useToast } from '@/hooks/use-toast';
 import { useTranslation } from '@/context/LanguageContext';
 
-export function KanbanBoard() {
+interface KanbanBoardProps {
+  searchQuery?: string;
+  botFilter?: 'all' | 'active' | 'inactive';
+}
+
+export function KanbanBoard({ searchQuery = '', botFilter = 'all' }: KanbanBoardProps) {
   const { leads, updateLead, deleteLead, moveLead, syncLeads, toggleBot, isSyncing, isLoaded, webhookUrl, botWebhookUrl } = useLeads();
   const { t } = useTranslation();
   const { toast } = useToast();
   const [selectedLead, setSelectedLead] = useState<Lead | undefined>(undefined);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [draggingLeadId, setDraggingLeadId] = useState<string | null>(null);
+
+  const filteredLeads = useMemo(() => {
+    return leads.filter(lead => {
+      // Filtro de búsqueda (nombre, celular, correo)
+      const q = searchQuery.toLowerCase();
+      const matchesSearch = 
+        lead.contactName.toLowerCase().includes(q) ||
+        lead.phone.includes(q) ||
+        (lead.email && lead.email.toLowerCase().includes(q));
+      
+      // Filtro de Bot
+      const matchesBot = 
+        botFilter === 'all' || 
+        (botFilter === 'active' && lead.botActive !== false) || 
+        (botFilter === 'inactive' && lead.botActive === false);
+
+      return matchesSearch && matchesBot;
+    });
+  }, [leads, searchQuery, botFilter]);
 
   if (!isLoaded) return (
     <div className="flex items-center justify-center h-full">
@@ -84,7 +108,7 @@ export function KanbanBoard() {
       <div className="flex-1 overflow-x-auto pb-4">
         <div className="flex h-full gap-4 min-w-max">
           {STAGES.map((stage) => {
-            const stageLeads = leads
+            const stageLeads = filteredLeads
               .filter((l) => l.stage === stage.id)
               .sort((a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime());
 

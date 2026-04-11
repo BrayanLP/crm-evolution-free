@@ -1,19 +1,22 @@
 
 "use client"
 
+import { useState } from 'react';
 import { KanbanBoard } from '@/components/KanbanBoard';
-import { LayoutGrid, Users, Settings, PieChart, Search, Briefcase, Info } from 'lucide-react';
-import { Button } from '@/components/ui/button';
+import { LayoutGrid, Users, Settings, PieChart, Search, Briefcase, Info, Filter } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Toaster } from '@/components/ui/toaster';
 import { cn } from '@/lib/utils';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useTranslation } from '@/context/LanguageContext';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 export default function LeadsPage() {
   const { t } = useTranslation();
   const pathname = usePathname();
+  const [searchQuery, setSearchQuery] = useState('');
+  const [botFilter, setBotFilter] = useState<'all' | 'active' | 'inactive'>('all');
 
   return (
     <div className="flex h-screen bg-background overflow-hidden">
@@ -47,19 +50,34 @@ export default function LeadsPage() {
 
       <main className="flex-1 flex flex-col min-w-0">
         <header className="h-16 border-b bg-white flex items-center justify-between px-8">
-          <div className="flex items-center w-full max-w-md">
-            <div className="relative w-full">
+          <div className="flex items-center gap-4 w-full max-w-2xl">
+            <div className="relative flex-1">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input 
                 className="pl-10 h-10 bg-slate-50 border-none shadow-none focus-visible:ring-1" 
                 placeholder={t('contacts.search')} 
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
               />
+            </div>
+            <div className="flex items-center gap-2 w-48">
+              <Filter className="h-4 w-4 text-slate-400" />
+              <Select value={botFilter} onValueChange={(val: any) => setBotFilter(val)}>
+                <SelectTrigger className="h-10 bg-slate-50 border-none shadow-none focus:ring-1">
+                  <SelectValue placeholder={t('leads.filterBot')} />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">{t('leads.botAll')}</SelectItem>
+                  <SelectItem value="active">{t('leads.botActive')}</SelectItem>
+                  <SelectItem value="inactive">{t('leads.botInactive')}</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
           </div>
         </header>
 
         <div className="flex-1 overflow-hidden p-8">
-          <KanbanBoard />
+          <KanbanBoard searchQuery={searchQuery} botFilter={botFilter} />
         </div>
       </main>
       <Toaster />

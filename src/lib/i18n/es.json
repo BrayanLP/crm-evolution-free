@@ -43,7 +43,11 @@
     "emptyStage": "No hay leads en esta etapa",
     "botOn": "Bot Encendido",
     "botOff": "Bot Apagado",
-    "botDesc": "Estado del bot para {name} actualizado."
+    "botDesc": "Estado del bot para {name} actualizado.",
+    "filterBot": "Filtrar por Bot",
+    "botAll": "Todos los Bots",
+    "botActive": "Bot Activo",
+    "botInactive": "Bot Apagado"
   },
   "contacts": {
     "title": "Chat de Leads",

@@ -43,7 +43,11 @@
     "emptyStage": "No leads in this stage",
     "botOn": "Bot ON",
     "botOff": "Bot OFF",
-    "botDesc": "Bot status for {name} updated."
+    "botDesc": "Bot status for {name} updated.",
+    "filterBot": "Filter by Bot",
+    "botAll": "All Bots",
+    "botActive": "Bot Active",
+    "botInactive": "Bot Inactive"
   },
   "contacts": {
     "title": "Leads Chat",
