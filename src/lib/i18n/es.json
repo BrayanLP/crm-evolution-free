@@ -19,13 +19,17 @@
       "botActive": "Bot Activo",
       "responded": "Leads Atendidos",
       "totalRevenue": "Ingresos Totales",
+      "pipelineValue": "Dinero en Leads",
+      "convertedValue": "Dinero en Clientes",
       "descTotal": "Prospectos registrados",
       "descContacted": "En conversación activa",
       "descQualified": "Listos para cierre",
       "descConversion": "Conversión final",
       "descBotActive": "IA encendida",
       "descResponded": "Con interacciones",
-      "descTotalRevenue": "Ventas de leads convertidos"
+      "descTotalRevenue": "Ventas de leads convertidos",
+      "descPipelineValue": "Valor potencial en proceso",
+      "descConvertedValue": "Ventas totales cerradas"
     },
     "charts": {
       "funnel": "Embudo de Ventas",

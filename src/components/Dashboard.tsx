@@ -7,7 +7,7 @@ import { useLeads } from '@/lib/store';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell, PieChart as RePieChart, Pie, AreaChart, Area } from 'recharts';
 import { STAGES } from '@/lib/types';
-import { Users, Target, UserCheck, MessageSquare, TrendingUp, Bot, Send, Calendar, DollarSign } from 'lucide-react';
+import { Users, Target, UserCheck, MessageSquare, TrendingUp, Bot, Send, Calendar, DollarSign, Briefcase } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useTranslation } from '@/context/LanguageContext';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -56,19 +56,31 @@ export function Dashboard() {
 
   // KPIs basados en leads filtrados
   const totalLeadsCount = filteredLeads.length;
-  const contactedLeads = filteredLeads.filter(l => l.stage !== 'new').length;
-  const botActiveLeads = filteredLeads.filter(l => l.botActive !== false).length;
-  const convertedLeads = filteredLeads.filter(l => l.stage === 'converted');
-  const convertedLeadsCount = convertedLeads.length;
-  const conversionRate = totalLeadsCount > 0 ? ((convertedLeadsCount / totalLeadsCount) * 100).toFixed(1) : 0;
+  const contactedLeadsCount = filteredLeads.filter(l => l.stage !== 'new').length;
+  const botActiveLeadsCount = filteredLeads.filter(l => l.botActive !== false).length;
   
-  // Cálculo de Ingresos Totales (Suma de PRESUPUESTO de leads convertidos)
-  const totalRevenue = convertedLeads.reduce((acc, lead) => {
-    const value = typeof lead.budget === 'string' 
-      ? parseFloat(lead.budget.replace(/[^0-9.]/g, '')) 
-      : (typeof lead.budget === 'number' ? lead.budget : 0);
-    return acc + (isNaN(value) ? 0 : value);
-  }, 0);
+  // Cálculo de Dinero en Leads (Pipeline - no convertidos)
+  const pipelineValue = filteredLeads
+    .filter(l => l.stage !== 'converted')
+    .reduce((acc, lead) => {
+      const value = typeof lead.budget === 'string' 
+        ? parseFloat(lead.budget.replace(/[^0-9.]/g, '')) 
+        : (typeof lead.budget === 'number' ? lead.budget : 0);
+      return acc + (isNaN(value) ? 0 : value);
+    }, 0);
+
+  // Cálculo de Dinero en Clientes (Convertidos)
+  const convertedValue = filteredLeads
+    .filter(l => l.stage === 'converted')
+    .reduce((acc, lead) => {
+      const value = typeof lead.budget === 'string' 
+        ? parseFloat(lead.budget.replace(/[^0-9.]/g, '')) 
+        : (typeof lead.budget === 'number' ? lead.budget : 0);
+      return acc + (isNaN(value) ? 0 : value);
+    }, 0);
+
+  const convertedLeadsCount = filteredLeads.filter(l => l.stage === 'converted').length;
+  const conversionRate = totalLeadsCount > 0 ? ((convertedLeadsCount / totalLeadsCount) * 100).toFixed(1) : 0;
 
   // Data for Funnel/Bar Chart
   const stageData = STAGES.map(stage => ({
@@ -131,36 +143,38 @@ export function Dashboard() {
       </div>
 
       {/* KPI Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <KpiCard 
+          title={t('dashboard.kpi.pipelineValue')} 
+          value={`S/ ${pipelineValue.toLocaleString()}`} 
+          icon={<Briefcase className="h-5 w-5 text-blue-500" />} 
+          description={t('dashboard.kpi.descPipelineValue')}
+          highlight="blue"
+        />
+        <KpiCard 
+          title={t('dashboard.kpi.convertedValue')} 
+          value={`S/ ${convertedValue.toLocaleString()}`} 
+          icon={<DollarSign className="h-5 w-5 text-emerald-600" />} 
+          description={t('dashboard.kpi.descConvertedValue')}
+          highlight="emerald"
+        />
         <KpiCard 
           title={t('dashboard.kpi.totalLeads')} 
           value={totalLeadsCount.toString()} 
-          icon={<Users className="h-5 w-5 text-blue-500" />} 
+          icon={<Users className="h-5 w-5 text-slate-500" />} 
           description={t('dashboard.kpi.descTotal')}
         />
         <KpiCard 
           title={t('dashboard.kpi.botActive')} 
-          value={botActiveLeads.toString()} 
+          value={botActiveLeadsCount.toString()} 
           icon={<Bot className="h-5 w-5 text-purple-500" />} 
           description={t('dashboard.kpi.descBotActive')}
         />
         <KpiCard 
-          title={t('dashboard.kpi.totalRevenue')} 
-          value={`S/ ${totalRevenue.toLocaleString()}`} 
-          icon={<DollarSign className="h-5 w-5 text-emerald-600" />} 
-          description={t('dashboard.kpi.descTotalRevenue')}
-        />
-        <KpiCard 
-          title={t('dashboard.kpi.contacted')} 
-          value={contactedLeads.toString()} 
+          title={t('dashboard.kpi.responded')} 
+          value={contactedLeadsCount.toString()} 
           icon={<MessageSquare className="h-5 w-5 text-amber-500" />} 
-          description={t('dashboard.kpi.descContacted')}
-        />
-        <KpiCard 
-          title={t('dashboard.kpi.qualified')} 
-          value={filteredLeads.filter(l => l.stage === 'qualified').length.toString()} 
-          icon={<Target className="h-5 w-5 text-emerald-500" />} 
-          description={t('dashboard.kpi.descQualified')}
+          description={t('dashboard.kpi.descResponded')}
         />
         <KpiCard 
           title={t('dashboard.kpi.conversionRate')} 
@@ -339,19 +353,23 @@ export function Dashboard() {
   );
 }
 
-function KpiCard({ title, value, icon, description }: { title: string, value: string, icon: React.ReactNode, description: string }) {
+function KpiCard({ title, value, icon, description, highlight }: { title: string, value: string, icon: React.ReactNode, description: string, highlight?: 'blue' | 'emerald' }) {
   return (
-    <Card className="shadow-sm border-slate-200 overflow-hidden relative">
-      <div className="absolute top-0 right-0 p-4 opacity-10">
-        {React.cloneElement(icon as React.ReactElement, { className: "h-12 w-12" })}
+    <Card className={cn(
+      "shadow-sm border-slate-200 overflow-hidden relative transition-all hover:shadow-md",
+      highlight === 'blue' && "border-l-4 border-l-blue-500",
+      highlight === 'emerald' && "border-l-4 border-l-emerald-500"
+    )}>
+      <div className="absolute top-0 right-0 p-4 opacity-5">
+        {React.cloneElement(icon as React.ReactElement, { className: "h-16 w-16" })}
       </div>
       <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-        <CardTitle className="text-sm font-medium text-slate-500 uppercase tracking-wider">{title}</CardTitle>
+        <CardTitle className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">{title}</CardTitle>
         {icon}
       </CardHeader>
       <CardContent>
-        <div className="text-2xl font-bold">{value}</div>
-        <p className="text-xs text-muted-foreground mt-1">{description}</p>
+        <div className={cn("text-2xl font-black", highlight && "text-slate-900")}>{value}</div>
+        <p className="text-[10px] text-muted-foreground mt-1 font-medium">{description}</p>
       </CardContent>
     </Card>
   );

@@ -19,13 +19,17 @@
       "botActive": "Bot Active",
       "responded": "Leads Answered",
       "totalRevenue": "Total Revenue",
+      "pipelineValue": "Money in Leads",
+      "convertedValue": "Money in Clients",
       "descTotal": "Registered prospects",
       "descContacted": "In active conversation",
       "descQualified": "Ready for closing",
       "descConversion": "Final conversion",
       "descBotActive": "AI turned ON",
       "descResponded": "With interactions",
-      "descTotalRevenue": "Sales from converted leads"
+      "descTotalRevenue": "Sales from converted leads",
+      "descPipelineValue": "Potential value in progress",
+      "descConvertedValue": "Total closed sales"
     },
     "charts": {
       "funnel": "Sales Funnel",
