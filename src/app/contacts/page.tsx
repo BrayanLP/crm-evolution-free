@@ -1,9 +1,9 @@
 
 "use client"
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useMemo } from 'react';
 import { useLeads } from '@/lib/store';
-import { LayoutGrid, Users, Settings, PieChart, Search, MessageSquare, User, History as HistoryIcon, Bot, Briefcase, Info } from 'lucide-react';
+import { LayoutGrid, Users, Settings, PieChart, Search, MessageSquare, User, History as HistoryIcon, Bot, Briefcase, Info, Filter } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Toaster } from '@/components/ui/toaster';
@@ -17,18 +17,42 @@ import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
 import { useTranslation } from '@/context/LanguageContext';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 export default function ContactsPage() {
   const { leads, getHistory, historyWebhookUrl, toggleBot, botWebhookUrl } = useLeads();
   const { t } = useTranslation();
   const { toast } = useToast();
+  
   const [selectedLead, setSelectedLead] = useState<Lead | null>(null);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [isLoadingHistory, setIsLoadingHistory] = useState(false);
   const [isBotActive, setIsBotActive] = useState(true);
-  const pathname = usePathname();
+  const [searchQuery, setSearchQuery] = useState('');
+  const [botFilter, setBotFilter] = useState<'all' | 'active' | 'inactive'>('all');
   
+  const pathname = usePathname();
   const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  // Filtrado y Ordenación Descendente
+  const filteredLeads = useMemo(() => {
+    return leads
+      .filter(lead => {
+        const q = searchQuery.toLowerCase();
+        const matchesSearch = 
+          lead.contactName.toLowerCase().includes(q) ||
+          lead.phone.includes(q) ||
+          (lead.email && lead.email.toLowerCase().includes(q));
+        
+        const matchesBot = 
+          botFilter === 'all' || 
+          (botFilter === 'active' && lead.botActive !== false) || 
+          (botFilter === 'inactive' && lead.botActive === false);
+
+        return matchesSearch && matchesBot;
+      })
+      .sort((a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime());
+  }, [leads, searchQuery, botFilter]);
 
   useEffect(() => {
     if (messagesEndRef.current) {
@@ -43,6 +67,7 @@ export default function ContactsPage() {
         const history = await getHistory(selectedLead.phone);
         setMessages(history);
         setIsLoadingHistory(false);
+        setIsBotActive(selectedLead.botActive !== false);
       } else {
         setMessages([]);
       }
@@ -94,40 +119,63 @@ export default function ContactsPage() {
       </aside>
 
       <main className="flex-1 flex min-w-0">
-        <div className="w-80 border-r bg-white flex flex-col">
-          <div className="p-4 border-b">
-            <h2 className="text-xl font-bold mb-4">{t('contacts.title')}</h2>
+        <div className="w-80 border-r bg-white flex flex-col shadow-sm">
+          <div className="p-4 border-b space-y-3">
+            <h2 className="text-xl font-bold">{t('contacts.title')}</h2>
             <div className="relative">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-              <Input className="pl-9 bg-slate-50" placeholder={t('contacts.search')} />
+              <Input 
+                className="pl-9 bg-slate-50 border-none h-9 text-xs" 
+                placeholder={t('contacts.search')} 
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+              />
+            </div>
+            <div className="flex items-center gap-2">
+              <Filter className="h-3.5 w-3.5 text-slate-400" />
+              <Select value={botFilter} onValueChange={(val: any) => setBotFilter(val)}>
+                <SelectTrigger className="h-8 bg-slate-50 border-none text-[10px] shadow-none">
+                  <SelectValue placeholder={t('leads.filterBot')} />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all" className="text-xs">{t('leads.botAll')}</SelectItem>
+                  <SelectItem value="active" className="text-xs">{t('leads.botActive')}</SelectItem>
+                  <SelectItem value="inactive" className="text-xs">{t('leads.botInactive')}</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
           </div>
           <ScrollArea className="flex-1">
             <div className="divide-y">
-              {leads.map((lead) => (
+              {filteredLeads.map((lead) => (
                 <div
                   key={lead.id}
                   onClick={() => setSelectedLead(lead)}
                   className={cn(
-                    "p-4 cursor-pointer hover:bg-slate-50 transition-colors flex items-center gap-3",
-                    selectedLead?.id === lead.id && "bg-primary/5 border-r-4 border-primary"
+                    "p-4 cursor-pointer hover:bg-slate-50 transition-all flex items-center gap-3 border-r-4 border-transparent",
+                    selectedLead?.id === lead.id && "bg-primary/5 border-r-primary"
                   )}
                 >
-                  <div className="w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center flex-shrink-0">
+                  <div className="w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center flex-shrink-0 relative">
                     <User className="h-5 w-5 text-slate-400" />
+                    {lead.botActive !== false && (
+                      <div className="absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 bg-primary rounded-full border-2 border-white flex items-center justify-center">
+                        <Bot className="h-2 w-2 text-white" />
+                      </div>
+                    )}
                   </div>
                   <div className="flex-1 min-w-0">
                     <div className="flex justify-between items-baseline">
-                      <p className="font-semibold text-sm truncate">{lead.contactName}</p>
+                      <p className="font-semibold text-sm truncate text-slate-800">{lead.contactName}</p>
                       <span className="text-[10px] text-muted-foreground">
-                        {lead.updatedAt ? new Date(lead.updatedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : ''}
+                        {lead.updatedAt ? new Date(lead.updatedAt).toLocaleDateString([], { day: '2-digit', month: '2-digit' }) : ''}
                       </span>
                     </div>
-                    <p className="text-xs text-muted-foreground truncate">{lead.notes}</p>
+                    <p className="text-xs text-muted-foreground truncate">{lead.phone}</p>
                   </div>
                 </div>
               ))}
-              {leads.length === 0 && (
+              {filteredLeads.length === 0 && (
                 <div className="p-8 text-center opacity-40">
                   <User className="h-10 w-10 mx-auto mb-2" />
                   <p className="text-xs">{t('contacts.empty')}</p>
