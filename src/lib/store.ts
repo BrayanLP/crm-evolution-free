@@ -39,20 +39,38 @@ export function useLeads() {
   const processIncomingData = useCallback((payload: any[]) => {
     if (!Array.isArray(payload)) return;
     
-    const newLeadsFromWebhook = payload.map(incoming => ({
-      id: incoming.id?.toString() || Math.random().toString(36).substr(2, 9),
-      name: incoming.PUSHNAME || "Nuevo Prospecto WhatsApp",
-      contactName: incoming.PUSHNAME || "Sin Nombre",
-      email: "",
-      phone: incoming.WHATSAPP?.toString() || incoming.REMOTEJID?.split('@')[0] || "",
-      remoteJid: incoming.REMOTEJID || `${incoming.WHATSAPP}@s.whatsapp.net`,
-      company: incoming.INSTANCE || instanceName,
-      stage: 'new' as StageId,
-      notes: incoming.MESSAGE || "Sin mensaje",
-      createdAt: incoming.createdAt || new Date().toISOString(),
-      updatedAt: incoming.updatedAt || new Date().toISOString(),
-      botActive: incoming.ESTADO_BOT === '1',
-    }));
+    // Mapeo de estados del webhook al StageId interno
+    const stageMapping: Record<string, StageId> = {
+      'nuevo': 'new',
+      'new': 'new',
+      'contactado': 'contacted',
+      'contacted': 'contacted',
+      'cualificado': 'qualified',
+      'qualified': 'qualified',
+      'convertido': 'converted',
+      'converted': 'converted'
+    };
+
+    const newLeadsFromWebhook = payload.map(incoming => {
+      // Intentamos obtener el estado desde ESTADO_KANBAN
+      const rawStage = (incoming.ESTADO_KANBAN || 'new').toString().toLowerCase().trim();
+      const mappedStage = stageMapping[rawStage] || 'new';
+
+      return {
+        id: incoming.id?.toString() || Math.random().toString(36).substr(2, 9),
+        name: incoming.PUSHNAME || "Nuevo Prospecto WhatsApp",
+        contactName: incoming.PUSHNAME || "Sin Nombre",
+        email: "",
+        phone: incoming.WHATSAPP?.toString() || incoming.REMOTEJID?.split('@')[0] || "",
+        remoteJid: incoming.REMOTEJID || `${incoming.WHATSAPP}@s.whatsapp.net`,
+        company: incoming.INSTANCE || instanceName,
+        stage: mappedStage,
+        notes: incoming.MESSAGE || "Sin mensaje",
+        createdAt: incoming.createdAt || new Date().toISOString(),
+        updatedAt: incoming.updatedAt || new Date().toISOString(),
+        botActive: incoming.ESTADO_BOT === '1',
+      };
+    });
 
     setLeads(newLeadsFromWebhook);
   }, [instanceName]);
