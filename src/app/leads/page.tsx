@@ -3,8 +3,9 @@
 
 import { useState } from 'react';
 import { KanbanBoard } from '@/components/KanbanBoard';
-import { LayoutGrid, Users, Settings, PieChart, Search, Briefcase, Info, Filter, Calendar } from 'lucide-react';
+import { LayoutGrid, Users, Settings, PieChart, Search, Briefcase, Info, Filter, Calendar, Eye, EyeOff } from 'lucide-react';
 import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
 import { Toaster } from '@/components/ui/toaster';
 import { cn } from '@/lib/utils';
 import Link from 'next/link';
@@ -18,6 +19,7 @@ export default function LeadsPage() {
   const [searchQuery, setSearchQuery] = useState('');
   const [botFilter, setBotFilter] = useState<'all' | 'active' | 'inactive'>('all');
   const [dateFilter, setDateFilter] = useState<'all' | 'today' | 'week' | 'month' | '60days' | '90days'>('all');
+  const [showAmounts, setShowAmounts] = useState(true);
 
   return (
     <div className="flex h-screen bg-background overflow-hidden">
@@ -51,7 +53,7 @@ export default function LeadsPage() {
 
       <main className="flex-1 flex flex-col min-w-0">
         <header className="h-16 border-b bg-white flex items-center justify-between px-8">
-          <div className="flex items-center gap-4 w-full max-w-4xl">
+          <div className="flex items-center gap-4 w-full max-w-5xl">
             <div className="relative flex-1">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input 
@@ -61,7 +63,17 @@ export default function LeadsPage() {
                 onChange={(e) => setSearchQuery(e.target.value)}
               />
             </div>
-            <div className="flex items-center gap-2 w-40">
+            
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => setShowAmounts(!showAmounts)}
+              className="h-10 w-10 text-slate-500 hover:text-primary transition-colors flex-shrink-0"
+            >
+              {showAmounts ? <Eye className="h-5 w-5" /> : <EyeOff className="h-5 w-5" />}
+            </Button>
+
+            <div className="flex items-center gap-2 w-40 flex-shrink-0">
               <Filter className="h-4 w-4 text-slate-400" />
               <Select value={botFilter} onValueChange={(val: any) => setBotFilter(val)}>
                 <SelectTrigger className="h-10 bg-slate-50 border-none shadow-none focus:ring-1 text-xs">
@@ -74,7 +86,7 @@ export default function LeadsPage() {
                 </SelectContent>
               </Select>
             </div>
-            <div className="flex items-center gap-2 w-52">
+            <div className="flex items-center gap-2 w-52 flex-shrink-0">
               <Calendar className="h-4 w-4 text-slate-400" />
               <Select value={dateFilter} onValueChange={(val: any) => setDateFilter(val)}>
                 <SelectTrigger className="h-10 bg-slate-50 border-none shadow-none focus:ring-1 text-xs">
@@ -94,7 +106,12 @@ export default function LeadsPage() {
         </header>
 
         <div className="flex-1 overflow-hidden p-8">
-          <KanbanBoard searchQuery={searchQuery} botFilter={botFilter} dateFilter={dateFilter} />
+          <KanbanBoard 
+            searchQuery={searchQuery} 
+            botFilter={botFilter} 
+            dateFilter={dateFilter}
+            showAmounts={showAmounts}
+          />
         </div>
       </main>
       <Toaster />

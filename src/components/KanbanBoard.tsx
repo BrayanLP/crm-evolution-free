@@ -20,12 +20,14 @@ interface KanbanBoardProps {
   searchQuery?: string;
   botFilter?: 'all' | 'active' | 'inactive';
   dateFilter?: 'all' | 'today' | 'week' | 'month' | '60days' | '90days';
+  showAmounts?: boolean;
 }
 
 export function KanbanBoard({ 
   searchQuery = '', 
   botFilter = 'all',
-  dateFilter = 'all'
+  dateFilter = 'all',
+  showAmounts = true
 }: KanbanBoardProps) {
   const { leads, updateLead, deleteLead, moveLead, syncLeads, toggleBot, isSyncing, isLoaded, webhookUrl, botWebhookUrl } = useLeads();
   const { t } = useTranslation();
@@ -36,7 +38,7 @@ export function KanbanBoard({
 
   const filteredLeads = useMemo(() => {
     return leads.filter(lead => {
-      // Filtro de búsqueda
+      // Filtro de búsqueda (nombre, celular, correo)
       const q = searchQuery.toLowerCase();
       const matchesSearch = 
         lead.contactName.toLowerCase().includes(q) ||
@@ -49,7 +51,7 @@ export function KanbanBoard({
         (botFilter === 'active' && lead.botActive !== false) || 
         (botFilter === 'inactive' && lead.botActive === false);
 
-      // Filtro de Fecha (usando updatedAt)
+      // Filtro de Fecha
       let matchesDate = true;
       if (dateFilter !== 'all') {
         const leadDate = new Date(lead.updatedAt);
@@ -171,7 +173,12 @@ export function KanbanBoard({
                   </div>
                   <div className="flex items-center gap-1.5 text-xs font-semibold text-primary">
                     <DollarSign className="h-3 w-3" />
-                    <span>S/ {totalBudget.toLocaleString()}</span>
+                    <span className={cn(
+                      "transition-all duration-300",
+                      !showAmounts && "blur-sm select-none opacity-50"
+                    )}>
+                      S/ {totalBudget.toLocaleString()}
+                    </span>
                   </div>
                 </div>
 
