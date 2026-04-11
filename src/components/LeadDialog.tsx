@@ -9,7 +9,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Sparkles, Loader2, Trash2 } from 'lucide-react';
+import { Sparkles, Loader2, Trash2, DollarSign } from 'lucide-react';
 import type { Lead, StageId } from '@/lib/types';
 import { STAGES } from '@/lib/types';
 import { suggestLeadActions } from '@/ai/flows/suggested-lead-actions';
@@ -35,6 +35,7 @@ export function LeadDialog({ lead, isOpen, onClose, onSave, onDelete }: LeadDial
     company: lead?.company || '',
     stage: lead?.stage || 'new',
     notes: lead?.notes || '',
+    budget: lead?.budget || '',
   });
 
   const [isSuggesting, setIsSuggesting] = useState(false);
@@ -50,6 +51,7 @@ export function LeadDialog({ lead, isOpen, onClose, onSave, onDelete }: LeadDial
         company: lead.company,
         stage: lead.stage,
         notes: lead.notes,
+        budget: lead.budget || '',
       });
       setSuggestions([]);
     } else {
@@ -61,6 +63,7 @@ export function LeadDialog({ lead, isOpen, onClose, onSave, onDelete }: LeadDial
         company: '',
         stage: 'new',
         notes: '',
+        budget: '',
       });
       setSuggestions([]);
     }
@@ -148,13 +151,17 @@ export function LeadDialog({ lead, isOpen, onClose, onSave, onDelete }: LeadDial
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="company">{t('leadDialog.company')}</Label>
-              <Input
-                id="company"
-                value={formData.company}
-                onChange={(e) => setFormData({ ...formData, company: e.target.value })}
-                placeholder="Nombre de la empresa"
-              />
+              <Label htmlFor="budget">{t('leadDialog.budget')}</Label>
+              <div className="relative">
+                <DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <Input
+                  id="budget"
+                  value={formData.budget}
+                  onChange={(e) => setFormData({ ...formData, budget: e.target.value })}
+                  placeholder="ej. 500.00"
+                  className="pl-9"
+                />
+              </div>
             </div>
           </div>
 
@@ -178,6 +185,16 @@ export function LeadDialog({ lead, isOpen, onClose, onSave, onDelete }: LeadDial
                 placeholder="Número de teléfono"
               />
             </div>
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="company">{t('leadDialog.company')}</Label>
+            <Input
+              id="company"
+              value={formData.company}
+              onChange={(e) => setFormData({ ...formData, company: e.target.value })}
+              placeholder="Nombre de la empresa"
+            />
           </div>
 
           <div className="space-y-2">

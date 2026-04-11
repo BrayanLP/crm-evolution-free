@@ -18,12 +18,14 @@
       "conversionRate": "Tasa de Cierre",
       "botActive": "Bot Activo",
       "responded": "Leads Atendidos",
+      "totalRevenue": "Ingresos Totales",
       "descTotal": "Prospectos registrados",
       "descContacted": "En conversación activa",
       "descQualified": "Listos para cierre",
       "descConversion": "Conversión final",
       "descBotActive": "IA encendida",
-      "descResponded": "Con interacciones"
+      "descResponded": "Con interacciones",
+      "descTotalRevenue": "Ventas de leads convertidos"
     },
     "charts": {
       "funnel": "Embudo de Ventas",
@@ -137,6 +139,7 @@
     "email": "Correo Electrónico",
     "phone": "Teléfono",
     "notes": "Notas e Interacciones",
+    "budget": "Presupuesto / Valor",
     "aiSuggestions": "Sugerencias IA",
     "suggestedActions": "Acciones Sugeridas",
     "cancel": "Cancelar",

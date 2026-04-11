@@ -18,12 +18,14 @@
       "conversionRate": "Closing Rate",
       "botActive": "Bot Active",
       "responded": "Leads Answered",
+      "totalRevenue": "Total Revenue",
       "descTotal": "Registered prospects",
       "descContacted": "In active conversation",
       "descQualified": "Ready for closing",
       "descConversion": "Final conversion",
       "descBotActive": "AI turned ON",
-      "descResponded": "With interactions"
+      "descResponded": "With interactions",
+      "descTotalRevenue": "Sales from converted leads"
     },
     "charts": {
       "funnel": "Sales Funnel",
@@ -137,6 +139,7 @@
     "email": "Email",
     "phone": "Phone",
     "notes": "Notes and Interactions",
+    "budget": "Budget / Value",
     "aiSuggestions": "AI Suggestions",
     "suggestedActions": "Suggested Actions",
     "cancel": "Cancel",

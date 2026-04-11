@@ -7,7 +7,7 @@ import { useLeads } from '@/lib/store';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell, PieChart as RePieChart, Pie, AreaChart, Area } from 'recharts';
 import { STAGES } from '@/lib/types';
-import { Users, Target, UserCheck, MessageSquare, TrendingUp, Bot, Send, Calendar } from 'lucide-react';
+import { Users, Target, UserCheck, MessageSquare, TrendingUp, Bot, Send, Calendar, DollarSign } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useTranslation } from '@/context/LanguageContext';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -58,8 +58,17 @@ export function Dashboard() {
   const totalLeadsCount = filteredLeads.length;
   const contactedLeads = filteredLeads.filter(l => l.stage !== 'new').length;
   const botActiveLeads = filteredLeads.filter(l => l.botActive !== false).length;
-  const convertedLeadsCount = filteredLeads.filter(l => l.stage === 'converted').length;
+  const convertedLeads = filteredLeads.filter(l => l.stage === 'converted');
+  const convertedLeadsCount = convertedLeads.length;
   const conversionRate = totalLeadsCount > 0 ? ((convertedLeadsCount / totalLeadsCount) * 100).toFixed(1) : 0;
+  
+  // Cálculo de Ingresos Totales (Suma de PRESUPUESTO de leads convertidos)
+  const totalRevenue = convertedLeads.reduce((acc, lead) => {
+    const value = typeof lead.budget === 'string' 
+      ? parseFloat(lead.budget.replace(/[^0-9.]/g, '')) 
+      : (typeof lead.budget === 'number' ? lead.budget : 0);
+    return acc + (isNaN(value) ? 0 : value);
+  }, 0);
 
   // Data for Funnel/Bar Chart
   const stageData = STAGES.map(stage => ({
@@ -70,7 +79,7 @@ export function Dashboard() {
            stage.id === 'qualified' ? '#10b981' : '#6366f1'
   }));
 
-  // Data for Trend Chart (mostrando días según el filtro o últimos 7 por defecto)
+  // Data for Trend Chart
   const trendDaysCount = dateFilter === 'today' ? 1 : 
                         dateFilter === 'week' ? 7 : 
                         dateFilter === 'month' ? 30 : 
@@ -136,10 +145,10 @@ export function Dashboard() {
           description={t('dashboard.kpi.descBotActive')}
         />
         <KpiCard 
-          title={t('dashboard.kpi.responded')} 
-          value={contactedLeads.toString()} 
-          icon={<Send className="h-5 w-5 text-pink-500" />} 
-          description={t('dashboard.kpi.descResponded')}
+          title={t('dashboard.kpi.totalRevenue')} 
+          value={`S/ ${totalRevenue.toLocaleString()}`} 
+          icon={<DollarSign className="h-5 w-5 text-emerald-600" />} 
+          description={t('dashboard.kpi.descTotalRevenue')}
         />
         <KpiCard 
           title={t('dashboard.kpi.contacted')} 

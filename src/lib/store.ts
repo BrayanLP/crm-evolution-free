@@ -66,6 +66,7 @@ export function useLeads() {
         company: incoming.INSTANCE || instanceName,
         stage: mappedStage,
         notes: incoming.MESSAGE || "Sin mensaje",
+        budget: incoming.PRESUPUESTO || 0,
         createdAt: incoming.createdAt || new Date().toISOString(),
         updatedAt: incoming.updatedAt || new Date().toISOString(),
         botActive: incoming.ESTADO_BOT === '1',
