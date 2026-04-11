@@ -16,10 +16,14 @@
       "contacted": "Contacted",
       "qualified": "Qualified",
       "conversionRate": "Closing Rate",
+      "botActive": "Bot Active",
+      "responded": "Leads Answered",
       "descTotal": "Registered prospects",
       "descContacted": "In active conversation",
       "descQualified": "Ready for closing",
-      "descConversion": "Final conversion"
+      "descConversion": "Final conversion",
+      "descBotActive": "AI turned ON",
+      "descResponded": "With interactions"
     },
     "charts": {
       "funnel": "Sales Funnel",

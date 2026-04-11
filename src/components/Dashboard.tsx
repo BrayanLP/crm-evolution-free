@@ -6,7 +6,7 @@ import { useLeads } from '@/lib/store';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell, PieChart as RePieChart, Pie, AreaChart, Area } from 'recharts';
 import { STAGES } from '@/lib/types';
-import { Users, Target, UserCheck, MessageSquare, TrendingUp } from 'lucide-react';
+import { Users, Target, UserCheck, MessageSquare, TrendingUp, Bot, Send } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useTranslation } from '@/context/LanguageContext';
 
@@ -23,10 +23,8 @@ export function Dashboard() {
   // KPIs
   const totalLeads = leads.length;
   const contactedLeads = leads.filter(l => l.stage !== 'new').length;
-  const qualifiedLeads = leads.filter(l => l.stage === 'qualified' || l.stage === 'converted').length;
-  const convertedLeads = leads.filter(l => l.stage === 'converted').length;
-  
-  const conversionRate = totalLeads > 0 ? ((convertedLeads / totalLeads) * 100).toFixed(1) : 0;
+  const botActiveLeads = leads.filter(l => l.botActive !== false).length;
+  const conversionRate = totalLeads > 0 ? ((leads.filter(l => l.stage === 'converted').length / totalLeads) * 100).toFixed(1) : 0;
 
   // Data for Funnel/Bar Chart
   const stageData = STAGES.map(stage => ({
@@ -51,18 +49,38 @@ export function Dashboard() {
 
   return (
     <div className="space-y-8 animate-in fade-in duration-500">
-      <div>
-        <h1 className="text-3xl font-bold font-headline text-primary">{t('dashboard.title')}</h1>
-        <p className="text-muted-foreground">{t('dashboard.subtitle')}</p>
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-3xl font-bold font-headline text-primary">{t('dashboard.title')}</h1>
+          <p className="text-muted-foreground">{t('dashboard.subtitle')}</p>
+        </div>
+        {isSyncing && (
+           <div className="flex items-center gap-2 text-xs text-primary animate-pulse">
+             <div className="w-2 h-2 rounded-full bg-primary" />
+             Sincronizando datos...
+           </div>
+        )}
       </div>
 
       {/* KPI Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-6">
         <KpiCard 
           title={t('dashboard.kpi.totalLeads')} 
           value={totalLeads.toString()} 
           icon={<Users className="h-5 w-5 text-blue-500" />} 
           description={t('dashboard.kpi.descTotal')}
+        />
+        <KpiCard 
+          title={t('dashboard.kpi.botActive')} 
+          value={botActiveLeads.toString()} 
+          icon={<Bot className="h-5 w-5 text-purple-500" />} 
+          description={t('dashboard.kpi.descBotActive')}
+        />
+        <KpiCard 
+          title={t('dashboard.kpi.responded')} 
+          value={contactedLeads.toString()} 
+          icon={<Send className="h-5 w-5 text-pink-500" />} 
+          description={t('dashboard.kpi.descResponded')}
         />
         <KpiCard 
           title={t('dashboard.kpi.contacted')} 
@@ -72,7 +90,7 @@ export function Dashboard() {
         />
         <KpiCard 
           title={t('dashboard.kpi.qualified')} 
-          value={qualifiedLeads.toString()} 
+          value={leads.filter(l => l.stage === 'qualified').length.toString()} 
           icon={<Target className="h-5 w-5 text-emerald-500" />} 
           description={t('dashboard.kpi.descQualified')}
         />

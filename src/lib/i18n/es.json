@@ -16,10 +16,14 @@
       "contacted": "Contactados",
       "qualified": "Cualificados",
       "conversionRate": "Tasa de Cierre",
+      "botActive": "Bot Activo",
+      "responded": "Leads Atendidos",
       "descTotal": "Prospectos registrados",
       "descContacted": "En conversación activa",
       "descQualified": "Listos para cierre",
-      "descConversion": "Conversión final"
+      "descConversion": "Conversión final",
+      "descBotActive": "IA encendida",
+      "descResponded": "Con interacciones"
     },
     "charts": {
       "funnel": "Embudo de Ventas",
