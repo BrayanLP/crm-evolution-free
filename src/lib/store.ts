@@ -13,6 +13,7 @@ export function useLeads() {
   
   // Settings
   const [webhookUrl, setWebhookUrl] = useState<string>('');
+  const [leadEditUrl, setLeadEditUrl] = useState<string>('');
   const [historyWebhookUrl, setHistoryWebhookUrl] = useState<string>('');
   const [botWebhookUrl, setBotWebhookUrl] = useState<string>('');
   const [instanceName, setInstanceName] = useState<string>('HALCONDIGITAL');
@@ -39,7 +40,6 @@ export function useLeads() {
   const processIncomingData = useCallback((payload: any[]) => {
     if (!Array.isArray(payload)) return;
     
-    // Mapeo de estados del webhook al StageId interno
     const stageMapping: Record<string, StageId> = {
       'nuevo': 'new',
       'new': 'new',
@@ -52,7 +52,6 @@ export function useLeads() {
     };
 
     const newLeadsFromWebhook = payload.map(incoming => {
-      // Intentamos obtener el estado desde ESTADO_KANBAN
       const rawStage = (incoming.ESTADO_KANBAN || 'new').toString().toLowerCase().trim();
       const mappedStage = stageMapping[rawStage] || 'new';
 
@@ -60,13 +59,13 @@ export function useLeads() {
         id: incoming.id?.toString() || Math.random().toString(36).substr(2, 9),
         name: incoming.PUSHNAME || "Nuevo Prospecto WhatsApp",
         contactName: incoming.PUSHNAME || "Sin Nombre",
-        email: "",
+        email: incoming.EMAIL || "",
         phone: incoming.WHATSAPP?.toString() || incoming.REMOTEJID?.split('@')[0] || "",
         remoteJid: incoming.REMOTEJID || `${incoming.WHATSAPP}@s.whatsapp.net`,
         company: incoming.INSTANCE || instanceName,
         stage: mappedStage,
-        notes: incoming.MESSAGE || "Sin mensaje",
-        budget: incoming.PRESUPUESTO || 0,
+        notes: incoming.MESSAGE || incoming.notes || "Sin mensaje",
+        budget: incoming.PRESUPUESTO || incoming.budget || 0,
         createdAt: incoming.createdAt || new Date().toISOString(),
         updatedAt: incoming.updatedAt || new Date().toISOString(),
         botActive: incoming.ESTADO_BOT === '1',
@@ -126,13 +125,8 @@ export function useLeads() {
       }
     }
 
-    if (sUrl) {
-      await syncServices(sUrl);
-    }
-
-    if (iUrl) {
-      await syncInfo(iUrl);
-    }
+    if (sUrl) await syncServices(sUrl);
+    if (iUrl) await syncInfo(iUrl);
 
     initialSyncDone.current = true;
   }, [processIncomingData, syncServices, syncInfo]);
@@ -151,6 +145,7 @@ export function useLeads() {
         currentInfoUrl = settings.infoUrl || '';
         
         setWebhookUrl(currentLeadsUrl);
+        setLeadEditUrl(settings.leadEditUrl || '');
         setHistoryWebhookUrl(settings.historyWebhookUrl || '');
         setBotWebhookUrl(settings.botWebhookUrl || '');
         setInstanceName(settings.instanceName || 'HALCONDIGITAL');
@@ -192,33 +187,69 @@ export function useLeads() {
     }
   }, [webhookUrl, processIncomingData]);
 
-  const getHistory = useCallback(async (leadIdentifier: string): Promise<ChatMessage[]> => {
-    if (!historyWebhookUrl || !leadIdentifier) return [];
+  const pushLeadUpdate = useCallback(async (lead: Lead) => {
+    if (!leadEditUrl) return;
     try {
-      const url = new URL(historyWebhookUrl);
-      url.searchParams.append('ID_LEAD', leadIdentifier);
-      
-      const response = await fetch(url.toString(), { method: 'GET' });
-      if (response.ok) {
-        const data = await response.json();
-        return (Array.isArray(data) ? data : []).map((msg: any) => ({
-          id: msg.id?.toString() || Math.random().toString(36).substr(2, 9),
-          message: msg.MENSAJE || "",
-          fromMe: String(msg.DE_MI) === "1",
-          timestamp: msg.createdAt || new Date().toISOString(),
-          pushName: ""
-        }));
-      }
+      // Mapeo inverso para n8n
+      const payload = {
+        id: lead.id,
+        PUSHNAME: lead.contactName,
+        WHATSAPP: lead.phone,
+        REMOTEJID: lead.remoteJid,
+        INSTANCE: lead.company,
+        ESTADO_KANBAN: lead.stage,
+        MESSAGE: lead.notes,
+        PRESUPUESTO: lead.budget,
+        EMAIL: lead.email,
+        ESTADO_BOT: lead.botActive ? '1' : '0'
+      };
+
+      await fetch(leadEditUrl, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
     } catch (err) {
-      console.error('Error obteniendo historial:', err);
+      console.error('Error al actualizar lead en servidor:', err);
     }
-    return [];
-  }, [historyWebhookUrl]);
+  }, [leadEditUrl]);
+
+  const updateLead = useCallback((id: string, data: Partial<Lead>) => {
+    setLeads(prev => {
+      const updated = prev.map(l => l.id === id ? { ...l, ...data, updatedAt: new Date().toISOString() } : l);
+      const leadToPush = updated.find(l => l.id === id);
+      if (leadToPush) pushLeadUpdate(leadToPush);
+      return updated;
+    });
+  }, [pushLeadUpdate]);
+
+  const moveLead = useCallback((id: string, stageId: StageId) => {
+    setLeads(prev => {
+      const updated = prev.map(l => l.id === id ? { ...l, stage: stageId, updatedAt: new Date().toISOString() } : l);
+      const leadToPush = updated.find(l => l.id === id);
+      if (leadToPush) pushLeadUpdate(leadToPush);
+      return updated;
+    });
+  }, [pushLeadUpdate]);
+
+  const deleteLead = useCallback((id: string) => {
+    setLeads(prev => prev.filter(l => l.id !== id));
+  }, []);
 
   const toggleBot = useCallback(async (whatsapp: string, status: boolean) => {
     if (!botWebhookUrl) return;
     
-    setLeads(prev => prev.map(l => l.phone === whatsapp ? { ...l, botActive: status } : l));
+    setLeads(prev => {
+      const updated = prev.map(l => {
+        if (l.phone === whatsapp) {
+          const newLead = { ...l, botActive: status };
+          pushLeadUpdate(newLead);
+          return newLead;
+        }
+        return l;
+      });
+      return updated;
+    });
 
     try {
       await fetch(botWebhookUrl, {
@@ -232,8 +263,9 @@ export function useLeads() {
     } catch (err) {
       console.error('Error al cambiar estado del bot:', err);
     }
-  }, [botWebhookUrl]);
+  }, [botWebhookUrl, pushLeadUpdate]);
 
+  // Resto de funciones CRUD (Servicios e Info) se mantienen igual...
   const createService = useCallback(async (serviceData: Omit<Service, 'id'>) => {
     if (!servicesCreateUrl) return;
     try {
@@ -242,12 +274,8 @@ export function useLeads() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(serviceData)
       });
-      if (response.ok) {
-        syncServices(servicesUrl);
-      }
-    } catch (err) {
-      console.error('Error creando servicio:', err);
-    }
+      if (response.ok) syncServices(servicesUrl);
+    } catch (err) { console.error(err); }
   }, [servicesCreateUrl, servicesUrl, syncServices]);
 
   const updateService = useCallback(async (id: string, serviceData: Partial<Service>) => {
@@ -258,12 +286,8 @@ export function useLeads() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ id, ...serviceData })
       });
-      if (response.ok) {
-        syncServices(servicesUrl);
-      }
-    } catch (err) {
-      console.error('Error editando servicio:', err);
-    }
+      if (response.ok) syncServices(servicesUrl);
+    } catch (err) { console.error(err); }
   }, [servicesEditUrl, servicesUrl, syncServices]);
 
   const deleteService = useCallback(async (id: string) => {
@@ -274,12 +298,8 @@ export function useLeads() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ id })
       });
-      if (response.ok) {
-        syncServices(servicesUrl);
-      }
-    } catch (err) {
-      console.error('Error eliminando servicio:', err);
-    }
+      if (response.ok) syncServices(servicesUrl);
+    } catch (err) { console.error(err); }
   }, [servicesDeleteUrl, servicesUrl, syncServices]);
 
   const createInfo = useCallback(async (infoData: Omit<Info, 'id'>) => {
@@ -290,12 +310,8 @@ export function useLeads() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(infoData)
       });
-      if (response.ok) {
-        syncInfo(infoUrl);
-      }
-    } catch (err) {
-      console.error('Error creando información:', err);
-    }
+      if (response.ok) syncInfo(infoUrl);
+    } catch (err) { console.error(err); }
   }, [infoCreateUrl, infoUrl, syncInfo]);
 
   const updateInfo = useCallback(async (id: string, infoData: Partial<Info>) => {
@@ -306,12 +322,8 @@ export function useLeads() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ id, ...infoData })
       });
-      if (response.ok) {
-        syncInfo(infoUrl);
-      }
-    } catch (err) {
-      console.error('Error editando información:', err);
-    }
+      if (response.ok) syncInfo(infoUrl);
+    } catch (err) { console.error(err); }
   }, [infoEditUrl, infoUrl, syncInfo]);
 
   const deleteInfo = useCallback(async (id: string) => {
@@ -322,28 +334,33 @@ export function useLeads() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ id })
       });
-      if (response.ok) {
-        syncInfo(infoUrl);
-      }
-    } catch (err) {
-      console.error('Error eliminando información:', err);
-    }
+      if (response.ok) syncInfo(infoUrl);
+    } catch (err) { console.error(err); }
   }, [infoDeleteUrl, infoUrl, syncInfo]);
 
-  const updateLead = useCallback((id: string, data: Partial<Lead>) => {
-    setLeads(prev => prev.map(l => l.id === id ? { ...l, ...data, updatedAt: new Date().toISOString() } : l));
-  }, []);
-
-  const deleteLead = useCallback((id: string) => {
-    setLeads(prev => prev.filter(l => l.id !== id));
-  }, []);
-
-  const moveLead = useCallback((id: string, stageId: StageId) => {
-    setLeads(prev => prev.map(l => l.id === id ? { ...l, stage: stageId, updatedAt: new Date().toISOString() } : l));
-  }, []);
+  const getHistory = useCallback(async (leadIdentifier: string): Promise<ChatMessage[]> => {
+    if (!historyWebhookUrl || !leadIdentifier) return [];
+    try {
+      const url = new URL(historyWebhookUrl);
+      url.searchParams.append('ID_LEAD', leadIdentifier);
+      const response = await fetch(url.toString(), { method: 'GET' });
+      if (response.ok) {
+        const data = await response.json();
+        return (Array.isArray(data) ? data : []).map((msg: any) => ({
+          id: msg.id?.toString() || Math.random().toString(36).substr(2, 9),
+          message: msg.MENSAJE || "",
+          fromMe: String(msg.DE_MI) === "1",
+          timestamp: msg.createdAt || new Date().toISOString(),
+          pushName: ""
+        }));
+      }
+    } catch (err) { console.error(err); }
+    return [];
+  }, [historyWebhookUrl]);
 
   const updateSettings = useCallback((newSettings: any) => {
     setWebhookUrl(newSettings.webhookUrl || '');
+    setLeadEditUrl(newSettings.leadEditUrl || '');
     setHistoryWebhookUrl(newSettings.historyWebhookUrl || '');
     setBotWebhookUrl(newSettings.botWebhookUrl || '');
     setInstanceName(newSettings.instanceName || 'HALCONDIGITAL');
@@ -365,40 +382,18 @@ export function useLeads() {
   }, [initialSync]);
 
   return { 
-    leads, 
-    services,
-    info,
-    webhookUrl, 
-    historyWebhookUrl,
-    botWebhookUrl,
-    instanceName,
-    servicesUrl,
-    servicesEditUrl,
-    servicesCreateUrl,
-    servicesDeleteUrl,
-    infoUrl,
-    infoEditUrl,
-    infoCreateUrl,
-    infoDeleteUrl,
-    isSyncing,
-    isSyncingServices,
-    isSyncingInfo,
+    leads, services, info,
+    webhookUrl, leadEditUrl, historyWebhookUrl, botWebhookUrl, instanceName,
+    servicesUrl, servicesEditUrl, servicesCreateUrl, servicesDeleteUrl,
+    infoUrl, infoEditUrl, infoCreateUrl, infoDeleteUrl,
+    isSyncing, isSyncingServices, isSyncingInfo,
     syncLeads,
     syncServices: () => syncServices(servicesUrl),
     syncInfo: () => syncInfo(infoUrl),
-    getHistory,
-    toggleBot,
-    updateLead,
-    deleteLead,
-    moveLead,
-    createService,
-    updateService,
-    deleteService,
-    createInfo,
-    updateInfo,
-    deleteInfo,
-    updateSettings, 
-    isLoaded,
+    getHistory, toggleBot, updateLead, deleteLead, moveLead,
+    createService, updateService, deleteService,
+    createInfo, updateInfo, deleteInfo,
+    updateSettings, isLoaded,
     processIncomingWebhook: processIncomingData
   };
 }
