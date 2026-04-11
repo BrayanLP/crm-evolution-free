@@ -52,7 +52,9 @@
     "dateAll": "Todas las fechas",
     "dateToday": "Hoy",
     "dateWeek": "Últimos 7 días",
-    "dateMonth": "Últimos 30 días"
+    "dateMonth": "Últimos 30 días",
+    "date60": "Últimos 60 días",
+    "date90": "Últimos 90 días"
   },
   "contacts": {
     "title": "Chat de Leads",

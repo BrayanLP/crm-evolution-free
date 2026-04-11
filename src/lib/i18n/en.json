@@ -52,7 +52,9 @@
     "dateAll": "All Dates",
     "dateToday": "Today",
     "dateWeek": "Last 7 days",
-    "dateMonth": "Last 30 days"
+    "dateMonth": "Last 30 days",
+    "date60": "Last 60 days",
+    "date90": "Last 90 days"
   },
   "contacts": {
     "title": "Leads Chat",

@@ -17,7 +17,7 @@ export default function LeadsPage() {
   const pathname = usePathname();
   const [searchQuery, setSearchQuery] = useState('');
   const [botFilter, setBotFilter] = useState<'all' | 'active' | 'inactive'>('all');
-  const [dateFilter, setDateFilter] = useState<'all' | 'today' | 'week' | 'month'>('all');
+  const [dateFilter, setDateFilter] = useState<'all' | 'today' | 'week' | 'month' | '60days' | '90days'>('all');
 
   return (
     <div className="flex h-screen bg-background overflow-hidden">
@@ -51,7 +51,7 @@ export default function LeadsPage() {
 
       <main className="flex-1 flex flex-col min-w-0">
         <header className="h-16 border-b bg-white flex items-center justify-between px-8">
-          <div className="flex items-center gap-4 w-full max-w-3xl">
+          <div className="flex items-center gap-4 w-full max-w-4xl">
             <div className="relative flex-1">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input 
@@ -74,7 +74,7 @@ export default function LeadsPage() {
                 </SelectContent>
               </Select>
             </div>
-            <div className="flex items-center gap-2 w-44">
+            <div className="flex items-center gap-2 w-52">
               <Calendar className="h-4 w-4 text-slate-400" />
               <Select value={dateFilter} onValueChange={(val: any) => setDateFilter(val)}>
                 <SelectTrigger className="h-10 bg-slate-50 border-none shadow-none focus:ring-1 text-xs">
@@ -85,6 +85,8 @@ export default function LeadsPage() {
                   <SelectItem value="today">{t('leads.dateToday')}</SelectItem>
                   <SelectItem value="week">{t('leads.dateWeek')}</SelectItem>
                   <SelectItem value="month">{t('leads.dateMonth')}</SelectItem>
+                  <SelectItem value="60days">{t('leads.date60')}</SelectItem>
+                  <SelectItem value="90days">{t('leads.date90')}</SelectItem>
                 </SelectContent>
               </Select>
             </div>

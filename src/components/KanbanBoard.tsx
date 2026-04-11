@@ -19,7 +19,7 @@ import { useTranslation } from '@/context/LanguageContext';
 interface KanbanBoardProps {
   searchQuery?: string;
   botFilter?: 'all' | 'active' | 'inactive';
-  dateFilter?: 'all' | 'today' | 'week' | 'month';
+  dateFilter?: 'all' | 'today' | 'week' | 'month' | '60days' | '90days';
 }
 
 export function KanbanBoard({ 
@@ -64,6 +64,14 @@ export function KanbanBoard({
           const thirtyDaysAgo = new Date();
           thirtyDaysAgo.setDate(now.getDate() - 30);
           matchesDate = leadDate >= thirtyDaysAgo;
+        } else if (dateFilter === '60days') {
+          const sixtyDaysAgo = new Date();
+          sixtyDaysAgo.setDate(now.getDate() - 60);
+          matchesDate = leadDate >= sixtyDaysAgo;
+        } else if (dateFilter === '90days') {
+          const ninetyDaysAgo = new Date();
+          ninetyDaysAgo.setDate(now.getDate() - 90);
+          matchesDate = leadDate >= ninetyDaysAgo;
         }
       }
 

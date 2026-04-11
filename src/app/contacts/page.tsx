@@ -30,7 +30,7 @@ export default function ContactsPage() {
   const [isBotActive, setIsBotActive] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [botFilter, setBotFilter] = useState<'all' | 'active' | 'inactive'>('all');
-  const [dateFilter, setDateFilter] = useState<'all' | 'today' | 'week' | 'month'>('all');
+  const [dateFilter, setDateFilter] = useState<'all' | 'today' | 'week' | 'month' | '60days' | '90days'>('all');
   
   const pathname = usePathname();
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -64,6 +64,14 @@ export default function ContactsPage() {
             const thirtyDaysAgo = new Date();
             thirtyDaysAgo.setDate(now.getDate() - 30);
             matchesDate = leadDate >= thirtyDaysAgo;
+          } else if (dateFilter === '60days') {
+            const sixtyDaysAgo = new Date();
+            sixtyDaysAgo.setDate(now.getDate() - 60);
+            matchesDate = leadDate >= sixtyDaysAgo;
+          } else if (dateFilter === '90days') {
+            const ninetyDaysAgo = new Date();
+            ninetyDaysAgo.setDate(now.getDate() - 90);
+            matchesDate = leadDate >= ninetyDaysAgo;
           }
         }
 
@@ -174,6 +182,8 @@ export default function ContactsPage() {
                     <SelectItem value="today" className="text-xs">{t('leads.dateToday')}</SelectItem>
                     <SelectItem value="week" className="text-xs">{t('leads.dateWeek')}</SelectItem>
                     <SelectItem value="month" className="text-xs">{t('leads.dateMonth')}</SelectItem>
+                    <SelectItem value="60days" className="text-xs">{t('leads.date60')}</SelectItem>
+                    <SelectItem value="90days" className="text-xs">{t('leads.date90')}</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
