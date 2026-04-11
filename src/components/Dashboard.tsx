@@ -7,15 +7,17 @@ import { useLeads } from '@/lib/store';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell, PieChart as RePieChart, Pie, AreaChart, Area } from 'recharts';
 import { STAGES } from '@/lib/types';
-import { Users, Target, UserCheck, MessageSquare, TrendingUp, Bot, Send, Calendar, DollarSign, Briefcase } from 'lucide-react';
+import { Users, Target, UserCheck, MessageSquare, TrendingUp, Bot, Send, Calendar, DollarSign, Briefcase, Eye, EyeOff } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useTranslation } from '@/context/LanguageContext';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Button } from '@/components/ui/button';
 
 export function Dashboard() {
   const { leads, isSyncing, isLoaded } = useLeads();
   const { t } = useTranslation();
   const [dateFilter, setDateFilter] = useState<'all' | 'today' | 'week' | 'month' | '60days' | '90days'>('all');
+  const [showAmounts, setShowAmounts] = useState(true);
 
   // Filtrado de leads por fecha
   const filteredLeads = useMemo(() => {
@@ -117,6 +119,14 @@ export function Dashboard() {
           <p className="text-muted-foreground">{t('dashboard.subtitle')}</p>
         </div>
         <div className="flex items-center gap-4">
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => setShowAmounts(!showAmounts)}
+            className="h-10 w-10 text-slate-500 hover:text-primary transition-colors"
+          >
+            {showAmounts ? <Eye className="h-5 w-5" /> : <EyeOff className="h-5 w-5" />}
+          </Button>
           <div className="flex items-center gap-2 w-52">
             <Calendar className="h-4 w-4 text-slate-400" />
             <Select value={dateFilter} onValueChange={(val: any) => setDateFilter(val)}>
@@ -150,6 +160,7 @@ export function Dashboard() {
           icon={<Briefcase className="h-5 w-5 text-blue-500" />} 
           description={t('dashboard.kpi.descPipelineValue')}
           highlight="blue"
+          blurValue={!showAmounts}
         />
         <KpiCard 
           title={t('dashboard.kpi.convertedValue')} 
@@ -157,6 +168,7 @@ export function Dashboard() {
           icon={<DollarSign className="h-5 w-5 text-emerald-600" />} 
           description={t('dashboard.kpi.descConvertedValue')}
           highlight="emerald"
+          blurValue={!showAmounts}
         />
         <KpiCard 
           title={t('dashboard.kpi.totalLeads')} 
@@ -353,7 +365,7 @@ export function Dashboard() {
   );
 }
 
-function KpiCard({ title, value, icon, description, highlight }: { title: string, value: string, icon: React.ReactNode, description: string, highlight?: 'blue' | 'emerald' }) {
+function KpiCard({ title, value, icon, description, highlight, blurValue = false }: { title: string, value: string, icon: React.ReactNode, description: string, highlight?: 'blue' | 'emerald', blurValue?: boolean }) {
   return (
     <Card className={cn(
       "shadow-sm border-slate-200 overflow-hidden relative transition-all hover:shadow-md",
@@ -368,7 +380,13 @@ function KpiCard({ title, value, icon, description, highlight }: { title: string
         {icon}
       </CardHeader>
       <CardContent>
-        <div className={cn("text-2xl font-black", highlight && "text-slate-900")}>{value}</div>
+        <div className={cn(
+          "text-2xl font-black transition-all duration-300", 
+          highlight && "text-slate-900",
+          blurValue && "blur-md select-none opacity-50"
+        )}>
+          {value}
+        </div>
         <p className="text-[10px] text-muted-foreground mt-1 font-medium">{description}</p>
       </CardContent>
     </Card>
