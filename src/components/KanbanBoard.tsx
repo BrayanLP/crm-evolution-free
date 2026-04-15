@@ -2,11 +2,11 @@
 "use client"
 
 import * as React from 'react';
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { useLeads } from '@/lib/store';
 import { STAGES, Lead, StageId } from '@/lib/types';
 import { LeadDialog } from './LeadDialog';
-import { Building2, Phone, RefreshCw, AlertCircle, Bot } from 'lucide-react';
+import { Phone, RefreshCw, AlertCircle, Bot, DollarSign } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -16,13 +16,70 @@ import { Switch } from '@/components/ui/switch';
 import { useToast } from '@/hooks/use-toast';
 import { useTranslation } from '@/context/LanguageContext';
 
-export function KanbanBoard() {
+interface KanbanBoardProps {
+  searchQuery?: string;
+  botFilter?: 'all' | 'active' | 'inactive';
+  dateFilter?: 'all' | 'today' | 'week' | 'month' | '60days' | '90days';
+  showAmounts?: boolean;
+}
+
+export function KanbanBoard({ 
+  searchQuery = '', 
+  botFilter = 'all',
+  dateFilter = 'all',
+  showAmounts = true
+}: KanbanBoardProps) {
   const { leads, updateLead, deleteLead, moveLead, syncLeads, toggleBot, isSyncing, isLoaded, webhookUrl, botWebhookUrl } = useLeads();
   const { t } = useTranslation();
   const { toast } = useToast();
   const [selectedLead, setSelectedLead] = useState<Lead | undefined>(undefined);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [draggingLeadId, setDraggingLeadId] = useState<string | null>(null);
+
+  const filteredLeads = useMemo(() => {
+    return leads.filter(lead => {
+      // Filtro de búsqueda (nombre, celular, correo)
+      const q = searchQuery.toLowerCase();
+      const matchesSearch = 
+        lead.contactName.toLowerCase().includes(q) ||
+        lead.phone.includes(q) ||
+        (lead.email && lead.email.toLowerCase().includes(q));
+      
+      // Filtro de Bot
+      const matchesBot = 
+        botFilter === 'all' || 
+        (botFilter === 'active' && lead.botActive !== false) || 
+        (botFilter === 'inactive' && lead.botActive === false);
+
+      // Filtro de Fecha
+      let matchesDate = true;
+      if (dateFilter !== 'all') {
+        const leadDate = new Date(lead.updatedAt);
+        const now = new Date();
+        if (dateFilter === 'today') {
+          matchesDate = leadDate.toDateString() === now.toDateString();
+        } else if (dateFilter === 'week') {
+          const sevenDaysAgo = new Date();
+          sevenDaysAgo.setDate(now.getDate() - 7);
+          matchesDate = leadDate >= sevenDaysAgo;
+        } else if (dateFilter === 'month') {
+          const thirtyDaysAgo = new Date();
+          thirtyDaysAgo.setDate(now.getDate() - 30);
+          matchesDate = leadDate >= thirtyDaysAgo;
+        } else if (dateFilter === '60days') {
+          const sixtyDaysAgo = new Date();
+          sixtyDaysAgo.setDate(now.getDate() - 60);
+          matchesDate = leadDate >= sixtyDaysAgo;
+        } else if (dateFilter === '90days') {
+          const ninetyDaysAgo = new Date();
+          ninetyDaysAgo.setDate(now.getDate() - 90);
+          matchesDate = leadDate >= ninetyDaysAgo;
+        }
+      }
+
+      return matchesSearch && matchesBot && matchesDate;
+    });
+  }, [leads, searchQuery, botFilter, dateFilter]);
 
   if (!isLoaded) return (
     <div className="flex items-center justify-center h-full">
@@ -84,7 +141,17 @@ export function KanbanBoard() {
       <div className="flex-1 overflow-x-auto pb-4">
         <div className="flex h-full gap-4 min-w-max">
           {STAGES.map((stage) => {
-            const stageLeads = leads.filter((l) => l.stage === stage.id);
+            const stageLeads = filteredLeads
+              .filter((l) => l.stage === stage.id)
+              .sort((a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime());
+
+            const totalBudget = stageLeads.reduce((acc, lead) => {
+              const value = typeof lead.budget === 'string' 
+                ? parseFloat(lead.budget.replace(/[^0-9.]/g, '')) 
+                : (typeof lead.budget === 'number' ? lead.budget : 0);
+              return acc + (isNaN(value) ? 0 : value);
+            }, 0);
+
             return (
               <div
                 key={stage.id}
@@ -92,19 +159,30 @@ export function KanbanBoard() {
                 onDragOver={handleDragOver}
                 onDrop={(e) => handleDrop(e, stage.id)}
               >
-                <div className="p-4 flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <div className={cn("w-2 h-2 rounded-full", stage.color)} />
-                    <h2 className="font-semibold text-sm uppercase tracking-wider text-slate-600">
-                      {t(`stages.${stage.id}`)}
-                    </h2>
-                    <Badge variant="secondary" className="ml-1 text-xs">
+                <div className="p-4 border-b border-slate-200/60">
+                  <div className="flex items-center justify-between mb-2">
+                    <div className="flex items-center gap-2">
+                      <div className={cn("w-2.5 h-2.5 rounded-full", stage.color)} />
+                      <h2 className="font-bold text-sm uppercase tracking-wider text-slate-700">
+                        {t(`stages.${stage.id}`)}
+                      </h2>
+                    </div>
+                    <Badge variant="secondary" className="text-xs font-bold">
                       {stageLeads.length}
                     </Badge>
                   </div>
+                  <div className="flex items-center gap-1.5 text-xs font-semibold text-primary">
+                    <DollarSign className="h-3 w-3" />
+                    <span className={cn(
+                      "transition-all duration-300",
+                      !showAmounts && "blur-sm select-none opacity-50"
+                    )}>
+                      S/ {totalBudget.toLocaleString()}
+                    </span>
+                  </div>
                 </div>
 
-                <div className="flex-1 overflow-y-auto px-2 space-y-3 pb-4 scrollbar-hide">
+                <div className="flex-1 overflow-y-auto px-2 space-y-3 py-4 scrollbar-hide">
                   {stageLeads.map((lead) => (
                     <Card
                       key={lead.id}
@@ -113,7 +191,7 @@ export function KanbanBoard() {
                       onDragEnd={() => setDraggingLeadId(null)}
                       onClick={() => openEditDialog(lead)}
                       className={cn(
-                        "cursor-grab active:cursor-grabbing hover:shadow-md transition-all duration-200 border-l-4",
+                        "cursor-grab active:cursor-grabbing hover:shadow-md transition-all duration-200 border-l-4 bg-white",
                         draggingLeadId === lead.id ? "opacity-40 scale-95" : "opacity-100",
                         stage.id === 'new' ? "border-l-blue-500" :
                         stage.id === 'contacted' ? "border-l-amber-500" :
@@ -128,10 +206,6 @@ export function KanbanBoard() {
                         </div>
                         
                         <div className="space-y-1.5">
-                          <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                            <Building2 className="h-3 w-3" />
-                            <span className="truncate">{lead.company}</span>
-                          </div>
                           {lead.phone && (
                             <div className="flex items-center gap-2 text-xs text-muted-foreground">
                               <Phone className="h-3 w-3" />
@@ -139,12 +213,6 @@ export function KanbanBoard() {
                             </div>
                           )}
                         </div>
-
-                        {lead.notes && (
-                          <p className="text-[11px] text-muted-foreground line-clamp-2 italic bg-slate-50 p-1.5 rounded-md border border-slate-100">
-                            "{lead.notes}"
-                          </p>
-                        )}
 
                         <div className="flex items-center justify-between pt-2 border-t border-slate-50 mt-1">
                           {botWebhookUrl && (

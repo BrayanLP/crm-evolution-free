@@ -12,10 +12,8 @@ import {
 } from 'lucide-react';
 import { useLeads } from '@/lib/store';
 import { useToast } from '@/hooks/use-toast';
-import { Separator } from '@/components/ui/separator';
 import { useTranslation } from '@/context/LanguageContext';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { ScrollArea } from '@/components/ui/scroll-area';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Toaster } from '@/components/ui/toaster';
 import Link from 'next/link';
@@ -24,7 +22,7 @@ import { cn } from '@/lib/utils';
 
 export default function SettingsPage() {
   const { 
-    webhookUrl, historyWebhookUrl, botWebhookUrl, instanceName, 
+    webhookUrl, leadEditUrl, historyWebhookUrl, botWebhookUrl, instanceName, 
     servicesUrl, servicesCreateUrl, servicesEditUrl, servicesDeleteUrl,
     infoUrl, infoCreateUrl, infoEditUrl, infoDeleteUrl,
     updateSettings 
@@ -36,6 +34,7 @@ export default function SettingsPage() {
   
   const [formData, setFormData] = useState({
     webhookUrl: '',
+    leadEditUrl: '',
     historyWebhookUrl: '',
     botWebhookUrl: '',
     instanceName: 'HALCONDIGITAL',
@@ -52,6 +51,7 @@ export default function SettingsPage() {
   useEffect(() => {
     setFormData({
       webhookUrl: webhookUrl || '',
+      leadEditUrl: leadEditUrl || '',
       historyWebhookUrl: historyWebhookUrl || '',
       botWebhookUrl: botWebhookUrl || '',
       instanceName: instanceName || 'HALCONDIGITAL',
@@ -65,7 +65,7 @@ export default function SettingsPage() {
       infoDeleteUrl: infoDeleteUrl || ''
     });
   }, [
-    webhookUrl, historyWebhookUrl, botWebhookUrl, instanceName, 
+    webhookUrl, leadEditUrl, historyWebhookUrl, botWebhookUrl, instanceName, 
     servicesUrl, servicesCreateUrl, servicesEditUrl, servicesDeleteUrl,
     infoUrl, infoCreateUrl, infoEditUrl, infoDeleteUrl
   ]);
@@ -102,6 +102,7 @@ export default function SettingsPage() {
         const json = JSON.parse(event.target?.result as string);
         setFormData({
           webhookUrl: json.webhookUrl || '',
+          leadEditUrl: json.leadEditUrl || '',
           historyWebhookUrl: json.historyWebhookUrl || '',
           botWebhookUrl: json.botWebhookUrl || '',
           instanceName: json.instanceName || 'HALCONDIGITAL',
@@ -184,7 +185,7 @@ export default function SettingsPage() {
                 <CardHeader>
                   <CardTitle className="text-lg flex items-center gap-2">
                     <Webhook className="h-5 w-5 text-primary" />
-                    Webhooks Principales
+                    Webhooks de Leads
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
@@ -196,7 +197,19 @@ export default function SettingsPage() {
                     <Input
                       value={formData.webhookUrl}
                       onChange={(e) => setFormData({ ...formData, webhookUrl: e.target.value })}
-                      placeholder="https://..."
+                      placeholder="https://.../ver/lead"
+                    />
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <Label className="text-sm font-semibold flex items-center gap-2">
+                      <Save className="h-4 w-4" />
+                      {t('settings.leadEditUrl')}
+                    </Label>
+                    <Input
+                      value={formData.leadEditUrl}
+                      onChange={(e) => setFormData({ ...formData, leadEditUrl: e.target.value })}
+                      placeholder="https://.../editar/lead"
                     />
                   </div>
 
@@ -222,11 +235,11 @@ export default function SettingsPage() {
                       onChange={(e) => setFormData({ ...formData, botWebhookUrl: e.target.value })}
                       placeholder="https://..."
                     />
-                    <p className="text-[10px] text-muted-foreground italic">{t('settings.botDesc')}</p>
                   </div>
                 </CardContent>
               </Card>
 
+              {/* Otros bloques de Webhooks (Servicios e Info)... */}
               <Card className="shadow-sm border-slate-200">
                 <CardHeader>
                   <CardTitle className="text-lg flex items-center gap-2">

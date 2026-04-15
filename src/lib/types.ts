@@ -10,6 +10,7 @@ export interface Lead {
   company: string;
   stage: StageId;
   notes: string;
+  budget?: string | number;
   remoteJid?: string;
   createdAt: string;
   updatedAt: string;
