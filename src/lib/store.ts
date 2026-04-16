@@ -68,7 +68,7 @@ export function useLeads() {
         budget: incoming.PRESUPUESTO || incoming.budget || 0,
         createdAt: incoming.createdAt || new Date().toISOString(),
         updatedAt: incoming.updatedAt || new Date().toISOString(),
-        botActive: incoming.ESTADO_BOT === '1',
+        botActive: String(incoming.ESTADO_BOT) === '1', // Manejo robusto de 1 o '1'
       };
     });
 
@@ -265,7 +265,6 @@ export function useLeads() {
     }
   }, [botWebhookUrl, pushLeadUpdate]);
 
-  // Resto de funciones CRUD (Servicios e Info) se mantienen igual...
   const createService = useCallback(async (serviceData: Omit<Service, 'id'>) => {
     if (!servicesCreateUrl) return;
     try {
