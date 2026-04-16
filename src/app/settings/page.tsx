@@ -19,6 +19,7 @@ import { Toaster } from '@/components/ui/toaster';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { cn } from '@/lib/utils';
+import { MobileNav } from '@/components/MobileNav';
 
 export default function SettingsPage() {
   const { 
@@ -156,24 +157,27 @@ export default function SettingsPage() {
         </div>
       </aside>
 
-      <main className="flex-1 overflow-y-auto p-8 bg-slate-50">
+      <main className="flex-1 overflow-y-auto p-4 md:p-8 bg-slate-50">
         <div className="max-w-4xl mx-auto space-y-8">
-          <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-3xl font-bold text-primary flex items-center gap-3">
-                <SettingsIcon className="h-8 w-8" />
-                {t('settings.title')}
-              </h1>
-              <p className="text-muted-foreground mt-1">{t('settings.description')}</p>
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <div className="flex items-center">
+              <MobileNav />
+              <div>
+                <h1 className="text-2xl md:text-3xl font-bold text-primary flex items-center gap-3">
+                  <SettingsIcon className="h-6 w-6 md:h-8 md:w-8" />
+                  {t('settings.title')}
+                </h1>
+                <p className="text-xs md:text-sm text-muted-foreground mt-1">{t('settings.description')}</p>
+              </div>
             </div>
-            <div className="flex gap-3">
-              <Button variant="outline" className="gap-2" onClick={exportConfig}>
+            <div className="flex gap-2">
+              <Button variant="outline" size="sm" className="gap-2 flex-1 md:flex-none" onClick={exportConfig}>
                 <Download className="h-4 w-4" />
-                {t('settings.export')}
+                <span className="hidden sm:inline">{t('settings.export')}</span>
               </Button>
-              <Button variant="outline" className="gap-2" onClick={() => fileInputRef.current?.click()}>
+              <Button variant="outline" size="sm" className="gap-2 flex-1 md:flex-none" onClick={() => fileInputRef.current?.click()}>
                 <Upload className="h-4 w-4" />
-                {t('settings.import')}
+                <span className="hidden sm:inline">{t('settings.import')}</span>
               </Button>
               <input type="file" ref={fileInputRef} className="hidden" accept=".json" onChange={importConfig} />
             </div>
@@ -239,7 +243,6 @@ export default function SettingsPage() {
                 </CardContent>
               </Card>
 
-              {/* Otros bloques de Webhooks (Servicios e Info)... */}
               <Card className="shadow-sm border-slate-200">
                 <CardHeader>
                   <CardTitle className="text-lg flex items-center gap-2">

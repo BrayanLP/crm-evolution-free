@@ -3,7 +3,7 @@
 
 import { useState, useEffect, useRef, useMemo } from 'react';
 import { useLeads } from '@/lib/store';
-import { LayoutGrid, Users, Settings, PieChart, Search, MessageSquare, User, History as HistoryIcon, Bot, Briefcase, Info, Filter, Calendar } from 'lucide-react';
+import { LayoutGrid, Users, Settings, PieChart, Search, MessageSquare, User, History as HistoryIcon, Bot, Briefcase, Info, Filter, Calendar, Menu } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Toaster } from '@/components/ui/toaster';
@@ -18,6 +18,7 @@ import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
 import { useTranslation } from '@/context/LanguageContext';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { MobileNav } from '@/components/MobileNav';
 
 export default function ContactsPage() {
   const { leads, getHistory, historyWebhookUrl, toggleBot, botWebhookUrl } = useLeads();
@@ -144,10 +145,13 @@ export default function ContactsPage() {
         </div>
       </aside>
 
-      <main className="flex-1 flex min-w-0">
-        <div className="w-80 border-r bg-white flex flex-col shadow-sm">
+      <main className="flex-1 flex min-w-0 flex-col md:flex-row">
+        <div className="w-full md:w-80 border-r bg-white flex flex-col shadow-sm h-full max-h-[40vh] md:max-h-full">
           <div className="p-4 border-b space-y-3">
-            <h2 className="text-xl font-bold">{t('contacts.title')}</h2>
+            <div className="flex items-center">
+              <MobileNav />
+              <h2 className="text-xl font-bold">{t('contacts.title')}</h2>
+            </div>
             <div className="relative">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input 
@@ -229,11 +233,16 @@ export default function ContactsPage() {
           </ScrollArea>
         </div>
 
-        <div className="flex-1 flex flex-col bg-slate-50">
+        <div className="flex-1 flex flex-col bg-slate-50 h-full">
           {selectedLead ? (
             <>
               <div className="h-16 border-b bg-white flex items-center justify-between px-6 shadow-sm z-10">
                 <div className="flex items-center gap-3">
+                  <div className="md:hidden">
+                    <Button variant="ghost" size="icon" onClick={() => setSelectedLead(null)} className="h-8 w-8 mr-2">
+                       <Menu className="h-4 w-4" />
+                    </Button>
+                  </div>
                   <div className="w-9 h-9 rounded-full bg-slate-100 flex items-center justify-center">
                     <User className="h-5 w-5 text-slate-400" />
                   </div>
@@ -252,21 +261,22 @@ export default function ContactsPage() {
                 </div>
 
                 {botWebhookUrl && (
-                  <div className="flex items-center gap-3 bg-slate-50 px-4 py-2 rounded-full border">
+                  <div className="flex items-center gap-3 bg-slate-50 px-2 md:px-4 py-2 rounded-full border">
                     <Bot className={cn("h-4 w-4", isBotActive ? "text-primary" : "text-muted-foreground")} />
-                    <Label htmlFor="bot-mode" className="text-xs font-semibold cursor-pointer">
+                    <Label htmlFor="bot-mode" className="text-[10px] md:text-xs font-semibold cursor-pointer hidden sm:inline">
                       {t('contacts.botIA')}
                     </Label>
                     <Switch 
                       id="bot-mode" 
                       checked={isBotActive} 
                       onCheckedChange={handleBotToggle}
+                      className="scale-75 md:scale-100"
                     />
                   </div>
                 )}
               </div>
 
-              <ScrollArea className="flex-1 p-6">
+              <ScrollArea className="flex-1 p-4 md:p-6">
                 {!historyWebhookUrl ? (
                   <div className="h-full flex flex-col items-center justify-center opacity-50 space-y-2">
                     <HistoryIcon className="h-12 w-12" />
@@ -282,7 +292,7 @@ export default function ContactsPage() {
                       <div
                         key={msg.id}
                         className={cn(
-                          "flex flex-col max-w-[80%]",
+                          "flex flex-col max-w-[90%] md:max-w-[80%]",
                           msg.fromMe ? "ml-auto items-end" : "items-start"
                         )}
                       >
@@ -313,7 +323,7 @@ export default function ContactsPage() {
               </ScrollArea>
               
               <div className="p-4 bg-white border-t text-center">
-                <p className="text-xs text-muted-foreground italic flex items-center justify-center gap-2">
+                <p className="text-[10px] md:text-xs text-muted-foreground italic flex items-center justify-center gap-2">
                   <MessageSquare className="h-3 w-3" />
                   {t('contacts.viewMode')}
                 </p>
@@ -321,11 +331,11 @@ export default function ContactsPage() {
             </>
           ) : (
             <div className="flex-1 flex flex-col items-center justify-center opacity-30">
-              <div className="w-20 h-20 rounded-full bg-slate-200 flex items-center justify-center mb-4">
-                <MessageSquare className="h-10 w-10 text-slate-400" />
+              <div className="w-16 h-16 md:w-20 md:h-20 rounded-full bg-slate-200 flex items-center justify-center mb-4">
+                <MessageSquare className="h-8 w-8 md:h-10 md:w-10 text-slate-400" />
               </div>
-              <h3 className="text-lg font-bold">{t('contacts.selectLead')}</h3>
-              <p className="text-sm">{t('contacts.selectLeadDesc')}</p>
+              <h3 className="text-base md:text-lg font-bold">{t('contacts.selectLead')}</h3>
+              <p className="text-xs md:text-sm">{t('contacts.selectLeadDesc')}</p>
             </div>
           )}
         </div>

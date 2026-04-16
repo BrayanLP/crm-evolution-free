@@ -18,6 +18,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import type { Service } from '@/lib/types';
+import { MobileNav } from '@/components/MobileNav';
 
 export default function ServicesPage() {
   const { services, isSyncingServices, syncServices, createService, updateService, deleteService, isLoaded } = useLeads();
@@ -108,31 +109,34 @@ export default function ServicesPage() {
       </aside>
 
       <main className="flex-1 flex flex-col min-w-0">
-        <header className="h-16 border-b bg-white flex items-center justify-between px-8">
-          <h1 className="text-xl font-bold text-primary flex items-center gap-2">
-            <Briefcase className="h-5 w-5" />
-            {t('services.title')}
-          </h1>
+        <header className="h-16 border-b bg-white flex items-center justify-between px-4 md:px-8">
+          <div className="flex items-center">
+            <MobileNav />
+            <h1 className="text-lg md:text-xl font-bold text-primary flex items-center gap-2">
+              <Briefcase className="h-5 w-5" />
+              {t('services.title')}
+            </h1>
+          </div>
           <div className="flex gap-2">
-            <Button variant="outline" size="sm" onClick={syncServices} disabled={isSyncingServices}>
+            <Button variant="outline" size="sm" onClick={syncServices} disabled={isSyncingServices} className="hidden sm:flex">
               <RefreshCw className={cn("h-4 w-4 mr-2", isSyncingServices && "animate-spin")} />
               {t('services.sync')}
             </Button>
             <Button size="sm" onClick={() => { setSelectedService(null); setIsDialogOpen(true); }}>
-              <Plus className="h-4 w-4 mr-2" />
-              {t('services.add')}
+              <Plus className="h-4 w-4 md:mr-2" />
+              <span className="hidden md:inline">{t('services.add')}</span>
             </Button>
           </div>
         </header>
 
-        <div className="flex-1 overflow-y-auto p-8">
+        <div className="flex-1 overflow-y-auto p-4 md:p-8">
           <Card className="shadow-sm border-slate-200">
-            <CardHeader>
-              <CardTitle>{t('services.title')}</CardTitle>
-              <CardDescription>{t('services.subtitle')}</CardDescription>
+            <CardHeader className="p-4 md:p-6">
+              <CardTitle className="text-lg">{t('services.title')}</CardTitle>
+              <CardDescription className="text-xs md:text-sm">{t('services.subtitle')}</CardDescription>
             </CardHeader>
-            <CardContent>
-              <div className="rounded-md border">
+            <CardContent className="p-0 md:p-6 md:pt-0">
+              <div className="rounded-md border-x md:border overflow-hidden">
                 <Table>
                   <TableHeader>
                     <TableRow>
@@ -145,18 +149,18 @@ export default function ServicesPage() {
                   <TableBody>
                     {services.map((service) => (
                       <TableRow key={service.id}>
-                        <TableCell className="font-medium">
+                        <TableCell className="font-medium p-3 md:p-4">
                           <div className="flex flex-col">
-                            <span>{service.NOMBRE || 'Sin nombre'}</span>
+                            <span className="text-xs md:text-sm">{service.NOMBRE || 'Sin nombre'}</span>
                             <div className="flex gap-2 mt-1">
                               {service.CANTIDAD_PERSONAS && (
-                                <span className="text-[10px] bg-slate-100 px-1.5 py-0.5 rounded flex items-center gap-1">
+                                <span className="text-[9px] md:text-[10px] bg-slate-100 px-1.5 py-0.5 rounded flex items-center gap-1">
                                   <Users2 className="h-2.5 w-2.5" />
                                   {service.CANTIDAD_PERSONAS} pers.
                                 </span>
                               )}
                               {service.CANTIDAD_CLASES && (
-                                <span className="text-[10px] bg-slate-100 px-1.5 py-0.5 rounded flex items-center gap-1">
+                                <span className="text-[9px] md:text-[10px] bg-slate-100 px-1.5 py-0.5 rounded flex items-center gap-1">
                                   <BookOpen className="h-2.5 w-2.5" />
                                   {service.CANTIDAD_CLASES} clases
                                 </span>
@@ -164,18 +168,18 @@ export default function ServicesPage() {
                             </div>
                           </div>
                         </TableCell>
-                        <TableCell className="hidden md:table-cell text-muted-foreground max-w-xs">
+                        <TableCell className="hidden md:table-cell text-muted-foreground max-w-xs p-3 md:p-4">
                           <p className="line-clamp-2 text-xs">{service.DESCRIPCION || '-'}</p>
                         </TableCell>
-                        <TableCell className="text-right font-semibold text-primary">
+                        <TableCell className="text-right font-semibold text-primary p-3 md:p-4 text-xs md:text-sm">
                           {service.PRECIO || '-'}
                         </TableCell>
-                        <TableCell className="text-right">
-                          <div className="flex justify-end gap-2">
-                            <Button variant="ghost" size="icon" onClick={() => { setSelectedService(service); setIsDialogOpen(true); }}>
+                        <TableCell className="text-right p-3 md:p-4">
+                          <div className="flex justify-end gap-1 md:gap-2">
+                            <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => { setSelectedService(service); setIsDialogOpen(true); }}>
                               <Pencil className="h-4 w-4 text-primary" />
                             </Button>
-                            <Button variant="ghost" size="icon" onClick={() => confirmDelete(service.id)}>
+                            <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => confirmDelete(service.id)}>
                               <Trash2 className="h-4 w-4 text-destructive" />
                             </Button>
                           </div>

@@ -12,6 +12,7 @@ import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { useLeads } from '@/lib/store';
 import { useTranslation } from '@/context/LanguageContext';
+import { MobileNav } from '@/components/MobileNav';
 
 export default function Home() {
   const { webhookUrl, isLoaded } = useLeads();
@@ -56,8 +57,9 @@ export default function Home() {
       </aside>
 
       <main className="flex-1 flex flex-col min-w-0">
-        <header className="h-16 border-b bg-white flex items-center justify-between px-8">
+        <header className="h-16 border-b bg-white flex items-center justify-between px-4 md:px-8">
           <div className="flex items-center w-full max-w-md">
+            <MobileNav />
             <div className="relative w-full">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input 
@@ -68,7 +70,7 @@ export default function Home() {
           </div>
         </header>
 
-        <div className="flex-1 overflow-y-auto p-8">
+        <div className="flex-1 overflow-y-auto p-4 md:p-8">
           <Dashboard />
         </div>
       </main>

@@ -17,6 +17,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import type { Info } from '@/lib/types';
+import { MobileNav } from '@/components/MobileNav';
 
 export default function InfoPage() {
   const { info, isSyncingInfo, syncInfo, createInfo, updateInfo, deleteInfo, isLoaded } = useLeads();
@@ -99,55 +100,58 @@ export default function InfoPage() {
       </aside>
 
       <main className="flex-1 flex flex-col min-w-0">
-        <header className="h-16 border-b bg-white flex items-center justify-between px-8">
-          <h1 className="text-xl font-bold text-primary flex items-center gap-2">
-            <InfoIcon className="h-5 w-5" />
-            {t('info.title')}
-          </h1>
+        <header className="h-16 border-b bg-white flex items-center justify-between px-4 md:px-8">
+          <div className="flex items-center">
+            <MobileNav />
+            <h1 className="text-lg md:text-xl font-bold text-primary flex items-center gap-2">
+              <InfoIcon className="h-5 w-5" />
+              {t('info.title')}
+            </h1>
+          </div>
           <div className="flex gap-2">
-            <Button variant="outline" size="sm" onClick={syncInfo} disabled={isSyncingInfo}>
+            <Button variant="outline" size="sm" onClick={syncInfo} disabled={isSyncingInfo} className="hidden sm:flex">
               <RefreshCw className={cn("h-4 w-4 mr-2", isSyncingInfo && "animate-spin")} />
               {t('info.sync')}
             </Button>
             <Button size="sm" onClick={() => { setSelectedInfo(null); setIsDialogOpen(true); }}>
-              <Plus className="h-4 w-4 mr-2" />
-              {t('info.add')}
+              <Plus className="h-4 w-4 md:mr-2" />
+              <span className="hidden md:inline">{t('info.add')}</span>
             </Button>
           </div>
         </header>
 
-        <div className="flex-1 overflow-y-auto p-8">
+        <div className="flex-1 overflow-y-auto p-4 md:p-8">
           <Card className="shadow-sm border-slate-200">
-            <CardHeader>
-              <CardTitle>{t('info.title')}</CardTitle>
-              <CardDescription>{t('info.subtitle')}</CardDescription>
+            <CardHeader className="p-4 md:p-6">
+              <CardTitle className="text-lg">{t('info.title')}</CardTitle>
+              <CardDescription className="text-xs md:text-sm">{t('info.subtitle')}</CardDescription>
             </CardHeader>
-            <CardContent>
-              <div className="rounded-md border">
+            <CardContent className="p-0 md:p-6 md:pt-0">
+              <div className="rounded-md border-x md:border overflow-hidden">
                 <Table>
                   <TableHeader>
                     <TableRow>
                       <TableHead>{t('info.text')}</TableHead>
-                      <TableHead className="text-right w-32">{t('info.actions')}</TableHead>
+                      <TableHead className="text-right w-24 md:w-32">{t('info.actions')}</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
                     {info.map((item) => (
                       <TableRow key={item.id}>
-                        <TableCell className="max-w-xl">
+                        <TableCell className="max-w-xl p-3 md:p-4">
                           <div className="flex items-start gap-3">
                             <FileText className="h-4 w-4 mt-1 text-slate-400 flex-shrink-0" />
-                            <p className="whitespace-pre-wrap text-sm text-slate-700 leading-relaxed">
+                            <p className="whitespace-pre-wrap text-xs md:text-sm text-slate-700 leading-relaxed">
                               {item.Informacion || '-'}
                             </p>
                           </div>
                         </TableCell>
-                        <TableCell className="text-right">
-                          <div className="flex justify-end gap-2">
-                            <Button variant="ghost" size="icon" onClick={() => { setSelectedInfo(item); setIsDialogOpen(true); }}>
+                        <TableCell className="text-right p-3 md:p-4">
+                          <div className="flex justify-end gap-1 md:gap-2">
+                            <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => { setSelectedInfo(item); setIsDialogOpen(true); }}>
                               <Pencil className="h-4 w-4 text-primary" />
                             </Button>
-                            <Button variant="ghost" size="icon" onClick={() => confirmDelete(item.id)}>
+                            <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => confirmDelete(item.id)}>
                               <Trash2 className="h-4 w-4 text-destructive" />
                             </Button>
                           </div>
