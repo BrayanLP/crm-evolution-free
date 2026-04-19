@@ -3,7 +3,7 @@
 
 import { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import { useLeads } from '@/lib/store';
-import { LayoutGrid, Users, Settings, PieChart, Search, MessageSquare, User, History as HistoryIcon, Bot, Briefcase, Info, Filter, Calendar, Menu, ArrowLeft, Image as ImageIcon } from 'lucide-react';
+import { LayoutGrid, Users, Settings, PieChart, Search, MessageSquare, User, History as HistoryIcon, Bot, Briefcase, Info, Filter, Calendar, Menu, ArrowLeft, Image as ImageIcon, ExternalLink } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Toaster } from '@/components/ui/toaster';
@@ -300,24 +300,41 @@ export default function ContactsPage() {
                           )}
                         >
                           {msg.type === 'imageMessage' ? (
-                            <div className="space-y-1 min-w-[150px] min-h-[100px] flex items-center justify-center relative">
-                              <img 
-                                src={formatDriveUrl(msg.message)} 
-                                alt="WhatsApp Image" 
-                                className="rounded-lg max-w-full h-auto object-cover shadow-sm cursor-pointer hover:opacity-90 transition-opacity"
-                                loading="lazy"
-                                onError={(e) => {
-                                  // Fallback simple si la imagen falla
-                                  (e.target as any).style.display = 'none';
-                                  const parent = (e.target as any).parentNode;
-                                  if (parent) {
-                                    const errText = document.createElement('div');
-                                    errText.className = "p-4 text-xs font-medium flex items-center gap-2 text-muted-foreground";
-                                    errText.innerHTML = `<svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect width="18" height="18" x="3" y="3" rx="2" ry="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/></svg> Imagen no disponible`;
-                                    parent.appendChild(errText);
-                                  }
-                                }}
-                              />
+                            <div className="flex flex-col gap-2 p-1">
+                              <div className="relative group overflow-hidden rounded-lg bg-slate-100/50 flex flex-col items-center justify-center min-h-[120px] border border-slate-200/20">
+                                <img 
+                                  src={formatDriveUrl(msg.message)} 
+                                  alt="WhatsApp Preview" 
+                                  className="max-h-[300px] w-auto object-contain cursor-pointer hover:scale-[1.01] transition-transform"
+                                  loading="lazy"
+                                  onError={(e) => {
+                                    (e.target as any).style.display = 'none';
+                                    const parent = (e.target as any).parentNode;
+                                    if (parent) {
+                                      const errorDiv = parent.querySelector('.error-indicator');
+                                      if (errorDiv) errorDiv.style.display = 'flex';
+                                    }
+                                  }}
+                                />
+                                <div className="error-indicator hidden flex-col items-center gap-2 p-6 text-slate-400">
+                                  <ImageIcon className="h-8 w-8 opacity-50" />
+                                  <span className="text-[10px] font-bold text-center uppercase tracking-tighter">Vista previa no disponible</span>
+                                </div>
+                              </div>
+                              <a 
+                                href={msg.message} 
+                                target="_blank" 
+                                rel="noopener noreferrer"
+                                className={cn(
+                                  "flex items-center justify-center gap-2 py-2 px-4 rounded-lg text-[10px] font-black uppercase tracking-tight transition-all",
+                                  msg.fromMe 
+                                    ? "bg-white/20 text-white hover:bg-white/30 border border-white/10" 
+                                    : "bg-primary/5 text-primary hover:bg-primary/10 border border-primary/20"
+                                )}
+                              >
+                                <ExternalLink className="h-3 w-3" />
+                                Abrir Imagen Original
+                              </a>
                             </div>
                           ) : (
                             <p className="whitespace-pre-wrap leading-relaxed">{msg.message}</p>
