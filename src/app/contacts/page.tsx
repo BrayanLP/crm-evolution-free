@@ -36,12 +36,15 @@ export default function ContactsPage() {
   const pathname = usePathname();
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
-  const formatDriveUrl = useCallback((url: string) => {
+  const formatDriveUrl = useCallback((url: string, type: 'view' | 'embed' = 'embed') => {
     if (!url) return '';
     if (url.includes('drive.google.com')) {
       // Extraer el ID de diferentes formatos de URL de Drive
       const match = url.match(/\/d\/([a-zA-Z0-9_-]+)/) || url.match(/id=([a-zA-Z0-9_-]+)/);
       if (match && match[1]) {
+        if (type === 'view') {
+          return `https://drive.google.com/file/d/${match[1]}/view?usp=drivesdk`;
+        }
         return `https://drive.google.com/uc?id=${match[1]}`;
       }
     }
@@ -303,7 +306,7 @@ export default function ContactsPage() {
                             <div className="flex flex-col gap-2 p-1">
                               <div className="relative group overflow-hidden rounded-lg bg-slate-100/50 flex flex-col items-center justify-center min-h-[120px] border border-slate-200/20">
                                 <img 
-                                  src={formatDriveUrl(msg.message)} 
+                                  src={formatDriveUrl(msg.message, 'embed')} 
                                   alt="WhatsApp Preview" 
                                   className="max-h-[300px] w-auto object-contain cursor-pointer hover:scale-[1.01] transition-transform"
                                   loading="lazy"
@@ -322,7 +325,7 @@ export default function ContactsPage() {
                                 </div>
                               </div>
                               <a 
-                                href={msg.message} 
+                                href={formatDriveUrl(msg.message, 'view')} 
                                 target="_blank" 
                                 rel="noopener noreferrer"
                                 className={cn(
@@ -333,7 +336,7 @@ export default function ContactsPage() {
                                 )}
                               >
                                 <ExternalLink className="h-3 w-3" />
-                                Abrir Imagen Original
+                                Ver Imagen Original
                               </a>
                             </div>
                           ) : (
