@@ -287,7 +287,18 @@ export default function ContactsPage() {
                               : "bg-white text-slate-800 rounded-tl-none border border-slate-200/50"
                           )}
                         >
-                          <p className="whitespace-pre-wrap leading-relaxed">{msg.message}</p>
+                          {msg.type === 'imageMessage' ? (
+                            <div className="space-y-1">
+                              <img 
+                                src={msg.message} 
+                                alt="WhatsApp Image" 
+                                className="rounded-lg max-w-full h-auto object-cover"
+                                loading="lazy"
+                              />
+                            </div>
+                          ) : (
+                            <p className="whitespace-pre-wrap leading-relaxed">{msg.message}</p>
+                          )}
                         </div>
                         <span className="text-[9px] font-bold text-slate-400 mt-1 px-1">
                           {new Date(msg.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}

@@ -350,7 +350,8 @@ export function useLeads() {
           message: msg.MENSAJE || "",
           fromMe: String(msg.DE_MI) === "1",
           timestamp: msg.createdAt || new Date().toISOString(),
-          pushName: ""
+          pushName: "",
+          type: msg.TIPO_MENSAJE || "conversation"
         }));
       }
     } catch (err) { console.error(err); }
@@ -364,9 +365,15 @@ export function useLeads() {
     setBotWebhookUrl(newSettings.botWebhookUrl || '');
     setInstanceName(newSettings.instanceName || 'HALCONDIGITAL');
     
+    setWebhookUrl(newSettings.webhookUrl || '');
+    setLeadEditUrl(newSettings.leadEditUrl || '');
+    setHistoryWebhookUrl(newSettings.historyWebhookUrl || '');
+    setBotWebhookUrl(newSettings.botWebhookUrl || '');
+    setInstanceName(newSettings.instanceName || 'HALCONDIGITAL');
+    
     setServicesUrl(newSettings.servicesUrl || '');
-    setServicesEditUrl(newSettings.servicesEditUrl || '');
     setServicesCreateUrl(newSettings.servicesCreateUrl || '');
+    setServicesEditUrl(newSettings.servicesEditUrl || '');
     setServicesDeleteUrl(newSettings.servicesDeleteUrl || '');
 
     setInfoUrl(newSettings.infoUrl || '');
