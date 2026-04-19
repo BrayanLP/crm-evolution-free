@@ -1,9 +1,9 @@
 
 "use client"
 
-import { useState, useEffect, useRef, useMemo } from 'react';
+import { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import { useLeads } from '@/lib/store';
-import { LayoutGrid, Users, Settings, PieChart, Search, MessageSquare, User, History as HistoryIcon, Bot, Briefcase, Info, Filter, Calendar, Menu, ArrowLeft } from 'lucide-react';
+import { LayoutGrid, Users, Settings, PieChart, Search, MessageSquare, User, History as HistoryIcon, Bot, Briefcase, Info, Filter, Calendar, Menu, ArrowLeft, Image as ImageIcon } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Toaster } from '@/components/ui/toaster';
@@ -35,6 +35,18 @@ export default function ContactsPage() {
   
   const pathname = usePathname();
   const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  const formatDriveUrl = useCallback((url: string) => {
+    if (!url) return '';
+    if (url.includes('drive.google.com')) {
+      // Extraer el ID de diferentes formatos de URL de Drive
+      const match = url.match(/\/d\/([a-zA-Z0-9_-]+)/) || url.match(/id=([a-zA-Z0-9_-]+)/);
+      if (match && match[1]) {
+        return `https://drive.google.com/uc?id=${match[1]}`;
+      }
+    }
+    return url;
+  }, []);
 
   const filteredLeads = useMemo(() => {
     return leads
@@ -281,19 +293,30 @@ export default function ContactsPage() {
                       >
                         <div
                           className={cn(
-                            "p-3 rounded-2xl text-[13px] md:text-sm shadow-sm",
+                            "p-3 rounded-2xl text-[13px] md:text-sm shadow-sm overflow-hidden",
                             msg.fromMe 
                               ? "bg-primary text-white rounded-tr-none" 
                               : "bg-white text-slate-800 rounded-tl-none border border-slate-200/50"
                           )}
                         >
                           {msg.type === 'imageMessage' ? (
-                            <div className="space-y-1">
+                            <div className="space-y-1 min-w-[150px] min-h-[100px] flex items-center justify-center relative">
                               <img 
-                                src={msg.message} 
+                                src={formatDriveUrl(msg.message)} 
                                 alt="WhatsApp Image" 
-                                className="rounded-lg max-w-full h-auto object-cover"
+                                className="rounded-lg max-w-full h-auto object-cover shadow-sm cursor-pointer hover:opacity-90 transition-opacity"
                                 loading="lazy"
+                                onError={(e) => {
+                                  // Fallback simple si la imagen falla
+                                  (e.target as any).style.display = 'none';
+                                  const parent = (e.target as any).parentNode;
+                                  if (parent) {
+                                    const errText = document.createElement('div');
+                                    errText.className = "p-4 text-xs font-medium flex items-center gap-2 text-muted-foreground";
+                                    errText.innerHTML = `<svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect width="18" height="18" x="3" y="3" rx="2" ry="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/></svg> Imagen no disponible`;
+                                    parent.appendChild(errText);
+                                  }
+                                }}
                               />
                             </div>
                           ) : (
