@@ -12,6 +12,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useTranslation } from '@/context/LanguageContext';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { MobileNav } from '@/components/MobileNav';
 
 export default function LeadsPage() {
   const { t } = useTranslation();
@@ -52,8 +53,9 @@ export default function LeadsPage() {
       </aside>
 
       <main className="flex-1 flex flex-col min-w-0">
-        <header className="h-16 border-b bg-white flex items-center justify-between px-8">
-          <div className="flex items-center gap-4 w-full max-w-5xl">
+        <header className="h-auto md:h-16 border-b bg-white flex flex-col md:flex-row items-center justify-between px-4 md:px-8 py-4 md:py-0 gap-4">
+          <div className="flex items-center w-full max-w-5xl">
+            <MobileNav />
             <div className="relative flex-1">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input 
@@ -68,12 +70,14 @@ export default function LeadsPage() {
               variant="ghost"
               size="icon"
               onClick={() => setShowAmounts(!showAmounts)}
-              className="h-10 w-10 text-slate-500 hover:text-primary transition-colors flex-shrink-0"
+              className="h-10 w-10 text-slate-500 hover:text-primary transition-colors flex-shrink-0 ml-2"
             >
               {showAmounts ? <Eye className="h-5 w-5" /> : <EyeOff className="h-5 w-5" />}
             </Button>
+          </div>
 
-            <div className="flex items-center gap-2 w-40 flex-shrink-0">
+          <div className="flex items-center gap-2 w-full md:w-auto overflow-x-auto pb-2 md:pb-0">
+            <div className="flex items-center gap-2 w-32 md:w-40 flex-shrink-0">
               <Filter className="h-4 w-4 text-slate-400" />
               <Select value={botFilter} onValueChange={(val: any) => setBotFilter(val)}>
                 <SelectTrigger className="h-10 bg-slate-50 border-none shadow-none focus:ring-1 text-xs">
@@ -86,7 +90,7 @@ export default function LeadsPage() {
                 </SelectContent>
               </Select>
             </div>
-            <div className="flex items-center gap-2 w-52 flex-shrink-0">
+            <div className="flex items-center gap-2 w-44 md:w-52 flex-shrink-0">
               <Calendar className="h-4 w-4 text-slate-400" />
               <Select value={dateFilter} onValueChange={(val: any) => setDateFilter(val)}>
                 <SelectTrigger className="h-10 bg-slate-50 border-none shadow-none focus:ring-1 text-xs">
@@ -105,7 +109,7 @@ export default function LeadsPage() {
           </div>
         </header>
 
-        <div className="flex-1 overflow-hidden p-8">
+        <div className="flex-1 overflow-hidden p-4 md:p-8">
           <KanbanBoard 
             searchQuery={searchQuery} 
             botFilter={botFilter} 

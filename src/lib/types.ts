@@ -23,6 +23,7 @@ export interface ChatMessage {
   fromMe: boolean;
   timestamp: string;
   pushName?: string;
+  type?: string;
 }
 
 export interface Stage {

@@ -19,49 +19,42 @@ export function Dashboard() {
   const [dateFilter, setDateFilter] = useState<'all' | 'today' | 'week' | 'month' | '60days' | '90days'>('all');
   const [showAmounts, setShowAmounts] = useState(true);
 
-  // Filtrado de leads por fecha
   const filteredLeads = useMemo(() => {
     return leads.filter(lead => {
       if (dateFilter === 'all') return true;
-      
       const leadDate = new Date(lead.updatedAt);
       const now = new Date();
-      
-      if (dateFilter === 'today') {
-        return leadDate.toDateString() === now.toDateString();
-      } else if (dateFilter === 'week') {
-        const sevenDaysAgo = new Date();
-        sevenDaysAgo.setDate(now.getDate() - 7);
-        return leadDate >= sevenDaysAgo;
-      } else if (dateFilter === 'month') {
-        const thirtyDaysAgo = new Date();
-        thirtyDaysAgo.setDate(now.getDate() - 30);
-        return leadDate >= thirtyDaysAgo;
-      } else if (dateFilter === '60days') {
-        const sixtyDaysAgo = new Date();
-        sixtyDaysAgo.setDate(now.getDate() - 60);
-        return leadDate >= sixtyDaysAgo;
-      } else if (dateFilter === '90days') {
-        const ninetyDaysAgo = new Date();
-        ninetyDaysAgo.setDate(now.getDate() - 90);
-        return leadDate >= ninetyDaysAgo;
+      if (dateFilter === 'today') return leadDate.toDateString() === now.toDateString();
+      if (dateFilter === 'week') {
+        const d = new Date(); d.setDate(now.getDate() - 7);
+        return leadDate >= d;
+      }
+      if (dateFilter === 'month') {
+        const d = new Date(); d.setDate(now.getDate() - 30);
+        return leadDate >= d;
+      }
+      if (dateFilter === '60days') {
+        const d = new Date(); d.setDate(now.getDate() - 60);
+        return leadDate >= d;
+      }
+      if (dateFilter === '90days') {
+        const d = new Date(); d.setDate(now.getDate() - 90);
+        return leadDate >= d;
       }
       return true;
     });
   }, [leads, dateFilter]);
 
   if (!isLoaded) return (
-    <div className="flex items-center justify-center h-full">
+    <div className="flex items-center justify-center h-full min-h-[400px]">
       <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
     </div>
   );
 
-  // KPIs basados en leads filtrados
   const totalLeadsCount = filteredLeads.length;
   const contactedLeadsCount = filteredLeads.filter(l => l.stage !== 'new').length;
   const botActiveLeadsCount = filteredLeads.filter(l => l.botActive !== false).length;
   
-  // Cálculo de Dinero en Leads (Pipeline - no convertidos)
   const pipelineValue = filteredLeads
     .filter(l => l.stage !== 'converted')
     .reduce((acc, lead) => {
@@ -71,7 +64,6 @@ export function Dashboard() {
       return acc + (isNaN(value) ? 0 : value);
     }, 0);
 
-  // Cálculo de Dinero en Clientes (Convertidos)
   const convertedValue = filteredLeads
     .filter(l => l.stage === 'converted')
     .reduce((acc, lead) => {
@@ -84,7 +76,6 @@ export function Dashboard() {
   const convertedLeadsCount = filteredLeads.filter(l => l.stage === 'converted').length;
   const conversionRate = totalLeadsCount > 0 ? ((convertedLeadsCount / totalLeadsCount) * 100).toFixed(1) : 0;
 
-  // Data for Funnel/Bar Chart
   const stageData = STAGES.map(stage => ({
     name: t(`stages.${stage.id}`),
     count: filteredLeads.filter(l => l.stage === stage.id).length,
@@ -93,7 +84,6 @@ export function Dashboard() {
            stage.id === 'qualified' ? '#10b981' : '#6366f1'
   }));
 
-  // Data for Trend Chart
   const trendDaysCount = dateFilter === 'today' ? 1 : 
                         dateFilter === 'week' ? 7 : 
                         dateFilter === 'month' ? 30 : 
@@ -112,25 +102,25 @@ export function Dashboard() {
   }));
 
   return (
-    <div className="space-y-8 animate-in fade-in duration-500">
-      <div className="flex items-center justify-between">
+    <div className="space-y-6 pb-10 animate-in fade-in duration-500">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold font-headline text-primary">{t('dashboard.title')}</h1>
-          <p className="text-muted-foreground">{t('dashboard.subtitle')}</p>
+          <h1 className="text-2xl md:text-3xl font-black font-headline text-primary tracking-tight">{t('dashboard.title')}</h1>
+          <p className="text-sm text-muted-foreground">{t('dashboard.subtitle')}</p>
         </div>
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-2 w-full md:w-auto overflow-x-auto pb-2 md:pb-0 scrollbar-hide">
           <Button
-            variant="ghost"
+            variant="outline"
             size="icon"
             onClick={() => setShowAmounts(!showAmounts)}
-            className="h-10 w-10 text-slate-500 hover:text-primary transition-colors"
+            className="h-10 w-10 flex-shrink-0"
           >
-            {showAmounts ? <Eye className="h-5 w-5" /> : <EyeOff className="h-5 w-5" />}
+            {showAmounts ? <Eye className="h-4 w-4" /> : <EyeOff className="h-4 w-4" />}
           </Button>
-          <div className="flex items-center gap-2 w-52">
-            <Calendar className="h-4 w-4 text-slate-400" />
+          <div className="flex items-center gap-2 min-w-[160px] flex-1 md:flex-none">
             <Select value={dateFilter} onValueChange={(val: any) => setDateFilter(val)}>
-              <SelectTrigger className="h-10 bg-white border-slate-200 shadow-sm focus:ring-1 text-xs">
+              <SelectTrigger className="h-10 bg-white border-slate-200 text-xs">
+                <Calendar className="h-3.5 w-3.5 mr-2 text-slate-400" />
                 <SelectValue placeholder={t('leads.filterDate')} />
               </SelectTrigger>
               <SelectContent>
@@ -144,20 +134,19 @@ export function Dashboard() {
             </Select>
           </div>
           {isSyncing && (
-             <div className="flex items-center gap-2 text-xs text-primary animate-pulse">
-               <div className="w-2 h-2 rounded-full bg-primary" />
-               Sincronizando...
+             <div className="flex items-center gap-1.5 text-[10px] text-primary animate-pulse font-bold whitespace-nowrap">
+               <div className="w-1.5 h-1.5 rounded-full bg-primary" />
+               SYNCING
              </div>
           )}
         </div>
       </div>
 
-      {/* KPI Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-6">
         <KpiCard 
           title={t('dashboard.kpi.pipelineValue')} 
           value={`S/ ${pipelineValue.toLocaleString()}`} 
-          icon={<Briefcase className="h-5 w-5 text-blue-500" />} 
+          icon={<Briefcase className="h-4 w-4 text-blue-500" />} 
           description={t('dashboard.kpi.descPipelineValue')}
           highlight="blue"
           blurValue={!showAmounts}
@@ -165,7 +154,7 @@ export function Dashboard() {
         <KpiCard 
           title={t('dashboard.kpi.convertedValue')} 
           value={`S/ ${convertedValue.toLocaleString()}`} 
-          icon={<DollarSign className="h-5 w-5 text-emerald-600" />} 
+          icon={<DollarSign className="h-4 w-4 text-emerald-600" />} 
           description={t('dashboard.kpi.descConvertedValue')}
           highlight="emerald"
           blurValue={!showAmounts}
@@ -173,40 +162,40 @@ export function Dashboard() {
         <KpiCard 
           title={t('dashboard.kpi.totalLeads')} 
           value={totalLeadsCount.toString()} 
-          icon={<Users className="h-5 w-5 text-slate-500" />} 
+          icon={<Users className="h-4 w-4 text-slate-500" />} 
           description={t('dashboard.kpi.descTotal')}
         />
         <KpiCard 
           title={t('dashboard.kpi.botActive')} 
           value={botActiveLeadsCount.toString()} 
-          icon={<Bot className="h-5 w-5 text-purple-500" />} 
+          icon={<Bot className="h-4 w-4 text-purple-500" />} 
           description={t('dashboard.kpi.descBotActive')}
         />
         <KpiCard 
           title={t('dashboard.kpi.responded')} 
           value={contactedLeadsCount.toString()} 
-          icon={<MessageSquare className="h-5 w-5 text-amber-500" />} 
+          icon={<MessageSquare className="h-4 w-4 text-amber-500" />} 
           description={t('dashboard.kpi.descResponded')}
+          className="hidden md:flex"
         />
         <KpiCard 
           title={t('dashboard.kpi.conversionRate')} 
           value={`${conversionRate}%`} 
-          icon={<UserCheck className="h-5 w-5 text-indigo-500" />} 
+          icon={<UserCheck className="h-4 w-4 text-indigo-500" />} 
           description={t('dashboard.kpi.descConversion')}
+          className="hidden md:flex"
         />
       </div>
 
-      {/* Charts Section */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        {/* Funnel Chart */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <Card className="shadow-sm border-slate-200">
-          <CardHeader>
-            <CardTitle className="text-lg">{t('dashboard.charts.funnel')}</CardTitle>
-            <CardDescription>{t('dashboard.charts.funnelDesc')}</CardDescription>
+          <CardHeader className="p-4 md:p-6 pb-0">
+            <CardTitle className="text-base md:text-lg">{t('dashboard.charts.funnel')}</CardTitle>
+            <CardDescription className="text-xs">{t('dashboard.charts.funnelDesc')}</CardDescription>
           </CardHeader>
-          <CardContent className="h-[300px]">
+          <CardContent className="h-[250px] md:h-[300px] p-2 md:p-6">
             <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={stageData} layout="vertical" margin={{ left: 40, right: 40 }}>
+              <BarChart data={stageData} layout="vertical" margin={{ left: 10, right: 30 }}>
                 <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="#e2e8f0" />
                 <XAxis type="number" hide />
                 <YAxis 
@@ -214,13 +203,14 @@ export function Dashboard() {
                   type="category" 
                   axisLine={false} 
                   tickLine={false} 
-                  tick={{ fontSize: 12, fontWeight: 500 }}
+                  tick={{ fontSize: 10, fontWeight: 500 }}
+                  width={80}
                 />
                 <Tooltip 
                   cursor={{ fill: 'transparent' }}
-                  contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}
+                  contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 12px rgba(0,0,0,0.1)', fontSize: '10px' }}
                 />
-                <Bar dataKey="count" radius={[0, 4, 4, 0]} barSize={32}>
+                <Bar dataKey="count" radius={[0, 4, 4, 0]} barSize={24}>
                   {stageData.map((entry, index) => (
                     <Cell key={`cell-${index}`} fill={entry.color} fillOpacity={0.8} />
                   ))}
@@ -230,22 +220,21 @@ export function Dashboard() {
           </CardContent>
         </Card>
 
-        {/* Trend Chart */}
         <Card className="shadow-sm border-slate-200">
-          <CardHeader>
+          <CardHeader className="p-4 md:p-6 pb-0">
             <div className="flex items-center justify-between">
               <div>
-                <CardTitle className="text-lg">{t('dashboard.charts.activity')}</CardTitle>
-                <CardDescription>{t('dashboard.charts.activityDesc')}</CardDescription>
+                <CardTitle className="text-base md:text-lg">{t('dashboard.charts.activity')}</CardTitle>
+                <CardDescription className="text-xs">{t('dashboard.charts.activityDesc')}</CardDescription>
               </div>
-              <div className="bg-primary/10 p-2 rounded-full">
-                <TrendingUp className="h-5 w-5 text-primary" />
+              <div className="bg-primary/10 p-1.5 rounded-full">
+                <TrendingUp className="h-4 w-4 text-primary" />
               </div>
             </div>
           </CardHeader>
-          <CardContent className="h-[300px]">
+          <CardContent className="h-[250px] md:h-[300px] p-2 md:p-6">
             <ResponsiveContainer width="100%" height="100%">
-              <AreaChart data={trendData}>
+              <AreaChart data={trendData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
                 <defs>
                   <linearGradient id="colorLeads" x1="0" y1="0" x2="0" y2="1">
                     <stop offset="5%" stopColor="#2563eb" stopOpacity={0.3}/>
@@ -257,15 +246,15 @@ export function Dashboard() {
                   dataKey="date" 
                   axisLine={false} 
                   tickLine={false} 
-                  tick={{ fontSize: 11, fill: '#64748b' }} 
+                  tick={{ fontSize: 9, fill: '#64748b' }} 
                 />
                 <YAxis 
                   axisLine={false} 
                   tickLine={false} 
-                  tick={{ fontSize: 11, fill: '#64748b' }} 
+                  tick={{ fontSize: 9, fill: '#64748b' }} 
                 />
                 <Tooltip 
-                  contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}
+                  contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 12px rgba(0,0,0,0.1)', fontSize: '10px' }}
                 />
                 <Area 
                   type="monotone" 
@@ -281,21 +270,20 @@ export function Dashboard() {
         </Card>
       </div>
 
-      {/* Distribution Pie Chart */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <Card className="lg:col-span-1 shadow-sm border-slate-200">
-          <CardHeader>
-            <CardTitle className="text-lg">{t('dashboard.charts.health')}</CardTitle>
+          <CardHeader className="p-4 md:p-6">
+            <CardTitle className="text-base md:text-lg">{t('dashboard.charts.health')}</CardTitle>
           </CardHeader>
-          <CardContent className="h-[250px] flex items-center justify-center">
+          <CardContent className="h-[200px] md:h-[250px] flex items-center justify-center p-0">
              <ResponsiveContainer width="100%" height="100%">
               <RePieChart>
                 <Pie
                   data={stageData}
                   cx="50%"
                   cy="50%"
-                  innerRadius={60}
-                  outerRadius={80}
+                  innerRadius={50}
+                  outerRadius={70}
                   paddingAngle={5}
                   dataKey="count"
                 >
@@ -307,38 +295,37 @@ export function Dashboard() {
               </RePieChart>
             </ResponsiveContainer>
           </CardContent>
-          <div className="px-6 pb-6 grid grid-cols-2 gap-2">
+          <div className="px-4 pb-4 grid grid-cols-2 gap-1.5">
             {stageData.map((s, i) => (
-              <div key={i} className="flex items-center gap-2">
-                <div className="w-2 h-2 rounded-full" style={{ backgroundColor: s.color }} />
-                <span className="text-[10px] font-medium text-slate-500 uppercase">{s.name}</span>
+              <div key={i} className="flex items-center gap-1.5">
+                <div className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: s.color }} />
+                <span className="text-[9px] font-bold text-slate-500 uppercase truncate">{s.name}</span>
               </div>
             ))}
           </div>
         </Card>
 
-        {/* Recent Activity Table Preview */}
         <Card className="lg:col-span-2 shadow-sm border-slate-200">
-          <CardHeader>
-            <CardTitle className="text-lg">{t('dashboard.recentLeads.title')}</CardTitle>
-            <CardDescription>{t('dashboard.recentLeads.subtitle')}</CardDescription>
+          <CardHeader className="p-4 md:p-6">
+            <CardTitle className="text-base md:text-lg">{t('dashboard.recentLeads.title')}</CardTitle>
+            <CardDescription className="text-xs">{t('dashboard.recentLeads.subtitle')}</CardDescription>
           </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
+          <CardContent className="p-2 md:p-6 pt-0">
+            <div className="space-y-2">
               {filteredLeads.slice(0, 5).map((lead) => (
-                <div key={lead.id} className="flex items-center justify-between p-3 rounded-lg hover:bg-slate-50 transition-colors border border-transparent hover:border-slate-100">
-                  <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold text-xs">
+                <div key={lead.id} className="flex items-center justify-between p-2 md:p-3 rounded-lg hover:bg-slate-50 transition-colors border border-transparent hover:border-slate-100">
+                  <div className="flex items-center gap-2 md:gap-3">
+                    <div className="w-7 h-7 md:w-8 md:h-8 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold text-[10px] md:text-xs">
                       {lead.contactName.substring(0, 2).toUpperCase()}
                     </div>
                     <div>
-                      <p className="text-sm font-semibold">{lead.contactName}</p>
-                      <p className="text-xs text-muted-foreground">{lead.phone}</p>
+                      <p className="text-xs md:text-sm font-bold truncate max-w-[120px] md:max-w-none">{lead.contactName}</p>
+                      <p className="text-[10px] text-muted-foreground">{lead.phone}</p>
                     </div>
                   </div>
-                  <div className="flex items-center gap-4">
+                  <div className="flex items-center gap-2 md:gap-4">
                     <div className={cn(
-                      "text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider",
+                      "text-[8px] md:text-[9px] font-black px-1.5 py-0.5 rounded-full uppercase tracking-tighter md:tracking-wider",
                       lead.stage === 'new' ? "bg-blue-100 text-blue-700" :
                       lead.stage === 'contacted' ? "bg-amber-100 text-amber-700" :
                       lead.stage === 'qualified' ? "bg-emerald-100 text-emerald-700" :
@@ -346,14 +333,14 @@ export function Dashboard() {
                     )}>
                       {t(`stages.${lead.stage}`)}
                     </div>
-                    <span className="text-[10px] text-slate-400">
+                    <span className="text-[8px] md:text-[10px] text-slate-400 hidden sm:inline">
                       {new Date(lead.updatedAt).toLocaleDateString()}
                     </span>
                   </div>
                 </div>
               ))}
               {filteredLeads.length === 0 && (
-                <div className="py-10 text-center text-muted-foreground">
+                <div className="py-10 text-center text-muted-foreground text-xs">
                   {t('dashboard.recentLeads.empty')}
                 </div>
               )}
@@ -365,29 +352,27 @@ export function Dashboard() {
   );
 }
 
-function KpiCard({ title, value, icon, description, highlight, blurValue = false }: { title: string, value: string, icon: React.ReactNode, description: string, highlight?: 'blue' | 'emerald', blurValue?: boolean }) {
+function KpiCard({ title, value, icon, description, highlight, blurValue = false, className }: { title: string, value: string, icon: React.ReactNode, description: string, highlight?: 'blue' | 'emerald', blurValue?: boolean, className?: string }) {
   return (
     <Card className={cn(
-      "shadow-sm border-slate-200 overflow-hidden relative transition-all hover:shadow-md",
+      "shadow-sm border-slate-200 overflow-hidden relative transition-all hover:shadow-md h-full flex flex-col",
       highlight === 'blue' && "border-l-4 border-l-blue-500",
-      highlight === 'emerald' && "border-l-4 border-l-emerald-500"
+      highlight === 'emerald' && "border-l-4 border-l-emerald-500",
+      className
     )}>
-      <div className="absolute top-0 right-0 p-4 opacity-5">
-        {React.cloneElement(icon as React.ReactElement, { className: "h-16 w-16" })}
-      </div>
-      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-        <CardTitle className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">{title}</CardTitle>
-        {icon}
+      <CardHeader className="flex flex-row items-center justify-between space-y-0 p-3 pb-1">
+        <CardTitle className="text-[9px] font-black text-slate-500 uppercase tracking-tight">{title}</CardTitle>
+        <div className="md:p-1.5 bg-slate-50 rounded-lg">{icon}</div>
       </CardHeader>
-      <CardContent>
+      <CardContent className="p-3 pt-0">
         <div className={cn(
-          "text-2xl font-black transition-all duration-300", 
+          "text-lg md:text-2xl font-black transition-all duration-300", 
           highlight && "text-slate-900",
           blurValue && "blur-md select-none opacity-50"
         )}>
           {value}
         </div>
-        <p className="text-[10px] text-muted-foreground mt-1 font-medium">{description}</p>
+        <p className="text-[8px] md:text-[10px] text-muted-foreground mt-0.5 font-medium leading-tight">{description}</p>
       </CardContent>
     </Card>
   );

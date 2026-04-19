@@ -38,43 +38,26 @@ export function KanbanBoard({
 
   const filteredLeads = useMemo(() => {
     return leads.filter(lead => {
-      // Filtro de búsqueda (nombre, celular, correo)
       const q = searchQuery.toLowerCase();
       const matchesSearch = 
         lead.contactName.toLowerCase().includes(q) ||
         lead.phone.includes(q) ||
         (lead.email && lead.email.toLowerCase().includes(q));
       
-      // Filtro de Bot
       const matchesBot = 
         botFilter === 'all' || 
         (botFilter === 'active' && lead.botActive !== false) || 
         (botFilter === 'inactive' && lead.botActive === false);
 
-      // Filtro de Fecha
       let matchesDate = true;
       if (dateFilter !== 'all') {
         const leadDate = new Date(lead.updatedAt);
         const now = new Date();
-        if (dateFilter === 'today') {
-          matchesDate = leadDate.toDateString() === now.toDateString();
-        } else if (dateFilter === 'week') {
-          const sevenDaysAgo = new Date();
-          sevenDaysAgo.setDate(now.getDate() - 7);
-          matchesDate = leadDate >= sevenDaysAgo;
-        } else if (dateFilter === 'month') {
-          const thirtyDaysAgo = new Date();
-          thirtyDaysAgo.setDate(now.getDate() - 30);
-          matchesDate = leadDate >= thirtyDaysAgo;
-        } else if (dateFilter === '60days') {
-          const sixtyDaysAgo = new Date();
-          sixtyDaysAgo.setDate(now.getDate() - 60);
-          matchesDate = leadDate >= sixtyDaysAgo;
-        } else if (dateFilter === '90days') {
-          const ninetyDaysAgo = new Date();
-          ninetyDaysAgo.setDate(now.getDate() - 90);
-          matchesDate = leadDate >= ninetyDaysAgo;
-        }
+        if (dateFilter === 'today') matchesDate = leadDate.toDateString() === now.toDateString();
+        else if (dateFilter === 'week') { const d = new Date(); d.setDate(now.getDate() - 7); matchesDate = leadDate >= d; }
+        else if (dateFilter === 'month') { const d = new Date(); d.setDate(now.getDate() - 30); matchesDate = leadDate >= d; }
+        else if (dateFilter === '60days') { const d = new Date(); d.setDate(now.getDate() - 60); matchesDate = leadDate >= d; }
+        else if (dateFilter === '90days') { const d = new Date(); d.setDate(now.getDate() - 90); matchesDate = leadDate >= d; }
       }
 
       return matchesSearch && matchesBot && matchesDate;
@@ -82,7 +65,7 @@ export function KanbanBoard({
   }, [leads, searchQuery, botFilter, dateFilter]);
 
   if (!isLoaded) return (
-    <div className="flex items-center justify-center h-full">
+    <div className="flex items-center justify-center h-full min-h-[400px]">
       <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
     </div>
   );
@@ -109,37 +92,37 @@ export function KanbanBoard({
   };
 
   return (
-    <div className="flex flex-col h-full space-y-6">
-      <div className="flex items-center justify-between">
+    <div className="flex flex-col h-full space-y-4 md:space-y-6">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold font-headline text-primary">{t('leads.title')}</h1>
-          <p className="text-muted-foreground">{t('leads.subtitle')}</p>
+          <h1 className="text-2xl md:text-3xl font-black font-headline text-primary tracking-tight">{t('leads.title')}</h1>
+          <p className="text-xs md:text-sm text-muted-foreground">{t('leads.subtitle')}</p>
         </div>
         <div className="flex gap-2">
           <Button 
             variant="outline" 
             onClick={syncLeads} 
             disabled={isSyncing || !webhookUrl}
-            className="gap-2"
+            className="gap-2 h-9 md:h-10 text-xs w-full md:w-auto"
           >
-            <RefreshCw className={cn("h-4 w-4", isSyncing && "animate-spin")} />
+            <RefreshCw className={cn("h-3.5 w-3.5", isSyncing && "animate-spin")} />
             {t('leads.sync')}
           </Button>
         </div>
       </div>
 
       {!webhookUrl && (
-        <Alert variant="destructive" className="bg-amber-50 border-amber-200 text-amber-800">
+        <Alert variant="destructive" className="bg-amber-50 border-amber-200 text-amber-800 p-3 md:p-4">
           <AlertCircle className="h-4 w-4" />
-          <AlertTitle>{t('leads.configPending')}</AlertTitle>
-          <AlertDescription>
+          <AlertTitle className="text-xs md:text-sm font-bold">{t('leads.configPending')}</AlertTitle>
+          <AlertDescription className="text-[10px] md:text-xs">
             {t('leads.configPendingDesc')}
           </AlertDescription>
         </Alert>
       )}
 
-      <div className="flex-1 overflow-x-auto pb-4">
-        <div className="flex h-full gap-4 min-w-max">
+      <div className="flex-1 overflow-x-auto pb-6 -mx-4 px-4 md:mx-0 md:px-0">
+        <div className="flex h-full gap-3 md:gap-4 min-w-max pb-2">
           {STAGES.map((stage) => {
             const stageLeads = filteredLeads
               .filter((l) => l.stage === stage.id)
@@ -155,23 +138,23 @@ export function KanbanBoard({
             return (
               <div
                 key={stage.id}
-                className="flex flex-col w-80 rounded-xl bg-slate-100/50 border border-border"
+                className="flex flex-col w-72 md:w-80 rounded-xl bg-slate-50 border border-slate-200/60"
                 onDragOver={handleDragOver}
                 onDrop={(e) => handleDrop(e, stage.id)}
               >
-                <div className="p-4 border-b border-slate-200/60">
-                  <div className="flex items-center justify-between mb-2">
+                <div className="p-3 md:p-4 border-b border-slate-200/40 bg-white/50 rounded-t-xl">
+                  <div className="flex items-center justify-between mb-1.5 md:mb-2">
                     <div className="flex items-center gap-2">
-                      <div className={cn("w-2.5 h-2.5 rounded-full", stage.color)} />
-                      <h2 className="font-bold text-sm uppercase tracking-wider text-slate-700">
+                      <div className={cn("w-2.5 h-2.5 rounded-full shadow-sm", stage.color)} />
+                      <h2 className="font-black text-[10px] md:text-xs uppercase tracking-tighter md:tracking-wider text-slate-700">
                         {t(`stages.${stage.id}`)}
                       </h2>
                     </div>
-                    <Badge variant="secondary" className="text-xs font-bold">
+                    <Badge variant="secondary" className="text-[10px] h-5 font-black bg-slate-200 text-slate-700">
                       {stageLeads.length}
                     </Badge>
                   </div>
-                  <div className="flex items-center gap-1.5 text-xs font-semibold text-primary">
+                  <div className="flex items-center gap-1.5 text-[10px] md:text-xs font-black text-primary">
                     <DollarSign className="h-3 w-3" />
                     <span className={cn(
                       "transition-all duration-300",
@@ -182,7 +165,7 @@ export function KanbanBoard({
                   </div>
                 </div>
 
-                <div className="flex-1 overflow-y-auto px-2 space-y-3 py-4 scrollbar-hide">
+                <div className="flex-1 overflow-y-auto px-2 md:px-3 space-y-2 md:space-y-3 py-3 md:py-4 scrollbar-hide">
                   {stageLeads.map((lead) => (
                     <Card
                       key={lead.id}
@@ -191,27 +174,23 @@ export function KanbanBoard({
                       onDragEnd={() => setDraggingLeadId(null)}
                       onClick={() => openEditDialog(lead)}
                       className={cn(
-                        "cursor-grab active:cursor-grabbing hover:shadow-md transition-all duration-200 border-l-4 bg-white",
+                        "cursor-grab active:cursor-grabbing hover:shadow-lg transition-all duration-200 border-l-4 bg-white shadow-sm hover:border-r-slate-50",
                         draggingLeadId === lead.id ? "opacity-40 scale-95" : "opacity-100",
                         stage.id === 'new' ? "border-l-blue-500" :
                         stage.id === 'contacted' ? "border-l-amber-500" :
                         stage.id === 'qualified' ? "border-l-emerald-500" : "border-l-accent"
                       )}
                     >
-                      <CardContent className="p-4 space-y-3">
+                      <CardContent className="p-3 md:p-4 space-y-2.5">
                         <div className="flex justify-between items-start">
-                          <h3 className="font-bold text-slate-800 leading-tight group-hover:text-primary transition-colors">
+                          <h3 className="font-black text-xs md:text-sm text-slate-800 leading-tight">
                             {lead.contactName}
                           </h3>
                         </div>
                         
-                        <div className="space-y-1.5">
-                          {lead.phone && (
-                            <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                              <Phone className="h-3 w-3" />
-                              <span className="truncate">{lead.phone}</span>
-                            </div>
-                          )}
+                        <div className="flex items-center gap-1.5 text-[10px] text-muted-foreground font-medium">
+                          <Phone className="h-2.5 w-2.5" />
+                          <span className="truncate">{lead.phone}</span>
                         </div>
 
                         <div className="flex items-center justify-between pt-2 border-t border-slate-50 mt-1">
@@ -220,7 +199,7 @@ export function KanbanBoard({
                               className="flex items-center gap-1.5" 
                               onClick={(e) => e.stopPropagation()}
                             >
-                              <Bot className={cn("h-3.5 w-3.5", lead.botActive !== false ? "text-primary" : "text-slate-300")} />
+                              <Bot className={cn("h-3 w-3", lead.botActive !== false ? "text-primary" : "text-slate-300")} />
                               <Switch 
                                 checked={lead.botActive !== false} 
                                 onCheckedChange={(checked) => toggleBot(lead.phone, checked).then(() => {
@@ -230,21 +209,21 @@ export function KanbanBoard({
                                     variant: "success",
                                   });
                                 })}
-                                className="scale-75"
+                                className="scale-[0.6] md:scale-75 h-4 w-8"
                               />
                             </div>
                           )}
-                          <span className="text-[10px] text-slate-400">
-                            {new Date(lead.updatedAt).toLocaleDateString()}
+                          <span className="text-[9px] text-slate-400 font-bold">
+                            {new Date(lead.updatedAt).toLocaleDateString([], { day: '2-digit', month: 'short' })}
                           </span>
                         </div>
                       </CardContent>
                     </Card>
                   ))}
                   {stageLeads.length === 0 && (
-                    <div className="flex flex-col items-center justify-center py-10 opacity-40">
-                      <div className="w-10 h-10 rounded-full border-2 border-dashed border-slate-400 mb-2" />
-                      <p className="text-xs text-slate-500">{t('leads.emptyStage')}</p>
+                    <div className="flex flex-col items-center justify-center py-12 opacity-30">
+                      <div className="w-10 h-10 rounded-full border-2 border-dashed border-slate-300 mb-2" />
+                      <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{t('leads.emptyStage')}</p>
                     </div>
                   )}
                 </div>
