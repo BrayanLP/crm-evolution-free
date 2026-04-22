@@ -64,14 +64,17 @@
     "dateWeek": "Last 7 days",
     "dateMonth": "Last 30 days",
     "date60": "Last 60 days",
-    "date90": "Last 90 days"
+    "date90": "Last 90 days",
+    "export": "Export",
+    "exportCSV": "Download CSV",
+    "exportXLS": "Download Excel (XLS)"
   },
   "contacts": {
     "title": "Leads Chat",
     "search": "Search contact...",
     "empty": "No contacts available",
     "active": "WhatsApp Active",
-    "botIA": "AI Bot",
+    "botIA": "Bot IA",
     "noHistory": "Configure History Webhook in Settings",
     "emptyHistory": "No message history",
     "viewMode": "Viewer mode: Responses must be managed from WhatsApp",

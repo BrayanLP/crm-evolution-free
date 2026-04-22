@@ -64,7 +64,10 @@
     "dateWeek": "Últimos 7 días",
     "dateMonth": "Últimos 30 días",
     "date60": "Últimos 60 días",
-    "date90": "Últimos 90 días"
+    "date90": "Últimos 90 días",
+    "export": "Exportar",
+    "exportCSV": "Descargar CSV",
+    "exportXLS": "Descargar Excel (XLS)"
   },
   "contacts": {
     "title": "Chat de Leads",
