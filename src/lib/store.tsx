@@ -147,7 +147,6 @@ export function LeadsProvider({ children }: { children: React.ReactNode }) {
     }
   }, [activeAccount, processIncomingData]);
 
-  // Load and Migrate Settings
   useEffect(() => {
     const savedV2 = localStorage.getItem(SETTINGS_KEY);
     const savedLegacy = localStorage.getItem(LEGACY_SETTINGS_KEY);
@@ -180,14 +179,12 @@ export function LeadsProvider({ children }: { children: React.ReactNode }) {
         };
         setAccounts([initialAccount]);
         setActiveAccountId('default');
-        // Save to V2
         localStorage.setItem(SETTINGS_KEY, JSON.stringify({ accounts: [initialAccount], activeAccountId: 'default' }));
       } catch (e) { console.error("Error migrating legacy settings"); }
     }
     setIsLoaded(true);
   }, []);
 
-  // Sync data when active account changes
   useEffect(() => {
     if (activeAccountId && initialSyncDone.current !== activeAccountId) {
       syncLeads();
@@ -201,7 +198,7 @@ export function LeadsProvider({ children }: { children: React.ReactNode }) {
     setAccounts(newAccounts);
     setActiveAccountId(newActiveId);
     localStorage.setItem(SETTINGS_KEY, JSON.stringify({ accounts: newAccounts, activeAccountId: newActiveId }));
-    initialSyncDone.current = null; // Re-sync
+    initialSyncDone.current = null;
   };
 
   const pushLeadUpdate = useCallback(async (lead: Lead) => {

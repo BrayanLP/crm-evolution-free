@@ -1,16 +1,19 @@
 
 "use client"
 
-import { Menu, LayoutGrid, PieChart, Users, Briefcase, Info, Settings } from "lucide-react"
+import { Menu, LayoutGrid, PieChart, Users, Briefcase, Info, Settings, Smartphone } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Sheet, SheetContent, SheetTrigger, SheetHeader, SheetTitle } from "@/components/ui/sheet"
 import { useTranslation } from "@/context/LanguageContext"
+import { useLeads } from "@/lib/store"
 import { usePathname } from "next/navigation"
 import Link from "next/link"
 import { cn } from "@/lib/utils"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 
 export function MobileNav() {
   const { t } = useTranslation()
+  const { accounts, activeAccount, setActiveAccountId } = useLeads()
   const pathname = usePathname()
 
   const navItems = [
@@ -30,16 +33,32 @@ export function MobileNav() {
             <Menu className="h-6 w-6" />
           </Button>
         </SheetTrigger>
-        <SheetContent side="left" className="w-72 p-0">
+        <SheetContent side="left" className="w-72 p-0 flex flex-col">
           <SheetHeader className="p-6 border-b text-left">
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 mb-4">
               <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center">
                 <LayoutGrid className="text-white h-5 w-5" />
               </div>
               <SheetTitle className="text-xl font-bold tracking-tight text-primary font-headline">LeadFlow</SheetTitle>
             </div>
+            {accounts.length > 0 && (
+              <div className="space-y-1.5">
+                <Label className="text-[10px] font-black uppercase text-slate-400">Cuenta Activa</Label>
+                <Select value={activeAccount?.id} onValueChange={setActiveAccountId}>
+                  <SelectTrigger className="h-10 bg-slate-50 border-none text-xs font-bold">
+                    <Smartphone className="h-3.5 w-3.5 mr-2 text-primary" />
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {accounts.map(acc => (
+                      <SelectItem key={acc.id} value={acc.id} className="text-xs font-bold">{acc.name}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
           </SheetHeader>
-          <nav className="p-4 space-y-1">
+          <nav className="p-4 space-y-1 flex-1 overflow-y-auto">
             {navItems.map((item) => (
               <Link
                 key={item.href}
@@ -61,4 +80,8 @@ export function MobileNav() {
       </Sheet>
     </div>
   )
+}
+
+function Label({ className, children }: { className?: string, children: React.ReactNode }) {
+  return <label className={cn("block", className)}>{children}</label>
 }
