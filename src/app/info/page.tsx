@@ -7,7 +7,7 @@ import { LayoutGrid, Users, Settings, PieChart, Search, Briefcase, Plus, Refresh
 import { Button } from '@/components/ui/button';
 import { Toaster } from '@/components/ui/toaster';
 import { cn } from '@/lib/utils';
-import Link from 'next/navigation';
+import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useTranslation } from '@/context/LanguageContext';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
