@@ -3,7 +3,7 @@
 
 import { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import { useLeads } from '@/lib/store';
-import { LayoutGrid, Users, Settings, PieChart, Search, MessageSquare, User, History as HistoryIcon, Bot, Briefcase, Info, Filter, Calendar, Menu, ArrowLeft, Image as ImageIcon, ExternalLink } from 'lucide-react';
+import { LayoutGrid, Users, Settings, PieChart, Search, MessageSquare, User, History as HistoryIcon, Bot, Briefcase, Info, Filter, Calendar, Menu, ArrowLeft, Image as ImageIcon, ExternalLink, Smartphone } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Toaster } from '@/components/ui/toaster';
@@ -21,7 +21,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { MobileNav } from '@/components/MobileNav';
 
 export default function ContactsPage() {
-  const { leads, getHistory, historyWebhookUrl, toggleBot, botWebhookUrl } = useLeads();
+  const { leads, getHistory, historyWebhookUrl, toggleBot, botWebhookUrl, accounts, activeAccount, setActiveAccountId } = useLeads();
   const { t } = useTranslation();
   const { toast } = useToast();
   
@@ -39,7 +39,6 @@ export default function ContactsPage() {
   const formatDriveUrl = useCallback((url: string, type: 'view' | 'embed' = 'embed') => {
     if (!url) return '';
     if (url.includes('drive.google.com')) {
-      // Extraer el ID de diferentes formatos de URL de Drive
       const match = url.match(/\/d\/([a-zA-Z0-9_-]+)/) || url.match(/id=([a-zA-Z0-9_-]+)/);
       if (match && match[1]) {
         if (type === 'view') {
@@ -118,7 +117,7 @@ export default function ContactsPage() {
   return (
     <div className="flex h-screen bg-background overflow-hidden">
       <aside className="w-64 border-r bg-white hidden md:flex flex-col shadow-sm">
-        <div className="p-6">
+        <div className="p-6 pb-2">
           <div className="flex items-center gap-2 mb-8">
             <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center">
               <LayoutGrid className="text-white h-5 w-5" />
@@ -133,6 +132,24 @@ export default function ContactsPage() {
             <NavItem icon={<Info className="h-5 w-5" />} label={t('nav.info')} href="/info" active={pathname === "/info"} />
           </nav>
         </div>
+
+        {accounts.length > 0 && (
+          <div className="px-6 py-4 border-y bg-slate-50/50">
+             <label className="text-[10px] font-black uppercase text-slate-400 mb-2 block">Cuenta Activa</label>
+             <Select value={activeAccount?.id} onValueChange={setActiveAccountId}>
+               <SelectTrigger className="h-10 bg-white border-slate-200 text-xs font-bold shadow-none">
+                 <Smartphone className="h-3.5 w-3.5 mr-2 text-primary" />
+                 <SelectValue />
+               </SelectTrigger>
+               <SelectContent>
+                 {accounts.map(acc => (
+                   <SelectItem key={acc.id} value={acc.id} className="text-xs font-bold">{acc.name}</SelectItem>
+                 ))}
+               </SelectContent>
+             </Select>
+          </div>
+        )}
+
         <div className="mt-auto p-6 border-t">
           <NavItem icon={<Settings className="h-5 w-5" />} label={t('nav.settings')} href="/settings" active={pathname === "/settings"} />
         </div>

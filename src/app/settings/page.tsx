@@ -23,7 +23,7 @@ import { MobileNav } from '@/components/MobileNav';
 import type { AccountConfig } from '@/lib/types';
 
 export default function SettingsPage() {
-  const { accounts, activeAccount, updateSettings, isLoaded } = useLeads();
+  const { accounts, activeAccount, updateSettings, isLoaded, setActiveAccountId } = useLeads();
   const { t, language, setLanguage } = useTranslation();
   const { toast } = useToast();
   const pathname = usePathname();
@@ -109,7 +109,6 @@ export default function SettingsPage() {
           setLocalAccounts(json.accounts);
           setActiveId(json.activeAccountId || json.accounts[0].id);
         } else {
-          // Legacy single format
           const migratedId = 'default';
           setLocalAccounts([{ ...json, id: migratedId, name: json.instanceName || 'Cuenta Importada' }]);
           setActiveId(migratedId);
@@ -137,7 +136,7 @@ export default function SettingsPage() {
   return (
     <div className="flex h-screen bg-background overflow-hidden">
       <aside className="w-64 border-r bg-white hidden md:flex flex-col shadow-sm">
-        <div className="p-6">
+        <div className="p-6 pb-2">
           <div className="flex items-center gap-2 mb-8">
             <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center">
               <LayoutGrid className="text-white h-5 w-5" />
@@ -152,6 +151,24 @@ export default function SettingsPage() {
             <NavItem icon={<Info className="h-5 w-5" />} label={t('nav.info')} href="/info" active={pathname === "/info"} />
           </nav>
         </div>
+
+        {accounts.length > 0 && (
+          <div className="px-6 py-4 border-y bg-slate-50/50">
+             <label className="text-[10px] font-black uppercase text-slate-400 mb-2 block">Cuenta Activa</label>
+             <Select value={activeAccount?.id} onValueChange={setActiveAccountId}>
+               <SelectTrigger className="h-10 bg-white border-slate-200 text-xs font-bold shadow-none">
+                 <Smartphone className="h-3.5 w-3.5 mr-2 text-primary" />
+                 <SelectValue />
+               </SelectTrigger>
+               <SelectContent>
+                 {accounts.map(acc => (
+                   <SelectItem key={acc.id} value={acc.id} className="text-xs font-bold">{acc.name}</SelectItem>
+                 ))}
+               </SelectContent>
+             </Select>
+          </div>
+        )}
+
         <div className="mt-auto p-6 border-t">
           <NavItem icon={<SettingsIcon className="h-5 w-5" />} label={t('nav.settings')} href="/settings" active={pathname === "/settings"} />
         </div>
