@@ -7,7 +7,7 @@ import { useLeads } from '@/lib/store';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell, PieChart as RePieChart, Pie, AreaChart, Area } from 'recharts';
 import { STAGES } from '@/lib/types';
-import { Users, Target, UserCheck, MessageSquare, TrendingUp, Bot, Send, Calendar, DollarSign, Briefcase, Eye, EyeOff } from 'lucide-react';
+import { Users, Target, UserCheck, MessageSquare, TrendingUp, Bot, Send, Calendar, DollarSign, Briefcase, Eye, EyeOff, Sparkles } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useTranslation } from '@/context/LanguageContext';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -44,6 +44,37 @@ export function Dashboard() {
       return true;
     });
   }, [leads, dateFilter]);
+
+  const wordCloudData = useMemo(() => {
+    if (!filteredLeads.length) return [];
+    
+    // Stop words to exclude
+    const stopWords = new Set([
+      'de', 'la', 'el', 'que', 'en', 'los', 'un', 'con', 'por', 'para', 'una', 'las', 'su', 'al', 'lo', 'como', 'más', 'pero', 'sus', 'este', 'esta', 'entre', 'cuando', 'muy', 'sin', 'sobre', 'también', 'me', 'nos', 'le', 'hay', 'ya', 'son', 'ser', 'si', 'mi', 'tiene', 'todo', 'esta', 'estos', 'estamos', 'estoy', 'hola', 'buenas', 'tardes', 'días', 'noches', 'favor', 'quisiera', 'necesito', 'gracias', 'gracias', 'clases', 'persona', 'personas',
+      'the', 'and', 'for', 'with', 'are', 'but', 'not', 'you', 'all', 'any', 'can', 'had', 'has', 'was', 'were', 'from', 'they', 'this', 'that', 'there', 'when', 'where', 'which', 'will'
+    ]);
+
+    const wordsMap: Record<string, number> = {};
+    
+    filteredLeads.forEach(lead => {
+      if (!lead.notes) return;
+      const words = lead.notes
+        .toLowerCase()
+        .replace(/[.,\/#!$%\^&\*;:{}=\-_`~()]/g, "")
+        .split(/\s+/);
+      
+      words.forEach(word => {
+        if (word.length > 3 && !stopWords.has(word)) {
+          wordsMap[word] = (wordsMap[word] || 0) + 1;
+        }
+      });
+    });
+
+    return Object.entries(wordsMap)
+      .sort(([, a], [, b]) => b - a)
+      .slice(0, 20)
+      .map(([text, value]) => ({ text, value }));
+  }, [filteredLeads]);
 
   if (!isLoaded) return (
     <div className="flex items-center justify-center h-full min-h-[400px]">
@@ -171,52 +202,48 @@ export function Dashboard() {
           icon={<Bot className="h-4 w-4 text-purple-500" />} 
           description={t('dashboard.kpi.descBotActive')}
         />
-        <KpiCard 
-          title={t('dashboard.kpi.responded')} 
-          value={contactedLeadsCount.toString()} 
-          icon={<MessageSquare className="h-4 w-4 text-amber-500" />} 
-          description={t('dashboard.kpi.descResponded')}
-          className="hidden md:flex"
-        />
-        <KpiCard 
-          title={t('dashboard.kpi.conversionRate')} 
-          value={`${conversionRate}%`} 
-          icon={<UserCheck className="h-4 w-4 text-indigo-500" />} 
-          description={t('dashboard.kpi.descConversion')}
-          className="hidden md:flex"
-        />
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <Card className="shadow-sm border-slate-200">
-          <CardHeader className="p-4 md:p-6 pb-0">
-            <CardTitle className="text-base md:text-lg">{t('dashboard.charts.funnel')}</CardTitle>
-            <CardDescription className="text-xs">{t('dashboard.charts.funnelDesc')}</CardDescription>
+        <Card className="shadow-sm border-slate-200 overflow-hidden">
+          <CardHeader className="p-4 md:p-6 pb-2">
+            <div className="flex items-center justify-between">
+              <div>
+                <CardTitle className="text-base md:text-lg">{t('dashboard.charts.words')}</CardTitle>
+                <CardDescription className="text-xs">{t('dashboard.charts.wordsDesc')}</CardDescription>
+              </div>
+              <Sparkles className="h-5 w-5 text-primary opacity-20" />
+            </div>
           </CardHeader>
-          <CardContent className="h-[250px] md:h-[300px] p-2 md:p-6">
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={stageData} layout="vertical" margin={{ left: 10, right: 30 }}>
-                <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="#e2e8f0" />
-                <XAxis type="number" hide />
-                <YAxis 
-                  dataKey="name" 
-                  type="category" 
-                  axisLine={false} 
-                  tickLine={false} 
-                  tick={{ fontSize: 10, fontWeight: 500 }}
-                  width={80}
-                />
-                <Tooltip 
-                  cursor={{ fill: 'transparent' }}
-                  contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 12px rgba(0,0,0,0.1)', fontSize: '10px' }}
-                />
-                <Bar dataKey="count" radius={[0, 4, 4, 0]} barSize={24}>
-                  {stageData.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={entry.color} fillOpacity={0.8} />
-                  ))}
-                </Bar>
-              </BarChart>
-            </ResponsiveContainer>
+          <CardContent className="h-[250px] md:h-[300px] flex items-center justify-center p-6 bg-slate-50/30">
+            <div className="flex flex-wrap items-center justify-center gap-2 md:gap-4 max-w-lg">
+              {wordCloudData.map((item, i) => {
+                const maxVal = Math.max(...wordCloudData.map(w => w.value));
+                const scale = (item.value / maxVal);
+                const fontSize = 12 + (scale * 24);
+                const opacity = 0.4 + (scale * 0.6);
+                
+                return (
+                  <span 
+                    key={i} 
+                    style={{ fontSize: `${fontSize}px`, opacity }}
+                    className={cn(
+                      "font-black tracking-tight cursor-default hover:scale-110 transition-transform uppercase leading-none",
+                      i % 4 === 0 ? "text-primary" : 
+                      i % 4 === 1 ? "text-amber-500" : 
+                      i % 4 === 2 ? "text-emerald-500" : "text-indigo-500"
+                    )}
+                  >
+                    {item.text}
+                  </span>
+                )
+              })}
+              {wordCloudData.length === 0 && (
+                <div className="text-center opacity-30 italic text-xs uppercase font-black tracking-widest">
+                  Sin datos suficientes
+                </div>
+              )}
+            </div>
           </CardContent>
         </Card>
 
@@ -306,48 +333,80 @@ export function Dashboard() {
         </Card>
 
         <Card className="lg:col-span-2 shadow-sm border-slate-200">
-          <CardHeader className="p-4 md:p-6">
-            <CardTitle className="text-base md:text-lg">{t('dashboard.recentLeads.title')}</CardTitle>
-            <CardDescription className="text-xs">{t('dashboard.recentLeads.subtitle')}</CardDescription>
+          <CardHeader className="p-4 md:p-6 pb-0">
+            <CardTitle className="text-base md:text-lg">{t('dashboard.charts.funnel')}</CardTitle>
+            <CardDescription className="text-xs">{t('dashboard.charts.funnelDesc')}</CardDescription>
           </CardHeader>
-          <CardContent className="p-2 md:p-6 pt-0">
-            <div className="space-y-2">
-              {filteredLeads.slice(0, 5).map((lead) => (
-                <div key={lead.id} className="flex items-center justify-between p-2 md:p-3 rounded-lg hover:bg-slate-50 transition-colors border border-transparent hover:border-slate-100">
-                  <div className="flex items-center gap-2 md:gap-3">
-                    <div className="w-7 h-7 md:w-8 md:h-8 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold text-[10px] md:text-xs">
-                      {lead.contactName.substring(0, 2).toUpperCase()}
-                    </div>
-                    <div>
-                      <p className="text-xs md:text-sm font-bold truncate max-w-[120px] md:max-w-none">{lead.contactName}</p>
-                      <p className="text-[10px] text-muted-foreground">{lead.phone}</p>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-2 md:gap-4">
-                    <div className={cn(
-                      "text-[8px] md:text-[9px] font-black px-1.5 py-0.5 rounded-full uppercase tracking-tighter md:tracking-wider",
-                      lead.stage === 'new' ? "bg-blue-100 text-blue-700" :
-                      lead.stage === 'contacted' ? "bg-amber-100 text-amber-700" :
-                      lead.stage === 'qualified' ? "bg-emerald-100 text-emerald-700" :
-                      "bg-indigo-100 text-indigo-700"
-                    )}>
-                      {t(`stages.${lead.stage}`)}
-                    </div>
-                    <span className="text-[8px] md:text-[10px] text-slate-400 hidden sm:inline">
-                      {new Date(lead.updatedAt).toLocaleDateString()}
-                    </span>
-                  </div>
-                </div>
-              ))}
-              {filteredLeads.length === 0 && (
-                <div className="py-10 text-center text-muted-foreground text-xs">
-                  {t('dashboard.recentLeads.empty')}
-                </div>
-              )}
-            </div>
+          <CardContent className="h-[250px] md:h-[300px] p-2 md:p-6">
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart data={stageData} layout="vertical" margin={{ left: 10, right: 30 }}>
+                <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="#e2e8f0" />
+                <XAxis type="number" hide />
+                <YAxis 
+                  dataKey="name" 
+                  type="category" 
+                  axisLine={false} 
+                  tickLine={false} 
+                  tick={{ fontSize: 10, fontWeight: 500 }}
+                  width={80}
+                />
+                <Tooltip 
+                  cursor={{ fill: 'transparent' }}
+                  contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 12px rgba(0,0,0,0.1)', fontSize: '10px' }}
+                />
+                <Bar dataKey="count" radius={[0, 4, 4, 0]} barSize={24}>
+                  {stageData.map((entry, index) => (
+                    <Cell key={`cell-${index}`} fill={entry.color} fillOpacity={0.8} />
+                  ))}
+                </Bar>
+              </BarChart>
+            </ResponsiveContainer>
           </CardContent>
         </Card>
       </div>
+
+      <Card className="shadow-sm border-slate-200">
+        <CardHeader className="p-4 md:p-6">
+          <CardTitle className="text-base md:text-lg">{t('dashboard.recentLeads.title')}</CardTitle>
+          <CardDescription className="text-xs">{t('dashboard.recentLeads.subtitle')}</CardDescription>
+        </CardHeader>
+        <CardContent className="p-2 md:p-6 pt-0">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {filteredLeads.slice(0, 6).map((lead) => (
+              <div key={lead.id} className="flex items-center justify-between p-3 rounded-lg hover:bg-slate-50 transition-colors border border-slate-100">
+                <div className="flex items-center gap-3">
+                  <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold text-xs">
+                    {lead.contactName.substring(0, 2).toUpperCase()}
+                  </div>
+                  <div>
+                    <p className="text-sm font-bold truncate max-w-[150px]">{lead.contactName}</p>
+                    <p className="text-[10px] text-muted-foreground">{lead.phone}</p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-4">
+                  <div className={cn(
+                    "text-[9px] font-black px-1.5 py-0.5 rounded-full uppercase tracking-tighter",
+                    lead.stage === 'new' ? "bg-blue-100 text-blue-700" :
+                    lead.stage === 'contacted' ? "bg-amber-100 text-amber-700" :
+                    lead.stage === 'qualified' ? "bg-emerald-100 text-emerald-700" :
+                    "bg-indigo-100 text-indigo-700"
+                  )}>
+                    {t(`stages.${lead.stage}`)}
+                  </div>
+                  <span className="text-[10px] text-slate-400 font-bold">
+                    {new Date(lead.updatedAt).toLocaleDateString([], { day: '2-digit', month: 'short' })}
+                  </span>
+                </div>
+              </div>
+            ))}
+          </div>
+          {filteredLeads.length === 0 && (
+            <div className="py-10 text-center text-muted-foreground text-xs font-bold uppercase tracking-widest opacity-30">
+              {t('dashboard.recentLeads.empty')}
+            </div>
+          )}
+        </CardContent>
+      </Card>
     </div>
   );
 }

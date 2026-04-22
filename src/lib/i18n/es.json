@@ -36,7 +36,9 @@
       "funnelDesc": "Distribución de leads por etapa",
       "activity": "Actividad Reciente",
       "activityDesc": "Nuevos leads en los últimos 7 días",
-      "health": "Salud del Pipeline"
+      "health": "Salud del Pipeline",
+      "words": "Temas Recurrentes",
+      "wordsDesc": "Palabras más frecuentes en las notas"
     },
     "recentLeads": {
       "title": "Leads Recientes",

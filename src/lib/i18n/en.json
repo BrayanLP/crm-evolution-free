@@ -36,7 +36,9 @@
       "funnelDesc": "Leads distribution by stage",
       "activity": "Recent Activity",
       "activityDesc": "New leads in the last 7 days",
-      "health": "Pipeline Health"
+      "health": "Pipeline Health",
+      "words": "Trending Topics",
+      "wordsDesc": "Most frequent words in lead notes"
     },
     "recentLeads": {
       "title": "Recent Leads",
