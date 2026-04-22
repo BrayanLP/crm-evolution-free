@@ -64,7 +64,7 @@ export function MobileNav() {
                 key={item.href}
                 href={item.href}
                 className={cn(
-                  "w-full justify-start gap-3 px-4 py-4 text-base font-medium transition-all duration-200 flex items-center rounded-md",
+                  "w-full justify-start gap-3 px-4 py-2.5 text-sm font-medium transition-all duration-200 flex items-center rounded-md",
                   pathname === item.href 
                     ? "bg-primary/5 text-primary shadow-sm" 
                     : "text-slate-500 hover:text-primary hover:bg-primary/5"

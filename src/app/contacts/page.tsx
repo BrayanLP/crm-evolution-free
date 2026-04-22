@@ -404,7 +404,7 @@ function NavItem({ icon, label, href, active = false }: { icon: React.ReactNode,
     <Link 
       href={href} 
       className={cn(
-        "w-full justify-start gap-3 px-4 py-6 text-base font-medium transition-all duration-200 flex items-center",
+        "w-full justify-start gap-3 px-4 py-2.5 text-sm font-medium transition-all duration-200 flex items-center rounded-md",
         active ? "bg-primary/5 text-primary shadow-sm hover:bg-primary/10" : "text-slate-500 hover:text-primary hover:bg-primary/5"
       )}
     >
