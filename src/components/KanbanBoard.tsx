@@ -6,7 +6,7 @@ import { useState, useMemo } from 'react';
 import { useLeads } from '@/lib/store';
 import { STAGES, Lead, StageId } from '@/lib/types';
 import { LeadDialog } from './LeadDialog';
-import { Phone, RefreshCw, AlertCircle, Bot, DollarSign } from 'lucide-react';
+import { Phone, RefreshCw, AlertCircle, Bot, DollarSign, Plus } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -29,7 +29,7 @@ export function KanbanBoard({
   dateFilter = 'all',
   showAmounts = true
 }: KanbanBoardProps) {
-  const { leads, updateLead, deleteLead, moveLead, syncLeads, toggleBot, isSyncing, isLoaded, webhookUrl, leadEditUrl } = useLeads();
+  const { leads, updateLead, createLead, deleteLead, moveLead, syncLeads, toggleBot, isSyncing, isLoaded, webhookUrl, leadEditUrl } = useLeads();
   const { t } = useTranslation();
   const { toast } = useToast();
   const [selectedLead, setSelectedLead] = useState<Lead | undefined>(undefined);
@@ -91,6 +91,11 @@ export function KanbanBoard({
     setIsDialogOpen(true);
   };
 
+  const openCreateDialog = () => {
+    setSelectedLead(undefined);
+    setIsDialogOpen(true);
+  };
+
   return (
     <div className="flex flex-col h-full space-y-4 md:space-y-6">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
@@ -107,6 +112,13 @@ export function KanbanBoard({
           >
             <RefreshCw className={cn("h-3.5 w-3.5", isSyncing && "animate-spin")} />
             {t('leads.sync')}
+          </Button>
+          <Button 
+            onClick={openCreateDialog} 
+            className="gap-2 h-9 md:h-10 text-xs w-full md:w-auto font-black uppercase tracking-tight shadow-md"
+          >
+            <Plus className="h-3.5 w-3.5" />
+            {t('leadDialog.create')}
           </Button>
         </div>
       </div>
@@ -240,6 +252,8 @@ export function KanbanBoard({
         onSave={(data) => {
           if (selectedLead) {
             updateLead(selectedLead.id, data);
+          } else {
+            createLead(data);
           }
         }}
         onDelete={deleteLead}

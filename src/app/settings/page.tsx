@@ -48,6 +48,7 @@ export default function SettingsPage() {
       instanceName: 'HALCONDIGITAL',
       webhookUrl: '',
       leadEditUrl: '',
+      leadCreateUrl: '',
       historyWebhookUrl: '',
       servicesUrl: '',
       servicesCreateUrl: '',
@@ -374,14 +375,25 @@ export default function SettingsPage() {
                           className="h-10 text-xs font-medium"
                         />
                       </div>
-                      <div className="space-y-2">
-                        <Label className="text-[10px] font-black uppercase text-slate-400">{t('settings.leadEditUrl')}</Label>
-                        <Input
-                          value={currentLocalAccount.leadEditUrl}
-                          onChange={(e) => handleUpdateAccount(currentLocalAccount.id, { leadEditUrl: e.target.value })}
-                          placeholder="https://.../post/edit-lead"
-                          className="h-10 text-xs font-medium"
-                        />
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div className="space-y-2">
+                          <Label className="text-[10px] font-black uppercase text-slate-400">URL Creación Leads (POST)</Label>
+                          <Input
+                            value={currentLocalAccount.leadCreateUrl}
+                            onChange={(e) => handleUpdateAccount(currentLocalAccount.id, { leadCreateUrl: e.target.value })}
+                            placeholder="https://.../post/create-lead"
+                            className="h-10 text-xs font-medium"
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <Label className="text-[10px] font-black uppercase text-slate-400">URL Edición Leads (POST)</Label>
+                          <Input
+                            value={currentLocalAccount.leadEditUrl}
+                            onChange={(e) => handleUpdateAccount(currentLocalAccount.id, { leadEditUrl: e.target.value })}
+                            placeholder="https://.../post/edit-lead"
+                            className="h-10 text-xs font-medium"
+                          />
+                        </div>
                       </div>
                       <div className="space-y-2">
                         <Label className="text-[10px] font-black uppercase text-slate-400">{t('settings.historyUrl')}</Label>

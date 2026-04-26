@@ -6,6 +6,7 @@ export interface AccountConfig {
   name: string;
   webhookUrl: string;
   leadEditUrl: string;
+  leadCreateUrl: string;
   historyWebhookUrl: string;
   instanceName: string;
   servicesUrl: string;

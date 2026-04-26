@@ -9,7 +9,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Sparkles, Loader2, Trash2, DollarSign } from 'lucide-react';
+import { Sparkles, Loader2, Trash2, DollarSign, Calendar } from 'lucide-react';
 import type { Lead, StageId } from '@/lib/types';
 import { STAGES } from '@/lib/types';
 import { suggestLeadActions } from '@/ai/flows/suggested-lead-actions';
@@ -102,36 +102,37 @@ export function LeadDialog({ lead, isOpen, onClose, onSave, onDelete }: LeadDial
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
+      <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto rounded-xl">
         <DialogHeader>
-          <DialogTitle className="text-2xl font-headline text-primary">
+          <DialogTitle className="text-xl md:text-2xl font-black uppercase tracking-tighter text-primary">
             {lead ? t('leadDialog.edit') : t('leadDialog.create')}
           </DialogTitle>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4 py-4">
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="name">{t('leadDialog.name')}</Label>
+              <Label htmlFor="name" className="text-xs font-bold uppercase tracking-tight">{t('leadDialog.name')}</Label>
               <Input
                 id="name"
                 value={formData.name}
                 onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                 placeholder="ej. Expansión Enterprise"
                 required
+                className="h-10 text-xs font-medium"
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="stage">{t('leadDialog.stage')}</Label>
+              <Label htmlFor="stage" className="text-xs font-bold uppercase tracking-tight">{t('leadDialog.stage')}</Label>
               <Select
                 value={formData.stage}
                 onValueChange={(val) => setFormData({ ...formData, stage: val as StageId })}
               >
-                <SelectTrigger>
+                <SelectTrigger className="h-10 text-xs font-medium">
                   <SelectValue placeholder="Seleccionar etapa" />
                 </SelectTrigger>
                 <SelectContent>
                   {STAGES.map((s) => (
-                    <SelectItem key={s.id} value={s.id}>
+                    <SelectItem key={s.id} value={s.id} className="text-xs">
                       {t(`stages.${s.id}`)}
                     </SelectItem>
                   ))}
@@ -140,18 +141,19 @@ export function LeadDialog({ lead, isOpen, onClose, onSave, onDelete }: LeadDial
             </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="contactName">{t('leadDialog.contact')}</Label>
+              <Label htmlFor="contactName" className="text-xs font-bold uppercase tracking-tight">{t('leadDialog.contact')}</Label>
               <Input
                 id="contactName"
                 value={formData.contactName}
                 onChange={(e) => setFormData({ ...formData, contactName: e.target.value })}
                 placeholder="Nombre completo"
+                className="h-10 text-xs font-medium"
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="budget">{t('leadDialog.budget')}</Label>
+              <Label htmlFor="budget" className="text-xs font-bold uppercase tracking-tight">{t('leadDialog.budget')}</Label>
               <div className="relative">
                 <DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                 <Input
@@ -159,52 +161,66 @@ export function LeadDialog({ lead, isOpen, onClose, onSave, onDelete }: LeadDial
                   value={formData.budget}
                   onChange={(e) => setFormData({ ...formData, budget: e.target.value })}
                   placeholder="ej. 500.00"
-                  className="pl-9"
+                  className="pl-9 h-10 text-xs font-medium"
                 />
               </div>
             </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="email">{t('leadDialog.email')}</Label>
+              <Label htmlFor="email" className="text-xs font-bold uppercase tracking-tight">{t('leadDialog.email')}</Label>
               <Input
                 id="email"
                 type="email"
                 value={formData.email}
                 onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                 placeholder="correo@ejemplo.com"
+                className="h-10 text-xs font-medium"
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="phone">{t('leadDialog.phone')}</Label>
+              <Label htmlFor="phone" className="text-xs font-bold uppercase tracking-tight">{t('leadDialog.phone')}</Label>
               <Input
                 id="phone"
                 value={formData.phone}
                 onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
                 placeholder="Número de teléfono"
+                className="h-10 text-xs font-medium"
               />
             </div>
           </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="company">{t('leadDialog.company')}</Label>
-            <Input
-              id="company"
-              value={formData.company}
-              onChange={(e) => setFormData({ ...formData, company: e.target.value })}
-              placeholder="Nombre de la empresa"
-            />
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="company" className="text-xs font-bold uppercase tracking-tight">{t('leadDialog.company')}</Label>
+              <Input
+                id="company"
+                value={formData.company}
+                onChange={(e) => setFormData({ ...formData, company: e.target.value })}
+                placeholder="Nombre de la empresa"
+                className="h-10 text-xs font-medium"
+              />
+            </div>
+            {lead && (
+              <div className="space-y-2">
+                <Label className="text-xs font-bold uppercase tracking-tight">Fecha de Creación</Label>
+                <div className="h-10 px-3 flex items-center gap-2 bg-slate-50 border rounded-md text-[11px] font-bold text-slate-500">
+                  <Calendar className="h-3.5 w-3.5" />
+                  {new Date(lead.createdAt).toLocaleString()}
+                </div>
+              </div>
+            )}
           </div>
 
           <div className="space-y-2">
             <div className="flex justify-between items-center">
-              <Label htmlFor="notes">{t('leadDialog.notes')}</Label>
+              <Label htmlFor="notes" className="text-xs font-bold uppercase tracking-tight">{t('leadDialog.notes')}</Label>
               <Button
                 type="button"
                 variant="outline"
                 size="sm"
-                className="text-accent hover:text-accent border-accent hover:bg-accent/10 gap-1.5"
+                className="h-8 text-[10px] font-black uppercase text-accent hover:text-accent border-accent/30 hover:bg-accent/10 gap-1.5"
                 onClick={handleSuggestActions}
                 disabled={isSuggesting}
               >
@@ -218,16 +234,17 @@ export function LeadDialog({ lead, isOpen, onClose, onSave, onDelete }: LeadDial
               value={formData.notes}
               onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
               placeholder="..."
+              className="text-xs font-medium leading-relaxed"
             />
           </div>
 
           {suggestions.length > 0 && (
             <div className="bg-accent/5 rounded-lg p-3 border border-accent/20 space-y-2 animate-in fade-in slide-in-from-top-2">
-              <p className="text-xs font-bold text-accent uppercase tracking-wider">{t('leadDialog.suggestedActions')}</p>
-              <ul className="text-sm space-y-1 text-slate-700">
+              <p className="text-[10px] font-black text-accent uppercase tracking-widest">{t('leadDialog.suggestedActions')}</p>
+              <ul className="text-xs space-y-1.5 text-slate-700">
                 {suggestions.map((s, idx) => (
                   <li key={idx} className="flex gap-2">
-                    <span className="text-accent">•</span>
+                    <span className="text-accent font-black">•</span>
                     {s}
                   </li>
                 ))}
@@ -235,13 +252,13 @@ export function LeadDialog({ lead, isOpen, onClose, onSave, onDelete }: LeadDial
             </div>
           )}
 
-          <DialogFooter className="flex justify-between sm:justify-between items-center pt-4">
-            <div>
+          <DialogFooter className="flex flex-col-reverse sm:flex-row gap-2 pt-4 border-t">
+            <div className="flex-1">
               {lead && onDelete && (
                 <Button
                   type="button"
                   variant="ghost"
-                  className="text-destructive hover:text-destructive hover:bg-destructive/10"
+                  className="w-full sm:w-auto text-destructive hover:text-destructive hover:bg-destructive/10 text-xs font-bold uppercase tracking-tight"
                   onClick={() => {
                     if (confirm(t('leadDialog.deleteConfirm'))) {
                       onDelete(lead.id);
@@ -254,11 +271,11 @@ export function LeadDialog({ lead, isOpen, onClose, onSave, onDelete }: LeadDial
                 </Button>
               )}
             </div>
-            <div className="flex gap-2">
-              <Button type="button" variant="outline" onClick={onClose}>
+            <div className="flex flex-col sm:flex-row gap-2">
+              <Button type="button" variant="ghost" onClick={onClose} className="text-xs font-bold">
                 {t('leadDialog.cancel')}
               </Button>
-              <Button type="submit" className="bg-primary hover:bg-primary/90">
+              <Button type="submit" className="bg-primary hover:bg-primary/90 text-xs font-black uppercase tracking-tight shadow-lg px-6">
                 {lead ? t('leadDialog.update') : t('leadDialog.create')}
               </Button>
             </div>

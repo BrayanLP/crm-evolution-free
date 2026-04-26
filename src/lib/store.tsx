@@ -19,6 +19,7 @@ interface LeadsContextType {
   isLoaded: boolean;
   webhookUrl: string;
   leadEditUrl: string;
+  leadCreateUrl: string;
   historyWebhookUrl: string;
   instanceName: string;
   servicesUrl: string;
@@ -34,6 +35,7 @@ interface LeadsContextType {
   syncInfo: () => Promise<void>;
   getHistory: (leadIdentifier: string) => Promise<ChatMessage[]>;
   toggleBot: (whatsapp: string, status: boolean) => Promise<void>;
+  createLead: (data: Partial<Lead>) => Promise<void>;
   updateLead: (id: string, data: Partial<Lead>) => void;
   deleteLead: (id: string) => void;
   moveLead: (id: string, stageId: StageId) => void;
@@ -80,17 +82,17 @@ export function LeadsProvider({ children }: { children: React.ReactNode }) {
 
       return {
         id: incoming.id?.toString() || Math.random().toString(36).substr(2, 9),
-        name: incoming.PUSHNAME || "Nuevo Prospecto WhatsApp",
-        contactName: incoming.PUSHNAME || "Sin Nombre",
-        email: incoming.EMAIL || "",
-        phone: incoming.WHATSAPP?.toString() || incoming.REMOTEJID?.split('@')[0] || "",
-        remoteJid: incoming.REMOTEJID || `${incoming.WHATSAPP}@s.whatsapp.net`,
-        company: incoming.INSTANCE || activeAccount?.instanceName || "S/I",
+        name: incoming.PUSHNAME || incoming.name || "Nuevo Prospecto",
+        contactName: incoming.PUSHNAME || incoming.contactName || "Sin Nombre",
+        email: incoming.EMAIL || incoming.email || "",
+        phone: incoming.WHATSAPP?.toString() || incoming.phone || incoming.REMOTEJID?.split('@')[0] || "",
+        remoteJid: incoming.REMOTEJID || (incoming.WHATSAPP ? `${incoming.WHATSAPP}@s.whatsapp.net` : ""),
+        company: incoming.INSTANCE || incoming.company || activeAccount?.instanceName || "S/I",
         stage: mappedStage,
         notes: incoming.MESSAGE || incoming.notes || "Sin mensaje",
         budget: incoming.PRESUPUESTO || incoming.budget || 0,
-        createdAt: incoming.createdAt || new Date().toISOString(),
-        updatedAt: incoming.updatedAt || new Date().toISOString(),
+        createdAt: incoming.createdAt || incoming.created_at || new Date().toISOString(),
+        updatedAt: incoming.updatedAt || incoming.updated_at || new Date().toISOString(),
         botActive: String(incoming.ESTADO_BOT) === '1',
       };
     });
@@ -164,6 +166,7 @@ export function LeadsProvider({ children }: { children: React.ReactNode }) {
           name: legacy.instanceName || 'Cuenta Principal',
           webhookUrl: legacy.webhookUrl || '',
           leadEditUrl: legacy.leadEditUrl || '',
+          leadCreateUrl: legacy.leadCreateUrl || legacy.leadEditUrl || '',
           historyWebhookUrl: legacy.historyWebhookUrl || '',
           instanceName: legacy.instanceName || 'HALCONDIGITAL',
           servicesUrl: legacy.servicesUrl || '',
@@ -199,8 +202,10 @@ export function LeadsProvider({ children }: { children: React.ReactNode }) {
     initialSyncDone.current = null;
   };
 
-  const pushLeadUpdate = useCallback(async (lead: Lead) => {
-    if (!activeAccount?.leadEditUrl) return;
+  const pushLeadUpdate = useCallback(async (lead: Lead, isNew = false) => {
+    const url = isNew ? (activeAccount?.leadCreateUrl || activeAccount?.leadEditUrl) : activeAccount?.leadEditUrl;
+    if (!url) return;
+    
     try {
       const payload = {
         id: lead.id,
@@ -212,15 +217,38 @@ export function LeadsProvider({ children }: { children: React.ReactNode }) {
         MESSAGE: lead.notes,
         PRESUPUESTO: lead.budget,
         EMAIL: lead.email,
-        ESTADO_BOT: lead.botActive ? '1' : '0'
+        ESTADO_BOT: lead.botActive ? '1' : '0',
+        createdAt: lead.createdAt,
+        updatedAt: lead.updatedAt
       };
-      await fetch(activeAccount.leadEditUrl, {
+      await fetch(url, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload)
       });
-    } catch (err) { console.error('Error updating lead:', err); }
+    } catch (err) { console.error('Error pushing lead:', err); }
   }, [activeAccount]);
+
+  const createLead = async (data: Partial<Lead>) => {
+    const newLead: Lead = {
+      id: Math.random().toString(36).substr(2, 9),
+      name: data.name || "Nuevo Lead",
+      contactName: data.contactName || "Sin Nombre",
+      email: data.email || "",
+      phone: data.phone || "",
+      company: data.company || activeAccount?.instanceName || "S/I",
+      stage: data.stage || 'new',
+      notes: data.notes || "",
+      budget: data.budget || 0,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+      botActive: true,
+      remoteJid: data.phone ? `${data.phone}@s.whatsapp.net` : ""
+    };
+    
+    setLeads(prev => [newLead, ...prev]);
+    await pushLeadUpdate(newLead, true);
+  };
 
   const updateLead = (id: string, data: Partial<Lead>) => {
     setLeads(prev => {
@@ -316,6 +344,7 @@ export function LeadsProvider({ children }: { children: React.ReactNode }) {
     leads, services, info, accounts, activeAccount, isSyncing, isSyncingServices, isSyncingInfo, isLoaded,
     webhookUrl: activeAccount?.webhookUrl || '',
     leadEditUrl: activeAccount?.leadEditUrl || '',
+    leadCreateUrl: activeAccount?.leadCreateUrl || '',
     historyWebhookUrl: activeAccount?.historyWebhookUrl || '',
     instanceName: activeAccount?.instanceName || '',
     servicesUrl: activeAccount?.servicesUrl || '',
@@ -326,7 +355,7 @@ export function LeadsProvider({ children }: { children: React.ReactNode }) {
     infoEditUrl: activeAccount?.infoEditUrl || '',
     infoCreateUrl: activeAccount?.infoCreateUrl || '',
     infoDeleteUrl: activeAccount?.infoDeleteUrl || '',
-    syncLeads, syncServices, syncInfo, getHistory, toggleBot, updateLead, deleteLead, moveLead,
+    syncLeads, syncServices, syncInfo, getHistory, toggleBot, createLead, updateLead, deleteLead, moveLead,
     createService, updateService, deleteService, createInfo, updateInfo, deleteInfo,
     updateSettings, setActiveAccountId
   };
