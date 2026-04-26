@@ -29,7 +29,7 @@ export function KanbanBoard({
   dateFilter = 'all',
   showAmounts = true
 }: KanbanBoardProps) {
-  const { leads, updateLead, deleteLead, moveLead, syncLeads, toggleBot, isSyncing, isLoaded, webhookUrl, botWebhookUrl } = useLeads();
+  const { leads, updateLead, deleteLead, moveLead, syncLeads, toggleBot, isSyncing, isLoaded, webhookUrl, leadEditUrl } = useLeads();
   const { t } = useTranslation();
   const { toast } = useToast();
   const [selectedLead, setSelectedLead] = useState<Lead | undefined>(undefined);
@@ -194,7 +194,7 @@ export function KanbanBoard({
                         </div>
 
                         <div className="flex items-center justify-between pt-2 border-t border-slate-50 mt-1">
-                          {botWebhookUrl && (
+                          {leadEditUrl && (
                             <div 
                               className="flex items-center gap-1.5" 
                               onClick={(e) => e.stopPropagation()}

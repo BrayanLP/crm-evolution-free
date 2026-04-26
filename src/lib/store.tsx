@@ -20,7 +20,6 @@ interface LeadsContextType {
   webhookUrl: string;
   leadEditUrl: string;
   historyWebhookUrl: string;
-  botWebhookUrl: string;
   instanceName: string;
   servicesUrl: string;
   servicesEditUrl: string;
@@ -147,7 +146,6 @@ export function LeadsProvider({ children }: { children: React.ReactNode }) {
     }
   }, [activeAccount, processIncomingData]);
 
-  // Load and Migrate Settings
   useEffect(() => {
     const savedV2 = localStorage.getItem(SETTINGS_KEY);
     const savedLegacy = localStorage.getItem(LEGACY_SETTINGS_KEY);
@@ -167,7 +165,6 @@ export function LeadsProvider({ children }: { children: React.ReactNode }) {
           webhookUrl: legacy.webhookUrl || '',
           leadEditUrl: legacy.leadEditUrl || '',
           historyWebhookUrl: legacy.historyWebhookUrl || '',
-          botWebhookUrl: legacy.botWebhookUrl || '',
           instanceName: legacy.instanceName || 'HALCONDIGITAL',
           servicesUrl: legacy.servicesUrl || '',
           servicesCreateUrl: legacy.servicesCreateUrl || '',
@@ -180,14 +177,12 @@ export function LeadsProvider({ children }: { children: React.ReactNode }) {
         };
         setAccounts([initialAccount]);
         setActiveAccountId('default');
-        // Save to V2
         localStorage.setItem(SETTINGS_KEY, JSON.stringify({ accounts: [initialAccount], activeAccountId: 'default' }));
       } catch (e) { console.error("Error migrating legacy settings"); }
     }
     setIsLoaded(true);
   }, []);
 
-  // Sync data when active account changes
   useEffect(() => {
     if (activeAccountId && initialSyncDone.current !== activeAccountId) {
       syncLeads();
@@ -201,7 +196,7 @@ export function LeadsProvider({ children }: { children: React.ReactNode }) {
     setAccounts(newAccounts);
     setActiveAccountId(newActiveId);
     localStorage.setItem(SETTINGS_KEY, JSON.stringify({ accounts: newAccounts, activeAccountId: newActiveId }));
-    initialSyncDone.current = null; // Re-sync
+    initialSyncDone.current = null;
   };
 
   const pushLeadUpdate = useCallback(async (lead: Lead) => {
@@ -248,7 +243,6 @@ export function LeadsProvider({ children }: { children: React.ReactNode }) {
   const deleteLead = (id: string) => setLeads(prev => prev.filter(l => l.id !== id));
 
   const toggleBot = async (whatsapp: string, status: boolean) => {
-    if (!activeAccount?.botWebhookUrl) return;
     setLeads(prev => {
       const updated = prev.map(l => {
         if (l.phone === whatsapp) {
@@ -260,13 +254,6 @@ export function LeadsProvider({ children }: { children: React.ReactNode }) {
       });
       return updated;
     });
-    try {
-      await fetch(activeAccount.botWebhookUrl, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ whatsapp, ESTADO_BOT: status ? '1' : '0' })
-      });
-    } catch (err) { console.error('Error toggling bot:', err); }
   };
 
   const createService = async (data: any) => {
@@ -330,7 +317,6 @@ export function LeadsProvider({ children }: { children: React.ReactNode }) {
     webhookUrl: activeAccount?.webhookUrl || '',
     leadEditUrl: activeAccount?.leadEditUrl || '',
     historyWebhookUrl: activeAccount?.historyWebhookUrl || '',
-    botWebhookUrl: activeAccount?.botWebhookUrl || '',
     instanceName: activeAccount?.instanceName || '',
     servicesUrl: activeAccount?.servicesUrl || '',
     servicesEditUrl: activeAccount?.servicesEditUrl || '',

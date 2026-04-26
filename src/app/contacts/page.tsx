@@ -21,7 +21,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { MobileNav } from '@/components/MobileNav';
 
 export default function ContactsPage() {
-  const { leads, getHistory, historyWebhookUrl, toggleBot, botWebhookUrl, accounts, activeAccount, setActiveAccountId } = useLeads();
+  const { leads, getHistory, historyWebhookUrl, toggleBot, leadEditUrl, accounts, activeAccount, setActiveAccountId } = useLeads();
   const { t } = useTranslation();
   const { toast } = useToast();
   
@@ -278,7 +278,7 @@ export default function ContactsPage() {
                   </div>
                 </div>
 
-                {botWebhookUrl && (
+                {leadEditUrl && (
                   <div className="flex items-center gap-2 bg-slate-50 px-3 py-1.5 rounded-full border border-slate-200">
                     <Bot className={cn("h-4 w-4", isBotActive ? "text-primary" : "text-slate-400")} />
                     <Switch 

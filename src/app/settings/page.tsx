@@ -49,7 +49,6 @@ export default function SettingsPage() {
       webhookUrl: '',
       leadEditUrl: '',
       historyWebhookUrl: '',
-      botWebhookUrl: '',
       servicesUrl: '',
       servicesCreateUrl: '',
       servicesEditUrl: '',
@@ -70,7 +69,6 @@ export default function SettingsPage() {
       setActiveId(filtered.length > 0 ? filtered[0].id : '');
     }
     
-    // Auto save after delete to reflect change
     updateSettings(filtered, filtered.length > 0 ? (activeId === id ? filtered[0].id : activeId) : '');
     
     toast({
@@ -127,16 +125,13 @@ export default function SettingsPage() {
       try {
         const json = JSON.parse(event.target?.result as string);
         if (json.accounts) {
-          // Import Multiple
           setLocalAccounts(json.accounts);
           setActiveId(json.activeAccountId || json.accounts[0].id);
         } else if (json.account) {
-          // Import Single
           const updated = [...localAccounts, json.account];
           setLocalAccounts(updated);
           setActiveId(json.account.id);
         } else {
-          // Legacy or Unknown
           const migratedId = Math.random().toString(36).substr(2, 9);
           const newAcc = { ...json, id: migratedId, name: json.instanceName || 'Cuenta Importada' };
           setLocalAccounts([...localAccounts, newAcc]);
@@ -388,25 +383,14 @@ export default function SettingsPage() {
                           className="h-10 text-xs font-medium"
                         />
                       </div>
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                        <div className="space-y-2">
-                          <Label className="text-[10px] font-black uppercase text-slate-400">{t('settings.historyUrl')}</Label>
-                          <Input
-                            value={currentLocalAccount.historyWebhookUrl}
-                            onChange={(e) => handleUpdateAccount(currentLocalAccount.id, { historyWebhookUrl: e.target.value })}
-                            placeholder="https://.../get/history"
-                            className="h-10 text-xs font-medium"
-                          />
-                        </div>
-                        <div className="space-y-2">
-                          <Label className="text-[10px] font-black uppercase text-slate-400">{t('settings.botUrl')}</Label>
-                          <Input
-                            value={currentLocalAccount.botWebhookUrl}
-                            onChange={(e) => handleUpdateAccount(currentLocalAccount.id, { botWebhookUrl: e.target.value })}
-                            placeholder="https://.../post/toggle-bot"
-                            className="h-10 text-xs font-medium"
-                          />
-                        </div>
+                      <div className="space-y-2">
+                        <Label className="text-[10px] font-black uppercase text-slate-400">{t('settings.historyUrl')}</Label>
+                        <Input
+                          value={currentLocalAccount.historyWebhookUrl}
+                          onChange={(e) => handleUpdateAccount(currentLocalAccount.id, { historyWebhookUrl: e.target.value })}
+                          placeholder="https://.../get/history"
+                          className="h-10 text-xs font-medium"
+                        />
                       </div>
                     </CardContent>
                   </Card>
