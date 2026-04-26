@@ -278,17 +278,31 @@ export default function ContactsPage() {
                   </div>
                 </div>
 
-                {leadEditUrl && (
-                  <div className="flex items-center gap-2 bg-slate-50 px-3 py-1.5 rounded-full border border-slate-200">
-                    <Bot className={cn("h-4 w-4", isBotActive ? "text-primary" : "text-slate-400")} />
-                    <Switch 
-                      id="bot-mode" 
-                      checked={isBotActive} 
-                      onCheckedChange={handleBotToggle}
-                      className="scale-75 md:scale-90"
-                    />
-                  </div>
-                )}
+                <div className="flex items-center gap-2">
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    asChild 
+                    className="h-8 md:h-9 rounded-full gap-2 border-emerald-200 text-emerald-600 hover:bg-emerald-50 hover:text-emerald-700 font-black text-[10px] md:text-xs uppercase tracking-tight shadow-sm"
+                  >
+                    <a href={`https://wa.me/${selectedLead.phone.replace(/\D/g, '')}`} target="_blank" rel="noopener noreferrer">
+                      <MessageSquare className="h-3.5 w-3.5" />
+                      <span className="hidden sm:inline">WhatsApp</span>
+                    </a>
+                  </Button>
+                  
+                  {leadEditUrl && (
+                    <div className="flex items-center gap-2 bg-slate-50 px-3 py-1.5 rounded-full border border-slate-200">
+                      <Bot className={cn("h-4 w-4", isBotActive ? "text-primary" : "text-slate-400")} />
+                      <Switch 
+                        id="bot-mode" 
+                        checked={isBotActive} 
+                        onCheckedChange={handleBotToggle}
+                        className="scale-75 md:scale-90"
+                      />
+                    </div>
+                  )}
+                </div>
               </div>
 
               <ScrollArea className="flex-1 p-4 md:p-8 bg-[#e5ddd5]/30">
