@@ -19,8 +19,8 @@ interface LeadsContextType {
   isLoaded: boolean;
   webhookUrl: string;
   leadEditUrl: string;
+  leadCreateUrl: string;
   historyWebhookUrl: string;
-  botWebhookUrl: string;
   instanceName: string;
   servicesUrl: string;
   servicesEditUrl: string;
@@ -35,6 +35,7 @@ interface LeadsContextType {
   syncInfo: () => Promise<void>;
   getHistory: (leadIdentifier: string) => Promise<ChatMessage[]>;
   toggleBot: (whatsapp: string, status: boolean) => Promise<void>;
+  createLead: (data: Partial<Lead>) => Promise<void>;
   updateLead: (id: string, data: Partial<Lead>) => void;
   deleteLead: (id: string) => void;
   moveLead: (id: string, stageId: StageId) => void;
@@ -81,17 +82,17 @@ export function LeadsProvider({ children }: { children: React.ReactNode }) {
 
       return {
         id: incoming.id?.toString() || Math.random().toString(36).substr(2, 9),
-        name: incoming.PUSHNAME || "Nuevo Prospecto WhatsApp",
-        contactName: incoming.PUSHNAME || "Sin Nombre",
-        email: incoming.EMAIL || "",
-        phone: incoming.WHATSAPP?.toString() || incoming.REMOTEJID?.split('@')[0] || "",
-        remoteJid: incoming.REMOTEJID || `${incoming.WHATSAPP}@s.whatsapp.net`,
-        company: incoming.INSTANCE || activeAccount?.instanceName || "S/I",
+        name: incoming.PUSHNAME || incoming.name || "Nuevo Prospecto",
+        contactName: incoming.PUSHNAME || incoming.contactName || "Sin Nombre",
+        email: incoming.EMAIL || incoming.email || "",
+        phone: incoming.WHATSAPP?.toString() || incoming.phone || incoming.REMOTEJID?.split('@')[0] || "",
+        remoteJid: incoming.REMOTEJID || (incoming.WHATSAPP ? `${incoming.WHATSAPP}@s.whatsapp.net` : ""),
+        company: incoming.INSTANCE || incoming.company || activeAccount?.instanceName || "S/I",
         stage: mappedStage,
         notes: incoming.MESSAGE || incoming.notes || "Sin mensaje",
         budget: incoming.PRESUPUESTO || incoming.budget || 0,
-        createdAt: incoming.createdAt || new Date().toISOString(),
-        updatedAt: incoming.updatedAt || new Date().toISOString(),
+        createdAt: incoming.createdAt || incoming.created_at || new Date().toISOString(),
+        updatedAt: incoming.updatedAt || incoming.updated_at || new Date().toISOString(),
         botActive: String(incoming.ESTADO_BOT) === '1',
       };
     });
@@ -147,7 +148,6 @@ export function LeadsProvider({ children }: { children: React.ReactNode }) {
     }
   }, [activeAccount, processIncomingData]);
 
-  // Load and Migrate Settings
   useEffect(() => {
     const savedV2 = localStorage.getItem(SETTINGS_KEY);
     const savedLegacy = localStorage.getItem(LEGACY_SETTINGS_KEY);
@@ -166,8 +166,8 @@ export function LeadsProvider({ children }: { children: React.ReactNode }) {
           name: legacy.instanceName || 'Cuenta Principal',
           webhookUrl: legacy.webhookUrl || '',
           leadEditUrl: legacy.leadEditUrl || '',
+          leadCreateUrl: legacy.leadCreateUrl || legacy.leadEditUrl || '',
           historyWebhookUrl: legacy.historyWebhookUrl || '',
-          botWebhookUrl: legacy.botWebhookUrl || '',
           instanceName: legacy.instanceName || 'HALCONDIGITAL',
           servicesUrl: legacy.servicesUrl || '',
           servicesCreateUrl: legacy.servicesCreateUrl || '',
@@ -180,14 +180,12 @@ export function LeadsProvider({ children }: { children: React.ReactNode }) {
         };
         setAccounts([initialAccount]);
         setActiveAccountId('default');
-        // Save to V2
         localStorage.setItem(SETTINGS_KEY, JSON.stringify({ accounts: [initialAccount], activeAccountId: 'default' }));
       } catch (e) { console.error("Error migrating legacy settings"); }
     }
     setIsLoaded(true);
   }, []);
 
-  // Sync data when active account changes
   useEffect(() => {
     if (activeAccountId && initialSyncDone.current !== activeAccountId) {
       syncLeads();
@@ -201,11 +199,13 @@ export function LeadsProvider({ children }: { children: React.ReactNode }) {
     setAccounts(newAccounts);
     setActiveAccountId(newActiveId);
     localStorage.setItem(SETTINGS_KEY, JSON.stringify({ accounts: newAccounts, activeAccountId: newActiveId }));
-    initialSyncDone.current = null; // Re-sync
+    initialSyncDone.current = null;
   };
 
-  const pushLeadUpdate = useCallback(async (lead: Lead) => {
-    if (!activeAccount?.leadEditUrl) return;
+  const pushLeadUpdate = useCallback(async (lead: Lead, isNew = false) => {
+    const url = isNew ? (activeAccount?.leadCreateUrl || activeAccount?.leadEditUrl) : activeAccount?.leadEditUrl;
+    if (!url) return;
+    
     try {
       const payload = {
         id: lead.id,
@@ -217,15 +217,38 @@ export function LeadsProvider({ children }: { children: React.ReactNode }) {
         MESSAGE: lead.notes,
         PRESUPUESTO: lead.budget,
         EMAIL: lead.email,
-        ESTADO_BOT: lead.botActive ? '1' : '0'
+        ESTADO_BOT: lead.botActive ? '1' : '0',
+        createdAt: lead.createdAt,
+        updatedAt: lead.updatedAt
       };
-      await fetch(activeAccount.leadEditUrl, {
+      await fetch(url, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload)
       });
-    } catch (err) { console.error('Error updating lead:', err); }
+    } catch (err) { console.error('Error pushing lead:', err); }
   }, [activeAccount]);
+
+  const createLead = async (data: Partial<Lead>) => {
+    const newLead: Lead = {
+      id: Math.random().toString(36).substr(2, 9),
+      name: data.name || "Nuevo Lead",
+      contactName: data.contactName || "Sin Nombre",
+      email: data.email || "",
+      phone: data.phone || "",
+      company: data.company || activeAccount?.instanceName || "S/I",
+      stage: data.stage || 'new',
+      notes: data.notes || "",
+      budget: data.budget || 0,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+      botActive: true,
+      remoteJid: data.phone ? `${data.phone}@s.whatsapp.net` : ""
+    };
+    
+    setLeads(prev => [newLead, ...prev]);
+    await pushLeadUpdate(newLead, true);
+  };
 
   const updateLead = (id: string, data: Partial<Lead>) => {
     setLeads(prev => {
@@ -248,7 +271,6 @@ export function LeadsProvider({ children }: { children: React.ReactNode }) {
   const deleteLead = (id: string) => setLeads(prev => prev.filter(l => l.id !== id));
 
   const toggleBot = async (whatsapp: string, status: boolean) => {
-    if (!activeAccount?.botWebhookUrl) return;
     setLeads(prev => {
       const updated = prev.map(l => {
         if (l.phone === whatsapp) {
@@ -260,13 +282,6 @@ export function LeadsProvider({ children }: { children: React.ReactNode }) {
       });
       return updated;
     });
-    try {
-      await fetch(activeAccount.botWebhookUrl, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ whatsapp, ESTADO_BOT: status ? '1' : '0' })
-      });
-    } catch (err) { console.error('Error toggling bot:', err); }
   };
 
   const createService = async (data: any) => {
@@ -329,8 +344,8 @@ export function LeadsProvider({ children }: { children: React.ReactNode }) {
     leads, services, info, accounts, activeAccount, isSyncing, isSyncingServices, isSyncingInfo, isLoaded,
     webhookUrl: activeAccount?.webhookUrl || '',
     leadEditUrl: activeAccount?.leadEditUrl || '',
+    leadCreateUrl: activeAccount?.leadCreateUrl || '',
     historyWebhookUrl: activeAccount?.historyWebhookUrl || '',
-    botWebhookUrl: activeAccount?.botWebhookUrl || '',
     instanceName: activeAccount?.instanceName || '',
     servicesUrl: activeAccount?.servicesUrl || '',
     servicesEditUrl: activeAccount?.servicesEditUrl || '',
@@ -340,7 +355,7 @@ export function LeadsProvider({ children }: { children: React.ReactNode }) {
     infoEditUrl: activeAccount?.infoEditUrl || '',
     infoCreateUrl: activeAccount?.infoCreateUrl || '',
     infoDeleteUrl: activeAccount?.infoDeleteUrl || '',
-    syncLeads, syncServices, syncInfo, getHistory, toggleBot, updateLead, deleteLead, moveLead,
+    syncLeads, syncServices, syncInfo, getHistory, toggleBot, createLead, updateLead, deleteLead, moveLead,
     createService, updateService, deleteService, createInfo, updateInfo, deleteInfo,
     updateSettings, setActiveAccountId
   };

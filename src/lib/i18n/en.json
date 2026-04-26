@@ -36,7 +36,9 @@
       "funnelDesc": "Leads distribution by stage",
       "activity": "Recent Activity",
       "activityDesc": "New leads in the last 7 days",
-      "health": "Pipeline Health"
+      "health": "Pipeline Health",
+      "words": "Trending Topics",
+      "wordsDesc": "Most frequent words in lead notes"
     },
     "recentLeads": {
       "title": "Recent Leads",
@@ -64,14 +66,17 @@
     "dateWeek": "Last 7 days",
     "dateMonth": "Last 30 days",
     "date60": "Last 60 days",
-    "date90": "Last 90 days"
+    "date90": "Last 90 days",
+    "export": "Export",
+    "exportCSV": "Download CSV",
+    "exportXLS": "Download Excel (XLS)"
   },
   "contacts": {
     "title": "Leads Chat",
     "search": "Search contact...",
     "empty": "No contacts available",
     "active": "WhatsApp Active",
-    "botIA": "AI Bot",
+    "botIA": "Bot IA",
     "noHistory": "Configure History Webhook in Settings",
     "emptyHistory": "No message history",
     "viewMode": "Viewer mode: Responses must be managed from WhatsApp",
@@ -115,7 +120,6 @@
     "webhookUrl": "Lead View URL (GET)",
     "leadEditUrl": "Lead Edit URL (POST)",
     "historyUrl": "History URL (GET)",
-    "botUrl": "Bot Control URL (POST)",
     "servicesUrl": "View Services URL (GET)",
     "servicesCreateUrl": "Create Service URL (POST)",
     "servicesEditUrl": "Edit Service URL (POST)",
@@ -124,7 +128,6 @@
     "infoCreateUrl": "Create Information URL (POST)",
     "infoEditUrl": "Edit Information URL (POST)",
     "infoDeleteUrl": "Delete Information URL (POST)",
-    "botDesc": "POST Request: { \"whatsapp\": \"...\", \"ESTADO_BOT\": \"1/0\" }",
     "save": "Save and Sync",
     "language": "Language",
     "saved": "Settings saved",

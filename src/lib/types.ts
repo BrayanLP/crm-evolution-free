@@ -1,6 +1,24 @@
 
 export type StageId = 'new' | 'contacted' | 'qualified' | 'converted';
 
+export interface AccountConfig {
+  id: string;
+  name: string;
+  webhookUrl: string;
+  leadEditUrl: string;
+  leadCreateUrl: string;
+  historyWebhookUrl: string;
+  instanceName: string;
+  servicesUrl: string;
+  servicesCreateUrl: string;
+  servicesEditUrl: string;
+  servicesDeleteUrl: string;
+  infoUrl: string;
+  infoCreateUrl: string;
+  infoEditUrl: string;
+  infoDeleteUrl: string;
+}
+
 export interface Lead {
   id: string;
   name: string;

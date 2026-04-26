@@ -36,7 +36,9 @@
       "funnelDesc": "Distribución de leads por etapa",
       "activity": "Actividad Reciente",
       "activityDesc": "Nuevos leads en los últimos 7 días",
-      "health": "Salud del Pipeline"
+      "health": "Salud del Pipeline",
+      "words": "Temas Recurrentes",
+      "wordsDesc": "Palabras más frecuentes en las notas"
     },
     "recentLeads": {
       "title": "Leads Recientes",
@@ -64,7 +66,10 @@
     "dateWeek": "Últimos 7 días",
     "dateMonth": "Últimos 30 días",
     "date60": "Últimos 60 días",
-    "date90": "Últimos 90 días"
+    "date90": "Últimos 90 días",
+    "export": "Exportar",
+    "exportCSV": "Descargar CSV",
+    "exportXLS": "Descargar Excel (XLS)"
   },
   "contacts": {
     "title": "Chat de Leads",
@@ -115,7 +120,6 @@
     "webhookUrl": "URL Visualización Leads (GET)",
     "leadEditUrl": "URL Edición Leads (POST)",
     "historyUrl": "URL de Historial (GET)",
-    "botUrl": "URL Control Bot (POST)",
     "servicesUrl": "URL Ver Servicios (GET)",
     "servicesCreateUrl": "URL Crear Servicios (POST)",
     "servicesEditUrl": "URL Editar Servicios (POST)",
@@ -124,7 +128,6 @@
     "infoCreateUrl": "URL Crear Información (POST)",
     "infoEditUrl": "URL Editar Información (POST)",
     "infoDeleteUrl": "URL Eliminar Información (POST)",
-    "botDesc": "Petición POST: { \"whatsapp\": \"...\", \"ESTADO_BOT\": \"1/0\" }",
     "save": "Guardar y Sincronizar",
     "language": "Idioma",
     "saved": "Configuración guardada",

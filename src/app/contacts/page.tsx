@@ -3,7 +3,7 @@
 
 import { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import { useLeads } from '@/lib/store';
-import { LayoutGrid, Users, Settings, PieChart, Search, MessageSquare, User, History as HistoryIcon, Bot, Briefcase, Info, Filter, Calendar, Menu, ArrowLeft, Image as ImageIcon, ExternalLink } from 'lucide-react';
+import { LayoutGrid, Users, Settings, PieChart, Search, MessageSquare, User, History as HistoryIcon, Bot, Briefcase, Info, Filter, Calendar, Menu, ArrowLeft, Image as ImageIcon, ExternalLink, Smartphone } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Toaster } from '@/components/ui/toaster';
@@ -21,7 +21,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { MobileNav } from '@/components/MobileNav';
 
 export default function ContactsPage() {
-  const { leads, getHistory, historyWebhookUrl, toggleBot, botWebhookUrl } = useLeads();
+  const { leads, getHistory, historyWebhookUrl, toggleBot, leadEditUrl, accounts, activeAccount, setActiveAccountId } = useLeads();
   const { t } = useTranslation();
   const { toast } = useToast();
   
@@ -39,7 +39,6 @@ export default function ContactsPage() {
   const formatDriveUrl = useCallback((url: string, type: 'view' | 'embed' = 'embed') => {
     if (!url) return '';
     if (url.includes('drive.google.com')) {
-      // Extraer el ID de diferentes formatos de URL de Drive
       const match = url.match(/\/d\/([a-zA-Z0-9_-]+)/) || url.match(/id=([a-zA-Z0-9_-]+)/);
       if (match && match[1]) {
         if (type === 'view') {
@@ -118,7 +117,7 @@ export default function ContactsPage() {
   return (
     <div className="flex h-screen bg-background overflow-hidden">
       <aside className="w-64 border-r bg-white hidden md:flex flex-col shadow-sm">
-        <div className="p-6">
+        <div className="p-6 pb-2">
           <div className="flex items-center gap-2 mb-8">
             <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center">
               <LayoutGrid className="text-white h-5 w-5" />
@@ -133,6 +132,24 @@ export default function ContactsPage() {
             <NavItem icon={<Info className="h-5 w-5" />} label={t('nav.info')} href="/info" active={pathname === "/info"} />
           </nav>
         </div>
+
+        {accounts.length > 0 && (
+          <div className="px-6 py-4 border-y bg-slate-50/50">
+             <label className="text-[10px] font-black uppercase text-slate-400 mb-2 block">Cuenta Activa</label>
+             <Select value={activeAccount?.id} onValueChange={setActiveAccountId}>
+               <SelectTrigger className="h-10 bg-white border-slate-200 text-xs font-bold shadow-none">
+                 <Smartphone className="h-3.5 w-3.5 mr-2 text-primary" />
+                 <SelectValue />
+               </SelectTrigger>
+               <SelectContent>
+                 {accounts.map(acc => (
+                   <SelectItem key={acc.id} value={acc.id} className="text-xs font-bold">{acc.name}</SelectItem>
+                 ))}
+               </SelectContent>
+             </Select>
+          </div>
+        )}
+
         <div className="mt-auto p-6 border-t">
           <NavItem icon={<Settings className="h-5 w-5" />} label={t('nav.settings')} href="/settings" active={pathname === "/settings"} />
         </div>
@@ -261,17 +278,31 @@ export default function ContactsPage() {
                   </div>
                 </div>
 
-                {botWebhookUrl && (
-                  <div className="flex items-center gap-2 bg-slate-50 px-3 py-1.5 rounded-full border border-slate-200">
-                    <Bot className={cn("h-4 w-4", isBotActive ? "text-primary" : "text-slate-400")} />
-                    <Switch 
-                      id="bot-mode" 
-                      checked={isBotActive} 
-                      onCheckedChange={handleBotToggle}
-                      className="scale-75 md:scale-90"
-                    />
-                  </div>
-                )}
+                <div className="flex items-center gap-2">
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    asChild 
+                    className="h-8 md:h-9 rounded-full gap-2 border-emerald-200 text-emerald-600 hover:bg-emerald-50 hover:text-emerald-700 font-black text-[10px] md:text-xs uppercase tracking-tight shadow-sm"
+                  >
+                    <a href={`https://wa.me/${selectedLead.phone.replace(/\D/g, '')}`} target="_blank" rel="noopener noreferrer">
+                      <MessageSquare className="h-3.5 w-3.5" />
+                      <span className="hidden sm:inline">WhatsApp</span>
+                    </a>
+                  </Button>
+                  
+                  {leadEditUrl && (
+                    <div className="flex items-center gap-2 bg-slate-50 px-3 py-1.5 rounded-full border border-slate-200">
+                      <Bot className={cn("h-4 w-4", isBotActive ? "text-primary" : "text-slate-400")} />
+                      <Switch 
+                        id="bot-mode" 
+                        checked={isBotActive} 
+                        onCheckedChange={handleBotToggle}
+                        className="scale-75 md:scale-90"
+                      />
+                    </div>
+                  )}
+                </div>
               </div>
 
               <ScrollArea className="flex-1 p-4 md:p-8 bg-[#e5ddd5]/30">
@@ -387,7 +418,7 @@ function NavItem({ icon, label, href, active = false }: { icon: React.ReactNode,
     <Link 
       href={href} 
       className={cn(
-        "w-full justify-start gap-3 px-4 py-6 text-base font-medium transition-all duration-200 flex items-center",
+        "w-full justify-start gap-3 px-4 py-2.5 text-sm font-medium transition-all duration-200 flex items-center rounded-md",
         active ? "bg-primary/5 text-primary shadow-sm hover:bg-primary/10" : "text-slate-500 hover:text-primary hover:bg-primary/5"
       )}
     >

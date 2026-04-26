@@ -1,20 +1,23 @@
 
 "use client"
 
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { KanbanBoard } from '@/components/KanbanBoard';
-import { LayoutGrid, Users, Settings, PieChart, Search, Briefcase, Info, Filter, Calendar, Eye, EyeOff } from 'lucide-react';
+import { LayoutGrid, Users, Settings, PieChart, Search, Briefcase, Info, Filter, Calendar, Eye, EyeOff, Smartphone, Download, FileSpreadsheet, FileText } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Toaster } from '@/components/ui/toaster';
 import { cn } from '@/lib/utils';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import { useLeads } from '@/lib/store';
 import { useTranslation } from '@/context/LanguageContext';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { MobileNav } from '@/components/MobileNav';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 
 export default function LeadsPage() {
+  const { accounts, activeAccount, setActiveAccountId, leads } = useLeads();
   const { t } = useTranslation();
   const pathname = usePathname();
   const [searchQuery, setSearchQuery] = useState('');
@@ -22,10 +25,80 @@ export default function LeadsPage() {
   const [dateFilter, setDateFilter] = useState<'all' | 'today' | 'week' | 'month' | '60days' | '90days'>('all');
   const [showAmounts, setShowAmounts] = useState(true);
 
+  const filteredLeadsForExport = useMemo(() => {
+    return leads.filter(lead => {
+      const q = searchQuery.toLowerCase();
+      const matchesSearch = 
+        lead.contactName.toLowerCase().includes(q) ||
+        lead.phone.includes(q) ||
+        (lead.email && lead.email.toLowerCase().includes(q));
+      
+      const matchesBot = 
+        botFilter === 'all' || 
+        (botFilter === 'active' && lead.botActive !== false) || 
+        (botFilter === 'inactive' && lead.botActive === false);
+
+      let matchesDate = true;
+      if (dateFilter !== 'all') {
+        const leadDate = new Date(lead.updatedAt);
+        const now = new Date();
+        if (dateFilter === 'today') matchesDate = leadDate.toDateString() === now.toDateString();
+        else if (dateFilter === 'week') { const d = new Date(); d.setDate(now.getDate() - 7); matchesDate = leadDate >= d; }
+        else if (dateFilter === 'month') { const d = new Date(); d.setDate(now.getDate() - 30); matchesDate = leadDate >= d; }
+        else if (dateFilter === '60days') { const d = new Date(); d.setDate(now.getDate() - 60); matchesDate = leadDate >= d; }
+        else if (dateFilter === '90days') { const d = new Date(); d.setDate(now.getDate() - 90); matchesDate = leadDate >= d; }
+      }
+
+      return matchesSearch && matchesBot && matchesDate;
+    });
+  }, [leads, searchQuery, botFilter, dateFilter]);
+
+  const exportLeads = (format: 'csv' | 'xls') => {
+    const headers = [
+      t('leadDialog.contact'),
+      t('leadDialog.phone'),
+      t('leadDialog.email'),
+      t('leadDialog.company'),
+      t('leadDialog.stage'),
+      t('leadDialog.budget'),
+      t('leadDialog.notes'),
+      'Fecha'
+    ];
+
+    const rows = filteredLeadsForExport.map(l => [
+      l.contactName,
+      l.phone,
+      l.email || '',
+      l.company,
+      t(`stages.${l.stage}`),
+      l.budget || 0,
+      l.notes.replace(/\n/g, ' '),
+      new Date(l.updatedAt).toLocaleDateString()
+    ]);
+
+    const separator = format === 'csv' ? ',' : '\t';
+    const content = [headers, ...rows]
+      .map(row => row.map(cell => `"${cell}"`).join(separator))
+      .join('\n');
+
+    const blob = new Blob([content], { 
+      type: format === 'csv' ? 'text/csv;charset=utf-8;' : 'application/vnd.ms-excel;charset=utf-8;' 
+    });
+    
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.setAttribute('href', url);
+    link.setAttribute('download', `leads-${activeAccount?.name || 'export'}-${new Date().toISOString().split('T')[0]}.${format === 'csv' ? 'csv' : 'xls'}`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+  };
+
   return (
     <div className="flex h-screen bg-background overflow-hidden">
       <aside className="w-64 border-r bg-white hidden md:flex flex-col shadow-sm">
-        <div className="p-6">
+        <div className="p-6 pb-2">
           <div className="flex items-center gap-2 mb-8">
             <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center">
               <LayoutGrid className="text-white h-5 w-5" />
@@ -41,6 +114,23 @@ export default function LeadsPage() {
             <NavItem icon={<Info className="h-5 w-5" />} label={t('nav.info')} href="/info" active={pathname === "/info"} />
           </nav>
         </div>
+
+        {accounts.length > 0 && (
+          <div className="px-6 py-4 border-y bg-slate-50/50">
+             <label className="text-[10px] font-black uppercase text-slate-400 mb-2 block">Cuenta Activa</label>
+             <Select value={activeAccount?.id} onValueChange={setActiveAccountId}>
+               <SelectTrigger className="h-10 bg-white border-slate-200 text-xs font-bold shadow-none">
+                 <Smartphone className="h-3.5 w-3.5 mr-2 text-primary" />
+                 <SelectValue />
+               </SelectTrigger>
+               <SelectContent>
+                 {accounts.map(acc => (
+                   <SelectItem key={acc.id} value={acc.id} className="text-xs font-bold">{acc.name}</SelectItem>
+                 ))}
+               </SelectContent>
+             </Select>
+          </div>
+        )}
 
         <div className="mt-auto p-6 border-t">
           <NavItem 
@@ -74,6 +164,28 @@ export default function LeadsPage() {
             >
               {showAmounts ? <Eye className="h-5 w-5" /> : <EyeOff className="h-5 w-5" />}
             </Button>
+
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button
+                  variant="outline"
+                  size="icon"
+                  className="h-10 w-10 text-slate-500 hover:text-primary transition-colors flex-shrink-0 ml-2"
+                >
+                  <Download className="h-5 w-5" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-56">
+                <DropdownMenuItem onClick={() => exportLeads('csv')} className="cursor-pointer gap-2 py-3">
+                  <FileText className="h-4 w-4 text-slate-500" />
+                  <span className="font-bold text-xs uppercase tracking-tight">{t('leads.exportCSV')}</span>
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => exportLeads('xls')} className="cursor-pointer gap-2 py-3">
+                  <FileSpreadsheet className="h-4 w-4 text-emerald-500" />
+                  <span className="font-bold text-xs uppercase tracking-tight">{t('leads.exportXLS')}</span>
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
 
           <div className="flex items-center gap-2 w-full md:w-auto overflow-x-auto pb-2 md:pb-0">
@@ -138,7 +250,7 @@ function NavItem({
     <Link 
       href={href} 
       className={cn(
-        "w-full justify-start gap-3 px-4 py-6 text-base font-medium transition-all duration-200 flex items-center",
+        "w-full justify-start gap-3 px-4 py-2.5 text-sm font-medium transition-all duration-200 flex items-center rounded-md",
         active ? "bg-primary/5 text-primary shadow-sm hover:bg-primary/10" : "text-slate-500 hover:text-primary hover:bg-primary/5"
       )}
     >

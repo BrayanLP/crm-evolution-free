@@ -8,72 +8,86 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { 
   Webhook, Save, Smartphone, History, Bot, Download, Upload, 
-  FileJson, Languages, Briefcase, LayoutGrid, Users, Settings as SettingsIcon, PieChart, Info
+  Languages, Briefcase, LayoutGrid, Users, Settings as SettingsIcon, PieChart, Info, Plus, Trash2, FileJson
 } from 'lucide-react';
 import { useLeads } from '@/lib/store';
 import { useToast } from '@/hooks/use-toast';
 import { useTranslation } from '@/context/LanguageContext';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Toaster } from '@/components/ui/toaster';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { cn } from '@/lib/utils';
 import { MobileNav } from '@/components/MobileNav';
+import type { AccountConfig } from '@/lib/types';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 
 export default function SettingsPage() {
-  const { 
-    webhookUrl, leadEditUrl, historyWebhookUrl, botWebhookUrl, instanceName, 
-    servicesUrl, servicesCreateUrl, servicesEditUrl, servicesDeleteUrl,
-    infoUrl, infoCreateUrl, infoEditUrl, infoDeleteUrl,
-    updateSettings 
-  } = useLeads();
+  const { accounts, activeAccount, updateSettings, isLoaded, setActiveAccountId } = useLeads();
   const { t, language, setLanguage } = useTranslation();
   const { toast } = useToast();
   const pathname = usePathname();
   const fileInputRef = useRef<HTMLInputElement>(null);
   
-  const [formData, setFormData] = useState({
-    webhookUrl: '',
-    leadEditUrl: '',
-    historyWebhookUrl: '',
-    botWebhookUrl: '',
-    instanceName: 'HALCONDIGITAL',
-    servicesUrl: '',
-    servicesCreateUrl: '',
-    servicesEditUrl: '',
-    servicesDeleteUrl: '',
-    infoUrl: '',
-    infoCreateUrl: '',
-    infoEditUrl: '',
-    infoDeleteUrl: ''
-  });
+  const [localAccounts, setLocalAccounts] = useState<AccountConfig[]>([]);
+  const [activeId, setActiveId] = useState<string>('');
 
   useEffect(() => {
-    setFormData({
-      webhookUrl: webhookUrl || '',
-      leadEditUrl: leadEditUrl || '',
-      historyWebhookUrl: historyWebhookUrl || '',
-      botWebhookUrl: botWebhookUrl || '',
-      instanceName: instanceName || 'HALCONDIGITAL',
-      servicesUrl: servicesUrl || '',
-      servicesCreateUrl: servicesCreateUrl || '',
-      servicesEditUrl: servicesEditUrl || '',
-      servicesDeleteUrl: servicesDeleteUrl || '',
-      infoUrl: infoUrl || '',
-      infoCreateUrl: infoCreateUrl || '',
-      infoEditUrl: infoEditUrl || '',
-      infoDeleteUrl: infoDeleteUrl || ''
+    if (isLoaded) {
+      setLocalAccounts(accounts);
+      setActiveId(activeAccount?.id || '');
+    }
+  }, [accounts, activeAccount, isLoaded]);
+
+  const handleAddAccount = () => {
+    const newId = Math.random().toString(36).substr(2, 9);
+    const newAccount: AccountConfig = {
+      id: newId,
+      name: 'Nueva Cuenta',
+      instanceName: 'HALCONDIGITAL',
+      webhookUrl: '',
+      leadEditUrl: '',
+      leadCreateUrl: '',
+      historyWebhookUrl: '',
+      servicesUrl: '',
+      servicesCreateUrl: '',
+      servicesEditUrl: '',
+      servicesDeleteUrl: '',
+      infoUrl: '',
+      infoCreateUrl: '',
+      infoEditUrl: '',
+      infoDeleteUrl: ''
+    };
+    setLocalAccounts([...localAccounts, newAccount]);
+    setActiveId(newId);
+  };
+
+  const handleRemoveAccount = (id: string) => {
+    const filtered = localAccounts.filter(a => a.id !== id);
+    setLocalAccounts(filtered);
+    if (activeId === id) {
+      setActiveId(filtered.length > 0 ? filtered[0].id : '');
+    }
+    
+    updateSettings(filtered, filtered.length > 0 ? (activeId === id ? filtered[0].id : activeId) : '');
+    
+    toast({
+      title: "Cuenta eliminada",
+      description: "La configuración ha sido removida.",
+      variant: "destructive",
     });
-  }, [
-    webhookUrl, leadEditUrl, historyWebhookUrl, botWebhookUrl, instanceName, 
-    servicesUrl, servicesCreateUrl, servicesEditUrl, servicesDeleteUrl,
-    infoUrl, infoCreateUrl, infoEditUrl, infoDeleteUrl
-  ]);
+  };
+
+  const handleUpdateAccount = (id: string, updates: Partial<AccountConfig>) => {
+    setLocalAccounts(prev => prev.map(a => a.id === id ? { ...a, ...updates } : a));
+  };
+
+  const currentLocalAccount = localAccounts.find(a => a.id === activeId);
 
   const handleSave = (e?: React.FormEvent) => {
     e?.preventDefault();
-    updateSettings({ ...formData, language });
+    updateSettings(localAccounts, activeId);
     toast({
       title: t('settings.saved'),
       description: t('settings.savedDesc'),
@@ -81,13 +95,23 @@ export default function SettingsPage() {
     });
   };
 
-  const exportConfig = () => {
-    const config = { ...formData, language: language };
-    const blob = new Blob([JSON.stringify(config, null, 2)], { type: 'application/json' });
+  const exportAllConfig = () => {
+    const config = { accounts: localAccounts, activeAccountId: activeId, language };
+    downloadJson(config, `leadflow-full-config-${new Date().toISOString().split('T')[0]}.json`);
+  };
+
+  const exportSingleAccount = () => {
+    if (!currentLocalAccount) return;
+    const config = { account: currentLocalAccount, language };
+    downloadJson(config, `leadflow-${currentLocalAccount.name.toLowerCase().replace(/\s+/g, '-')}-config.json`);
+  };
+
+  const downloadJson = (data: any, filename: string) => {
+    const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
     const href = URL.createObjectURL(blob);
     const link = document.createElement('a');
     link.href = href;
-    link.download = `leadflow-config-${new Date().toISOString().split('T')[0]}.json`;
+    link.download = filename;
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
@@ -101,22 +125,22 @@ export default function SettingsPage() {
     reader.onload = (event) => {
       try {
         const json = JSON.parse(event.target?.result as string);
-        setFormData({
-          webhookUrl: json.webhookUrl || '',
-          leadEditUrl: json.leadEditUrl || '',
-          historyWebhookUrl: json.historyWebhookUrl || '',
-          botWebhookUrl: json.botWebhookUrl || '',
-          instanceName: json.instanceName || 'HALCONDIGITAL',
-          servicesUrl: json.servicesUrl || '',
-          servicesCreateUrl: json.servicesCreateUrl || '',
-          servicesEditUrl: json.servicesEditUrl || '',
-          servicesDeleteUrl: json.servicesDeleteUrl || '',
-          infoUrl: json.infoUrl || '',
-          infoCreateUrl: json.infoCreateUrl || '',
-          infoEditUrl: json.infoEditUrl || '',
-          infoDeleteUrl: json.infoDeleteUrl || ''
-        });
+        if (json.accounts) {
+          setLocalAccounts(json.accounts);
+          setActiveId(json.activeAccountId || json.accounts[0].id);
+        } else if (json.account) {
+          const updated = [...localAccounts, json.account];
+          setLocalAccounts(updated);
+          setActiveId(json.account.id);
+        } else {
+          const migratedId = Math.random().toString(36).substr(2, 9);
+          const newAcc = { ...json, id: migratedId, name: json.instanceName || 'Cuenta Importada' };
+          setLocalAccounts([...localAccounts, newAcc]);
+          setActiveId(migratedId);
+        }
+        
         if (json.language) setLanguage(json.language);
+        
         toast({
           title: t('settings.imported'),
           description: t('settings.importedDesc'),
@@ -134,10 +158,12 @@ export default function SettingsPage() {
     if (fileInputRef.current) fileInputRef.current.value = '';
   };
 
+  if (!isLoaded) return null;
+
   return (
     <div className="flex h-screen bg-background overflow-hidden">
       <aside className="w-64 border-r bg-white hidden md:flex flex-col shadow-sm">
-        <div className="p-6">
+        <div className="p-6 pb-2">
           <div className="flex items-center gap-2 mb-8">
             <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center">
               <LayoutGrid className="text-white h-5 w-5" />
@@ -152,13 +178,31 @@ export default function SettingsPage() {
             <NavItem icon={<Info className="h-5 w-5" />} label={t('nav.info')} href="/info" active={pathname === "/info"} />
           </nav>
         </div>
+
+        {accounts.length > 0 && (
+          <div className="px-6 py-4 border-y bg-slate-50/50">
+             <label className="text-[10px] font-black uppercase text-slate-400 mb-2 block">Cuenta Activa</label>
+             <Select value={activeAccount?.id} onValueChange={setActiveAccountId}>
+               <SelectTrigger className="h-10 bg-white border-slate-200 text-xs font-bold shadow-none">
+                 <Smartphone className="h-3.5 w-3.5 mr-2 text-primary" />
+                 <SelectValue />
+               </SelectTrigger>
+               <SelectContent>
+                 {accounts.map(acc => (
+                   <SelectItem key={acc.id} value={acc.id} className="text-xs font-bold">{acc.name}</SelectItem>
+                 ))}
+               </SelectContent>
+             </Select>
+          </div>
+        )}
+
         <div className="mt-auto p-6 border-t">
           <NavItem icon={<SettingsIcon className="h-5 w-5" />} label={t('nav.settings')} href="/settings" active={pathname === "/settings"} />
         </div>
       </aside>
 
       <main className="flex-1 overflow-y-auto p-4 md:p-8 bg-slate-50">
-        <div className="max-w-4xl mx-auto space-y-8">
+        <div className="max-w-4xl mx-auto space-y-8 pb-20">
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
             <div className="flex items-center">
               <MobileNav />
@@ -171,211 +215,294 @@ export default function SettingsPage() {
               </div>
             </div>
             <div className="flex gap-2">
-              <Button variant="outline" size="sm" className="gap-2 flex-1 md:flex-none" onClick={exportConfig}>
+              <Button variant="outline" size="sm" className="gap-2 flex-1 md:flex-none" onClick={exportAllConfig}>
                 <Download className="h-4 w-4" />
-                <span className="hidden sm:inline">{t('settings.export')}</span>
+                <span className="hidden sm:inline">Exportar Todo</span>
               </Button>
               <Button variant="outline" size="sm" className="gap-2 flex-1 md:flex-none" onClick={() => fileInputRef.current?.click()}>
                 <Upload className="h-4 w-4" />
-                <span className="hidden sm:inline">{t('settings.import')}</span>
+                <span className="hidden sm:inline">Importar</span>
               </Button>
               <input type="file" ref={fileInputRef} className="hidden" accept=".json" onChange={importConfig} />
             </div>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            <div className="md:col-span-2 space-y-6">
-              <Card className="shadow-sm border-slate-200">
-                <CardHeader>
-                  <CardTitle className="text-lg flex items-center gap-2">
-                    <Webhook className="h-5 w-5 text-primary" />
-                    Webhooks de Leads
-                  </CardTitle>
+            <div className="md:col-span-1 space-y-4">
+              <Card className="shadow-sm border-slate-200 overflow-hidden">
+                <CardHeader className="p-4 bg-white border-b">
+                  <div className="flex items-center justify-between">
+                    <CardTitle className="text-xs font-black uppercase text-slate-500">Mis Cuentas</CardTitle>
+                    <Button variant="ghost" size="icon" className="h-7 w-7 text-primary" onClick={handleAddAccount}>
+                      <Plus className="h-4 w-4" />
+                    </Button>
+                  </div>
                 </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="space-y-2">
-                    <Label className="text-sm font-semibold flex items-center gap-2">
-                      <FileJson className="h-4 w-4" />
-                      {t('settings.webhookUrl')}
-                    </Label>
-                    <Input
-                      value={formData.webhookUrl}
-                      onChange={(e) => setFormData({ ...formData, webhookUrl: e.target.value })}
-                      placeholder="https://.../ver/lead"
-                    />
-                  </div>
-                  
-                  <div className="space-y-2">
-                    <Label className="text-sm font-semibold flex items-center gap-2">
-                      <Save className="h-4 w-4" />
-                      {t('settings.leadEditUrl')}
-                    </Label>
-                    <Input
-                      value={formData.leadEditUrl}
-                      onChange={(e) => setFormData({ ...formData, leadEditUrl: e.target.value })}
-                      placeholder="https://.../editar/lead"
-                    />
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label className="text-sm font-semibold flex items-center gap-2">
-                      <History className="h-4 w-4" />
-                      {t('settings.historyUrl')}
-                    </Label>
-                    <Input
-                      value={formData.historyWebhookUrl}
-                      onChange={(e) => setFormData({ ...formData, historyWebhookUrl: e.target.value })}
-                      placeholder="https://..."
-                    />
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label className="text-sm font-semibold flex items-center gap-2">
-                      <Bot className="h-4 w-4" />
-                      {t('settings.botUrl')}
-                    </Label>
-                    <Input
-                      value={formData.botWebhookUrl}
-                      onChange={(e) => setFormData({ ...formData, botWebhookUrl: e.target.value })}
-                      placeholder="https://..."
-                    />
-                  </div>
+                <CardContent className="p-2 space-y-1 bg-slate-50/30">
+                  {localAccounts.map((acc) => (
+                    <div 
+                      key={acc.id}
+                      onClick={() => setActiveId(acc.id)}
+                      className={cn(
+                        "p-3 rounded-lg cursor-pointer flex items-center justify-between transition-all border border-transparent group",
+                        activeId === acc.id ? "bg-white border-primary/20 shadow-sm" : "hover:bg-white/50"
+                      )}
+                    >
+                      <div className="flex items-center gap-2 min-w-0">
+                        <div className={cn("w-2 h-2 rounded-full", activeId === acc.id ? "bg-primary animate-pulse" : "bg-slate-300")} />
+                        <span className={cn("text-xs font-bold truncate", activeId === acc.id ? "text-primary" : "text-slate-600")}>
+                          {acc.name}
+                        </span>
+                      </div>
+                      
+                      <AlertDialog>
+                        <AlertDialogTrigger asChild>
+                          <Button 
+                            variant="ghost" 
+                            size="icon" 
+                            className="h-7 w-7 text-slate-400 hover:text-destructive opacity-0 group-hover:opacity-100 transition-opacity" 
+                            onClick={(e) => e.stopPropagation()}
+                          >
+                            <Trash2 className="h-3.5 w-3.5" />
+                          </Button>
+                        </AlertDialogTrigger>
+                        <AlertDialogContent className="w-[90%] rounded-xl">
+                          <AlertDialogHeader>
+                            <AlertDialogTitle>¿Eliminar cuenta?</AlertDialogTitle>
+                            <AlertDialogDescription>
+                              Esta acción eliminará la configuración de "{acc.name}". No afectará los datos en el servidor de n8n.
+                            </AlertDialogDescription>
+                          </AlertDialogHeader>
+                          <AlertDialogFooter>
+                            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                            <AlertDialogAction onClick={() => handleRemoveAccount(acc.id)} className="bg-destructive text-white hover:bg-destructive/90">
+                              Eliminar
+                            </AlertDialogAction>
+                          </AlertDialogFooter>
+                        </AlertDialogContent>
+                      </AlertDialog>
+                    </div>
+                  ))}
+                  {localAccounts.length === 0 && (
+                    <div className="p-8 text-center opacity-30 italic text-[10px]">Sin cuentas registradas</div>
+                  )}
                 </CardContent>
               </Card>
 
               <Card className="shadow-sm border-slate-200">
-                <CardHeader>
-                  <CardTitle className="text-lg flex items-center gap-2">
-                    <Briefcase className="h-5 w-5 text-primary" />
-                    Webhooks de Servicios
-                  </CardTitle>
+                <CardHeader className="p-4 bg-white border-b">
+                  <CardTitle className="text-xs font-black uppercase text-slate-500">{t('settings.language')}</CardTitle>
                 </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <Label className="text-xs font-medium">{t('settings.servicesUrl')}</Label>
-                      <Input
-                        value={formData.servicesUrl}
-                        onChange={(e) => setFormData({ ...formData, servicesUrl: e.target.value })}
-                        placeholder="https://.../ver/servicios"
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label className="text-xs font-medium">{t('settings.servicesCreateUrl')}</Label>
-                      <Input
-                        value={formData.servicesCreateUrl}
-                        onChange={(e) => setFormData({ ...formData, servicesCreateUrl: e.target.value })}
-                        placeholder="https://.../crear/servicios"
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label className="text-xs font-medium">{t('settings.servicesEditUrl')}</Label>
-                      <Input
-                        value={formData.servicesEditUrl}
-                        onChange={(e) => setFormData({ ...formData, servicesEditUrl: e.target.value })}
-                        placeholder="https://.../editar/servicios"
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label className="text-xs font-medium">{t('settings.servicesDeleteUrl')}</Label>
-                      <Input
-                        value={formData.servicesDeleteUrl}
-                        onChange={(e) => setFormData({ ...formData, servicesDeleteUrl: e.target.value })}
-                        placeholder="https://.../eliminar/servicios"
-                      />
-                    </div>
-                  </div>
+                <CardContent className="p-4 space-y-4">
+                  <Select value={language} onValueChange={(val: any) => setLanguage(val)}>
+                    <SelectTrigger className="h-10 text-xs font-bold"><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="es" className="text-xs">Español</SelectItem>
+                      <SelectItem value="en" className="text-xs">English</SelectItem>
+                    </SelectContent>
+                  </Select>
                 </CardContent>
               </Card>
-
-              <Card className="shadow-sm border-slate-200">
-                <CardHeader>
-                  <CardTitle className="text-lg flex items-center gap-2">
-                    <Info className="h-5 w-5 text-primary" />
-                    Webhooks de Información
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <Label className="text-xs font-medium">{t('settings.infoUrl')}</Label>
-                      <Input
-                        value={formData.infoUrl}
-                        onChange={(e) => setFormData({ ...formData, infoUrl: e.target.value })}
-                        placeholder="https://.../ver/info"
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label className="text-xs font-medium">{t('settings.infoCreateUrl')}</Label>
-                      <Input
-                        value={formData.infoCreateUrl}
-                        onChange={(e) => setFormData({ ...formData, infoCreateUrl: e.target.value })}
-                        placeholder="https://.../crear/info"
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label className="text-xs font-medium">{t('settings.infoEditUrl')}</Label>
-                      <Input
-                        value={formData.infoEditUrl}
-                        onChange={(e) => setFormData({ ...formData, infoEditUrl: e.target.value })}
-                        placeholder="https://.../editar/info"
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label className="text-xs font-medium">{t('settings.infoDeleteUrl')}</Label>
-                      <Input
-                        value={formData.infoDeleteUrl}
-                        onChange={(e) => setFormData({ ...formData, infoDeleteUrl: e.target.value })}
-                        placeholder="https://.../eliminar/info"
-                      />
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
-
-            <div className="space-y-6">
-              <Card className="shadow-sm border-slate-200">
-                <CardHeader>
-                  <CardTitle className="text-lg flex items-center gap-2">
-                    <Smartphone className="h-5 w-5 text-primary" />
-                    Instancia e Idioma
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="space-y-2">
-                    <Label className="text-sm font-semibold flex items-center gap-2">
-                      <Languages className="h-4 w-4" />
-                      {t('settings.language')}
-                    </Label>
-                    <Select value={language} onValueChange={(val: any) => setLanguage(val)}>
-                      <SelectTrigger><SelectValue /></SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="es">Español</SelectItem>
-                        <SelectItem value="en">English</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div className="space-y-2">
-                    <Label className="text-sm font-semibold flex items-center gap-2">
-                      <Smartphone className="h-4 w-4" />
-                      {t('settings.instanceName')}
-                    </Label>
-                    <Input
-                      value={formData.instanceName}
-                      onChange={(e) => setFormData({ ...formData, instanceName: e.target.value })}
-                      placeholder="ej. HALCONDIGITAL"
-                    />
-                  </div>
-                </CardContent>
-              </Card>
-
-              <div className="pt-4 sticky top-8">
-                <Button onClick={handleSave} className="w-full h-12 bg-primary hover:bg-primary/90 gap-2 text-lg shadow-lg">
+              
+              <div className="pt-4 sticky top-8 space-y-2">
+                <Button onClick={handleSave} className="w-full h-12 bg-primary hover:bg-primary/90 gap-2 text-base font-black uppercase tracking-tight shadow-lg">
                   <Save className="h-5 w-5" />
                   {t('settings.save')}
                 </Button>
+                {localAccounts.length === 0 && (
+                  <p className="text-[10px] text-destructive font-bold text-center animate-pulse">
+                    Debes configurar al menos una cuenta para navegar.
+                  </p>
+                )}
               </div>
+            </div>
+
+            <div className="md:col-span-2 space-y-6">
+              {currentLocalAccount ? (
+                <>
+                  <div className="flex justify-end mb-2">
+                    <Button variant="outline" size="xs" onClick={exportSingleAccount} className="h-7 text-[10px] font-black uppercase gap-1.5 border-primary/20 text-primary bg-primary/5 hover:bg-primary/10 transition-colors">
+                      <FileJson className="h-3 w-3" />
+                      Exportar solo esta cuenta
+                    </Button>
+                  </div>
+
+                  <Card className="shadow-sm border-slate-200 overflow-hidden">
+                    <CardHeader className="bg-white border-b p-4">
+                      <CardTitle className="text-base font-black flex items-center gap-2 text-slate-800">
+                        <Smartphone className="h-5 w-5 text-primary" />
+                        Detalles de Cuenta
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-4 p-6">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div className="space-y-2">
+                          <Label className="text-[10px] font-black uppercase text-slate-400">Nombre Visual</Label>
+                          <Input
+                            value={currentLocalAccount.name}
+                            onChange={(e) => handleUpdateAccount(currentLocalAccount.id, { name: e.target.value })}
+                            placeholder="Ej. Mi Tienda WhatsApp"
+                            className="h-10 text-xs font-bold"
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <Label className="text-[10px] font-black uppercase text-slate-400">Instancia Evolution</Label>
+                          <Input
+                            value={currentLocalAccount.instanceName}
+                            onChange={(e) => handleUpdateAccount(currentLocalAccount.id, { instanceName: e.target.value })}
+                            placeholder="Ej. HALCONDIGITAL"
+                            className="h-10 text-xs font-bold"
+                          />
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+
+                  <Card className="shadow-sm border-slate-200 overflow-hidden">
+                    <CardHeader className="bg-white border-b p-4">
+                      <CardTitle className="text-base font-black flex items-center gap-2 text-slate-800">
+                        <Webhook className="h-5 w-5 text-primary" />
+                        Webhooks de Leads
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-4 p-6">
+                      <div className="space-y-2">
+                        <Label className="text-[10px] font-black uppercase text-slate-400">{t('settings.webhookUrl')}</Label>
+                        <Input
+                          value={currentLocalAccount.webhookUrl}
+                          onChange={(e) => handleUpdateAccount(currentLocalAccount.id, { webhookUrl: e.target.value })}
+                          placeholder="https://.../get/leads"
+                          className="h-10 text-xs font-medium"
+                        />
+                      </div>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div className="space-y-2">
+                          <Label className="text-[10px] font-black uppercase text-slate-400">URL Creación Leads (POST)</Label>
+                          <Input
+                            value={currentLocalAccount.leadCreateUrl}
+                            onChange={(e) => handleUpdateAccount(currentLocalAccount.id, { leadCreateUrl: e.target.value })}
+                            placeholder="https://.../post/create-lead"
+                            className="h-10 text-xs font-medium"
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <Label className="text-[10px] font-black uppercase text-slate-400">URL Edición Leads (POST)</Label>
+                          <Input
+                            value={currentLocalAccount.leadEditUrl}
+                            onChange={(e) => handleUpdateAccount(currentLocalAccount.id, { leadEditUrl: e.target.value })}
+                            placeholder="https://.../post/edit-lead"
+                            className="h-10 text-xs font-medium"
+                          />
+                        </div>
+                      </div>
+                      <div className="space-y-2">
+                        <Label className="text-[10px] font-black uppercase text-slate-400">{t('settings.historyUrl')}</Label>
+                        <Input
+                          value={currentLocalAccount.historyWebhookUrl}
+                          onChange={(e) => handleUpdateAccount(currentLocalAccount.id, { historyWebhookUrl: e.target.value })}
+                          placeholder="https://.../get/history"
+                          className="h-10 text-xs font-medium"
+                        />
+                      </div>
+                    </CardContent>
+                  </Card>
+
+                  <Card className="shadow-sm border-slate-200 overflow-hidden">
+                    <CardHeader className="bg-white border-b p-4">
+                      <CardTitle className="text-base font-black flex items-center gap-2 text-slate-800">
+                        <Briefcase className="h-5 w-5 text-primary" />
+                        Webhooks de Servicios
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-4 p-6">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div className="space-y-2">
+                          <Label className="text-[10px] font-black uppercase text-slate-400">Ver Servicios</Label>
+                          <Input
+                            value={currentLocalAccount.servicesUrl}
+                            onChange={(e) => handleUpdateAccount(currentLocalAccount.id, { servicesUrl: e.target.value })}
+                            className="h-9 text-xs"
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <Label className="text-[10px] font-black uppercase text-slate-400">Crear Servicio</Label>
+                          <Input
+                            value={currentLocalAccount.servicesCreateUrl}
+                            onChange={(e) => handleUpdateAccount(currentLocalAccount.id, { servicesCreateUrl: e.target.value })}
+                            className="h-9 text-xs"
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <Label className="text-[10px] font-black uppercase text-slate-400">Editar Servicio</Label>
+                          <Input
+                            value={currentLocalAccount.servicesEditUrl}
+                            onChange={(e) => handleUpdateAccount(currentLocalAccount.id, { servicesEditUrl: e.target.value })}
+                            className="h-9 text-xs"
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <Label className="text-[10px] font-black uppercase text-slate-400">Eliminar Servicio</Label>
+                          <Input
+                            value={currentLocalAccount.servicesDeleteUrl}
+                            onChange={(e) => handleUpdateAccount(currentLocalAccount.id, { servicesDeleteUrl: e.target.value })}
+                            className="h-9 text-xs"
+                          />
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+
+                  <Card className="shadow-sm border-slate-200 overflow-hidden">
+                    <CardHeader className="bg-white border-b p-4">
+                      <CardTitle className="text-base font-black flex items-center gap-2 text-slate-800">
+                        <Info className="h-5 w-5 text-primary" />
+                        Webhooks de Información
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-4 p-6">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div className="space-y-2">
+                          <Label className="text-[10px] font-black uppercase text-slate-400">Ver Información</Label>
+                          <Input
+                            value={currentLocalAccount.infoUrl}
+                            onChange={(e) => handleUpdateAccount(currentLocalAccount.id, { infoUrl: e.target.value })}
+                            className="h-9 text-xs"
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <Label className="text-[10px] font-black uppercase text-slate-400">Crear Info</Label>
+                          <Input
+                            value={currentLocalAccount.infoCreateUrl}
+                            onChange={(e) => handleUpdateAccount(currentLocalAccount.id, { infoCreateUrl: e.target.value })}
+                            className="h-9 text-xs"
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <Label className="text-[10px] font-black uppercase text-slate-400">Editar Info</Label>
+                          <Input
+                            value={currentLocalAccount.infoEditUrl}
+                            onChange={(e) => handleUpdateAccount(currentLocalAccount.id, { infoEditUrl: e.target.value })}
+                            className="h-9 text-xs"
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <Label className="text-[10px] font-black uppercase text-slate-400">Eliminar Info</Label>
+                          <Input
+                            value={currentLocalAccount.infoDeleteUrl}
+                            onChange={(e) => handleUpdateAccount(currentLocalAccount.id, { infoDeleteUrl: e.target.value })}
+                            className="h-9 text-xs"
+                          />
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                </>
+              ) : (
+                <div className="h-[400px] flex flex-col items-center justify-center text-slate-400 font-black uppercase italic border-2 border-dashed border-slate-200 rounded-2xl bg-white/50">
+                  <Plus className="h-10 w-10 mb-4 opacity-20" />
+                  Selecciona o crea una cuenta
+                </div>
+              )}
             </div>
           </div>
         </div>
@@ -390,7 +517,7 @@ function NavItem({ icon, label, href, active = false }: { icon: React.ReactNode,
     <Link 
       href={href} 
       className={cn(
-        "w-full justify-start gap-3 px-4 py-6 text-base font-medium transition-all duration-200 flex items-center",
+        "w-full justify-start gap-3 px-4 py-2.5 text-sm font-medium transition-all duration-200 flex items-center rounded-md",
         active ? "bg-primary/5 text-primary shadow-sm hover:bg-primary/10" : "text-slate-500 hover:text-primary hover:bg-primary/5"
       )}
     >

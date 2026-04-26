@@ -2,6 +2,7 @@
 import type {Metadata} from 'next';
 import './globals.css';
 import { LanguageProvider } from '@/context/LanguageContext';
+import { LeadsProvider } from '@/lib/store';
 
 export const metadata: Metadata = {
   title: 'LeadFlow CRM - Gestión de Leads Profesional',
@@ -21,9 +22,11 @@ export default function RootLayout({
         <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
       </head>
       <body className="font-body antialiased" suppressHydrationWarning>
-        <LanguageProvider>
-          {children}
-        </LanguageProvider>
+        <LeadsProvider>
+          <LanguageProvider>
+            {children}
+          </LanguageProvider>
+        </LeadsProvider>
       </body>
     </html>
   );
